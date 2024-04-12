@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "acorn_go",
+			"path": "acorn_go"
+		}
+	],
+	"settings": {}
+}
