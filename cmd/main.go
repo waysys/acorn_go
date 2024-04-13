@@ -9,42 +9,66 @@
 //
 // ----------------------------------------------------------------------------
 
+// This package processes donation information based on the payment transactons
+// from a spreadsheet obtain from QuickBooks.  The package will then output
+// the results in another spreadsheet.
 package main
+
+// ----------------------------------------------------------------------------
+// Imports
+// ----------------------------------------------------------------------------
 
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/xuri/excelize/v2"
 )
 
+// ----------------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// Constants
+// ----------------------------------------------------------------------------
+
+const inputFile = "/home/bozo/golang/acorn_go/data/register.xlsx"
+const tab = "Worksheet"
+
+// ----------------------------------------------------------------------------
+// Functions
+// ----------------------------------------------------------------------------
+
+// main supervises the processing of the donation data.
 func main() {
-	inputFile := "/home/bozo/golang/acorn_go/data/register.xlsx"
-	tab := "Worksheet"
-	//
-	// Check current directory
-	//
-	mydir, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(mydir)
 
-	file, err := excelize.OpenFile(inputFile)
-	if err != nil {
-		log.Fatal(err)
-	}
+	data := readData(inputFile, tab)
 
-	rows, err := file.GetRows(tab)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, row := range rows {
+	for _, row := range data {
 		for _, col := range row {
 			fmt.Print(col, "\t")
 		}
 		fmt.Println()
 	}
+}
+
+// readData extracts the donation data from Excel file and
+// returns an array of string arrays.
+func readData(excelFillName string, tab string) [][]string {
+	//
+	// Open file
+	//
+	file, err := excelize.OpenFile(excelFillName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//
+	// Read rows
+	//
+	rows, err := file.GetRows(tab)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return rows
 }
