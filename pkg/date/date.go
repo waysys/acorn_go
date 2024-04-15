@@ -13,6 +13,7 @@ import (
 	"acorn_go/pkg/assert"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -393,6 +394,71 @@ func FromDayOfYear(dayOfYear DayOfYear, year Year) (Date, error) {
 	return date, nil
 }
 
+// NewFromString converts a string representation of a date in the form MM/DD/YYYY
+// into a date
+func NewFromString(value string) (Date, error) {
+	var err error
+	var date = Date{}
+	var anInt int
+	var month Month
+	var day Day
+	var year Year
+	//
+	// Check that format is reasonable
+	//
+	value = strings.TrimSpace(value)
+	if value == "" {
+		err = errors.New("String date must not be an empty string")
+		return date, err
+	}
+	var data = strings.Split(value, "/")
+	if len(data) != 3 {
+		err = errors.New("Invalid date format for string: " + value)
+		return date, err
+	}
+	//
+	// Obtain month
+	//
+	anInt, err = strconv.Atoi(data[0])
+	if err != nil {
+		return date, err
+	}
+	month = Month(anInt)
+	err = isMonth(month)
+	if err != nil {
+		return date, err
+	}
+	//
+	// Obtain year
+	//
+	anInt, err = strconv.Atoi(data[2])
+	if err != nil {
+		return date, err
+	}
+	year = Year(anInt)
+	err = isYear(year)
+	if err != nil {
+		return date, err
+	}
+	//
+	// Obtain day
+	//
+	anInt, err = strconv.Atoi(data[1])
+	if err != nil {
+		return date, err
+	}
+	day = Day(anInt)
+	err = isDay(month, day, year)
+	if err != nil {
+		return date, err
+	}
+	//
+	// Create date
+	//
+	date, err = New(month, day, year)
+	return date, err
+}
+
 // ----------------------------------------------------------------------------
 // Date properties
 // ----------------------------------------------------------------------------
@@ -464,6 +530,7 @@ func (date Date) Decrement() (Date, error) {
 		result, err = New(12, 31, date.year-1)
 	case date.day == 1:
 		lastDay, err = DaysInMonth(date.month-1, date.year)
+		assert.Assert(err == nil, "Unexpected error from DaysInMonth")
 		result, err = New(date.month-1, Day(lastDay), date.year)
 	default:
 		result, err = New(date.month, date.day-1, date.year)

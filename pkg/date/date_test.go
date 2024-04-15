@@ -59,7 +59,6 @@ func Test_isMonth(t *testing.T) {
 		tt = d
 		t.Run(d.name, testFunction)
 	}
-	return
 }
 
 // Test_IsLeapYear tests that IsLeapYear returns a valid answer for these conditions:
@@ -94,14 +93,12 @@ func Test_IsLeapYear(t *testing.T) {
 					strconv.Itoa(int(tt.year)))
 			}
 		}
-		return
 	}
 
 	for _, d := range data {
 		tt = d
 		t.Run(d.name, testFunction)
 	}
-	return
 }
 
 // Test_DaysInYear checks the final results in DaysInYear with the sum of
@@ -127,7 +124,6 @@ func Test_DaysInYear(t *testing.T) {
 			" does not agree with days in leap year " + strconv.Itoa(366)
 		t.Error(message)
 	}
-	return
 }
 
 // Test_DayYear tests the computation of the day of the year.
@@ -156,13 +152,11 @@ func Test_DayYear(t *testing.T) {
 				" does not equal expected day of year " + strconv.Itoa(int(tt.dayOfYear))
 			t.Error(message)
 		}
-		return
 	}
 
 	for _, tt = range data {
 		t.Run(tt.name, testFunction)
 	}
-	return
 }
 
 // ----------------------------------------------------------------------------
@@ -193,7 +187,7 @@ func Test_FromDayOfYear(t *testing.T) {
 	}
 }
 
-// TestToday tests that the Today function returns a valid date.
+// Test_Today tests that the Today function returns a valid date.
 func Test_Today(t *testing.T) {
 	var testFunction = func(t *testing.T) {
 		date := Today()
@@ -203,6 +197,30 @@ func Test_Today(t *testing.T) {
 		fmt.Printf("Current date is: %d / %d / %d \n", month, day, year)
 	}
 	t.Run("Today Test", testFunction)
+}
+
+// Test_NewFromString tests that a correct date is created from a string in
+// the form of MM/DD/YYYY
+func Test_NewFromString(t *testing.T) {
+	var dateString = "10/4/2024"
+	var date, err = NewFromString(dateString)
+
+	var testFunction = func(t *testing.T) {
+		if err != nil {
+			t.Error(err.Error())
+		}
+		if date.Month() != Month(10) {
+			t.Error("Month should be 10, but is: " + strconv.Itoa(int(date.Month())))
+		}
+		if date.Day() != Day(4) {
+			t.Error("Day should be 4, but is: " + strconv.Itoa(int(date.Day())))
+		}
+		if date.Year() != Year(2024) {
+			t.Error("Year should be 2024, but is: " + strconv.Itoa(int(date.Year())))
+		}
+	}
+
+	t.Run("Test_NewFromString", testFunction)
 }
 
 // ----------------------------------------------------------------------------
@@ -428,5 +446,4 @@ func Test_WeekDay(t *testing.T) {
 		tt = d
 		t.Run(d.name, testFunction)
 	}
-	return
 }

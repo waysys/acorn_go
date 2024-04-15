@@ -1,5 +1,6 @@
 // Package daterange implements date ranges.
 // Structures in this package are intended to be invariant.
+// The date range includes both end points.
 package daterange
 
 // ----------------------------------------------------------------------------

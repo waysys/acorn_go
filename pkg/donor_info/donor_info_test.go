@@ -111,3 +111,89 @@ func Test_Add(t *testing.T) {
 
 	t.Run("Test_Add", testFunction)
 }
+
+// Test_AddString checks the methods that accept strings to add to donations,
+func Test_AddString(t *testing.T) {
+	var donor = New("donor")
+	var ten = dec.NewFromInt(10)
+	var twenty = dec.NewFromInt(20)
+	var thirty = twenty.Add(ten)
+	var forty = twenty.Add(twenty)
+	(&donor).AddFY23(ten)
+	(&donor).AddFY24(twenty)
+
+	(&donor).AddFY23String("20")
+	(&donor).AddFY24String("20")
+
+	var testFunction = func(t *testing.T) {
+		if !donor.DonationFY23().Equal(thirty) {
+			t.Error("FY2023 donation does not equal 30: " + donor.DonationFY23().String())
+		}
+		if !donor.DonationFY24().Equal(forty) {
+			t.Error("FY2024 donation does not equal 40: " + donor.DonationFY24().String())
+		}
+	}
+
+	t.Run("Test_AddString", testFunction)
+}
+
+// Test_DonorStatus checks that donors are identified properly by the fiscal year
+// they donated.
+func Test_DonorStatus(t *testing.T) {
+	var donorFY23 = New("donorFY23")
+	(&donorFY23).AddFY23String("100")
+	var donorFY24 = New("donorFY24")
+	(&donorFY24).AddFY24String("100")
+	var donorBoth = New("donorBoth")
+	(&donorBoth).AddFY23String("90")
+	(&donorBoth).AddFY24String("80")
+
+	var testFunction = func(t *testing.T) {
+		//
+		// FY2023 donor
+		//
+		if !donorFY23.IsFY23DonorOnly() {
+			t.Error("donorFY23 not recognized as a FY2023 donor.")
+		}
+		if donorFY23.IsFY24DonorOnly() {
+			t.Error("donorFY23 incorrectly identified as FY2024 donor.")
+		}
+		if donorFY23.IsFY23AndFY24Donor() {
+			t.Error("donorFY23 incorrectly identified as both FY2023 and FY2024 donor.")
+		}
+		//
+		// FY2024 donor
+		//
+		if donorFY24.IsFY23DonorOnly() {
+			t.Error("donorFY24 incorrectly identified as a FY2023 donor.")
+		}
+		if !donorFY24.IsFY24DonorOnly() {
+			t.Error("donorFY24 failed to be identified as FY2024 donor.")
+		}
+		if donorFY24.IsFY23AndFY24Donor() {
+			t.Error("donorFY24 incorrectly identified as both FY2023 and FY2024 donor.")
+		}
+		//
+		// FY2023 and FY2024 donor
+		//
+		if donorBoth.IsFY23DonorOnly() {
+			t.Error("donorBoth incorrectly identified as a FY2023 donor.")
+		}
+		if donorBoth.IsFY24DonorOnly() {
+			t.Error("donorBoth incorrectly identified as FY2024 donor.")
+		}
+		if !donorBoth.IsFY23AndFY24Donor() {
+			t.Error("donorBoth failed to be identified as both FY2023 and FY2024 donor.")
+		}
+	}
+
+	t.Run("Test_DonorStatus", testFunction)
+}
+
+// Test_FiscalYear checks the determination of the Fiscal Year Indicator
+func Test_FiscalYear(t *testing.T) {
+	var indicator = FiscalYearIndicator("XXX")
+	if indicator != OutOfRange {
+		t.Error("fiscal year indicator should be OutOfRange, but is: " + indicator.String())
+	}
+}

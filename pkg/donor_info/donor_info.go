@@ -133,7 +133,7 @@ func (donor *Donor) AddFY23(payment dec.Decimal) {
 // this donor.
 func (donor *Donor) AddFY23String(amount string) {
 	var payment, err = dec.NewFromString(amount)
-	assert.Assert(err == nil, "Decimal conversion error: "+err.Error())
+	assert.Assert(err == nil, "Decimal conversion error: "+amount)
 	donor.AddFY23(payment)
 }
 
@@ -144,8 +144,8 @@ func (donor *Donor) AddFY24(payment dec.Decimal) {
 
 // AddFY24String adds the amount formatted as a string to the FY2024 donations for
 // this donor.
-func (donor *Donor) AddFY2024String(amount string) {
+func (donor *Donor) AddFY24String(amount string) {
 	var payment, err = dec.NewFromString(amount)
-	assert.Assert(err == nil, "Decimal conversion error: "+err.Error())
+	assert.Assert(err == nil, "Decimal conversion error: "+amount)
 	donor.AddFY24(payment)
 }
