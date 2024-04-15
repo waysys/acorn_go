@@ -196,4 +196,12 @@ func Test_FiscalYear(t *testing.T) {
 	if indicator != OutOfRange {
 		t.Error("fiscal year indicator should be OutOfRange, but is: " + indicator.String())
 	}
+	indicator = FiscalYearIndicator("09/1/2022")
+	if indicator != FY2023 {
+		t.Error("fiscal year idicator should be FY2023, but is: " + indicator.String())
+	}
+	indicator = FiscalYearIndicator("8/31/2024")
+	if indicator != FY2024 {
+		t.Error("fiscal year indiator should be FY2024, but is: " + indicator.String())
+	}
 }
