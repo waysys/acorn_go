@@ -33,21 +33,7 @@ func TestMain(m *testing.M) {
 }
 
 // ----------------------------------------------------------------------------
-// Support functions
-// ----------------------------------------------------------------------------
-
-// handle checks an error return.  If it is not nil, it calls t.Fatalf to
-// fail the test and print the error.
-/*
-func handle(err error, t *testing.T) {
-	if err != nil {
-		t.Fatalf("%s\n", err)
-	}
-}
-*/
-
-// ----------------------------------------------------------------------------
-// Test definitional functions
+// Test functions
 // ----------------------------------------------------------------------------
 
 // Test_New checks that the New function sets the values of the Donor structure
