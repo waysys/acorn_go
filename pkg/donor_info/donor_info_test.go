@@ -20,6 +20,8 @@ import (
 	"os"
 	"testing"
 
+	d "acorn_go/pkg/date"
+
 	dec "github.com/shopspring/decimal"
 )
 
@@ -98,41 +100,16 @@ func Test_Add(t *testing.T) {
 	t.Run("Test_Add", testFunction)
 }
 
-// Test_AddString checks the methods that accept strings to add to donations,
-func Test_AddString(t *testing.T) {
-	var donor = New("donor")
-	var ten = dec.NewFromInt(10)
-	var twenty = dec.NewFromInt(20)
-	var thirty = twenty.Add(ten)
-	var forty = twenty.Add(twenty)
-	(&donor).AddFY23(ten)
-	(&donor).AddFY24(twenty)
-
-	(&donor).AddFY23String("20")
-	(&donor).AddFY24String("20")
-
-	var testFunction = func(t *testing.T) {
-		if !donor.DonationFY23().Equal(thirty) {
-			t.Error("FY2023 donation does not equal 30: " + donor.DonationFY23().String())
-		}
-		if !donor.DonationFY24().Equal(forty) {
-			t.Error("FY2024 donation does not equal 40: " + donor.DonationFY24().String())
-		}
-	}
-
-	t.Run("Test_AddString", testFunction)
-}
-
 // Test_DonorStatus checks that donors are identified properly by the fiscal year
 // they donated.
 func Test_DonorStatus(t *testing.T) {
 	var donorFY23 = New("donorFY23")
-	(&donorFY23).AddFY23String("100")
+	(&donorFY23).AddFY23(dec.NewFromInt(100))
 	var donorFY24 = New("donorFY24")
-	(&donorFY24).AddFY24String("100")
+	(&donorFY24).AddFY24(dec.NewFromInt(100))
 	var donorBoth = New("donorBoth")
-	(&donorBoth).AddFY23String("90")
-	(&donorBoth).AddFY24String("80")
+	(&donorBoth).AddFY23(dec.NewFromInt(90))
+	(&donorBoth).AddFY24(dec.NewFromInt(80))
 
 	var testFunction = func(t *testing.T) {
 		//
@@ -178,15 +155,22 @@ func Test_DonorStatus(t *testing.T) {
 
 // Test_FiscalYear checks the determination of the Fiscal Year Indicator
 func Test_FiscalYear(t *testing.T) {
-	var indicator = FiscalYearIndicator("XXX")
+	var date d.Date
+
+	date, _ = d.New(1, 1, 1950)
+	var indicator = FiscalYearIndicator(date)
 	if indicator != OutOfRange {
 		t.Error("fiscal year indicator should be OutOfRange, but is: " + indicator.String())
 	}
-	indicator = FiscalYearIndicator("09/1/2022")
+
+	date, _ = d.New(9, 1, 2022)
+	indicator = FiscalYearIndicator(date)
 	if indicator != FY2023 {
 		t.Error("fiscal year idicator should be FY2023, but is: " + indicator.String())
 	}
-	indicator = FiscalYearIndicator("8/31/2024")
+
+	date, _ = d.New(8, 31, 2024)
+	indicator = FiscalYearIndicator(date)
 	if indicator != FY2024 {
 		t.Error("fiscal year indiator should be FY2024, but is: " + indicator.String())
 	}

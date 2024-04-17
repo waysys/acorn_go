@@ -52,18 +52,12 @@ var FiscalYear2024, _ = daterange.New(FiscalYear2024Begin, FiscalYear2024End)
 
 // FiscalYearIndicator returns a FYIndicator value based on the date provided
 // as an argument (in string format MM/DD/YYY)
-func FiscalYearIndicator(dateString string) FYIndicator {
+func FiscalYearIndicator(date d.Date) FYIndicator {
 	var indicator = OutOfRange
-	//
-	// Convert string into date
-	//
-	var date, err = d.NewFromString(dateString)
 	//
 	// Select Fiscal Year
 	//
-	if err != nil {
-		indicator = OutOfRange
-	} else if FiscalYear2023.InRange(date) {
+	if FiscalYear2023.InRange(date) {
 		indicator = FY2023
 	} else if FiscalYear2024.InRange(date) {
 		indicator = FY2024

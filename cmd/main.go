@@ -20,9 +20,10 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"os"
 
-	"github.com/xuri/excelize/v2"
+	"acorn_go/pkg/donor_info"
+	"acorn_go/pkg/spreadsheet"
 )
 
 // ----------------------------------------------------------------------------
@@ -33,42 +34,36 @@ import (
 // Constants
 // ----------------------------------------------------------------------------
 
-const inputFile = "/home/bozo/golang/acorn_go/data/register.xlsx"
-const tab = "Worksheet"
-
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
 
 // main supervises the processing of the donation data.
 func main() {
+	var sprdsht spreadsheet.Spreadsheet
+	var donorList donor_info.DonorList
+	var err error
 
-	data := readData(inputFile, tab)
-
-	for _, row := range data {
-		for _, col := range row {
-			fmt.Print(col, "\t")
-		}
-		fmt.Println()
-	}
-}
-
-// readData extracts the donation data from Excel file and
-// returns an array of string arrays.
-func readData(excelFillName string, tab string) [][]string {
+	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("Acorn Scholarship Fund Donor Analysis")
+	fmt.Println("-----------------------------------------------------------")
 	//
-	// Open file
+	// Obtain spreadsheet data
 	//
-	file, err := excelize.OpenFile(excelFillName)
+	sprdsht, err = spreadsheet.ProcessData()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error processing spreadsheet: " + err.Error())
+		os.Exit(1)
 	}
 	//
-	// Read rows
+	// Generate donor list
 	//
-	rows, err := file.GetRows(tab)
+	donorList, err = donor_info.NewDonorList(&sprdsht)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error generating donor list: " + err.Error())
 	}
-	return rows
+	if donorList != nil {
+		fmt.Println("the end")
+	}
+	os.Exit(0)
 }

@@ -16,7 +16,9 @@ package donor_info
 // ----------------------------------------------------------------------------
 
 import (
+	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
+	"acorn_go/pkg/spreadsheet"
 	"errors"
 
 	dec "github.com/shopspring/decimal"
@@ -29,6 +31,17 @@ import (
 // Constants
 // ----------------------------------------------------------------------------
 
+const (
+	columnNameDonor       = "Payee"
+	columnTransactionType = "Type"
+	columnDate            = "Date"
+	columnPayment         = "Payment"
+)
+
+const (
+	payment = "Payment"
+)
+
 // ----------------------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------------------
@@ -37,14 +50,93 @@ import (
 type DonorList map[string]*Donor
 
 // ----------------------------------------------------------------------------
-// Operations
+// Factory Methods
+// ----------------------------------------------------------------------------
+
+// NewDonorList creates a donor list from the information in a spreadsheet.
+func NewDonorList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
+	var donorList = make(DonorList)
+	var numRows = sprdsht.Size()
+	var err error
+	var value string
+	//
+	// Loop through all the rows in the spreadsheet
+	//
+	for row := 1; row < numRows; row++ {
+		value, err = sprdsht.Cell(row, columnTransactionType)
+		if err != nil {
+			return donorList, err
+		}
+		if value == payment {
+			err = processPayment(&donorList, sprdsht, row)
+		}
+	}
+	return donorList, err
+}
+
+// processPayment creates a Donor structure
+func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, row int) error {
+	var value string
+	var err error = nil
+	var found = false
+	var amountDonation dec.Decimal
+	var dateDonation d.Date
+	//
+	// Obtain donor name
+	//
+	value, err = sprdsht.Cell(row, columnNameDonor)
+	if err != nil {
+		return err
+	}
+	var nameDonor = value
+	//
+	// Obtain date of donation
+	//
+	value, err = sprdsht.Cell(row, columnDate)
+	if err != nil {
+		return err
+	}
+	dateDonation, err = d.NewFromString(value)
+	if err != nil {
+		return err
+	}
+	//
+	// Obtain amount of donation
+	//
+	value, err = sprdsht.Cell(row, columnPayment)
+	if err != nil {
+		return err
+	}
+	amountDonation, err = dec.NewFromString(value)
+	if err != nil {
+		return err
+	}
+	//
+	// Create an entry in the donor list if there is not already one
+	// for this donor.
+	//
+	_, found = (*donorListPtr)[nameDonor]
+	if !found {
+		var donor = New(nameDonor)
+		(*donorListPtr)[nameDonor] = &donor
+	}
+	//
+	// Update the donor information
+	//
+	err = (*donorListPtr).AddDonation(nameDonor, amountDonation, dateDonation)
+	return err
+}
+
+// ----------------------------------------------------------------------------
+// Methods
 // ----------------------------------------------------------------------------
 
 // AddDonation adds a donation to the list.  If the donor is not already
 // in the list, a new donation structure is created.  If the donor is in the list,
 // the donation is added to the donors values, based on the donation date.
-func (donorList *DonorList) AddDonation(nameDonor string, amountDonation dec.Decimal, dateDonation d.Date) error {
+func (donorListPtr *DonorList) AddDonation(nameDonor string, amountDonation dec.Decimal, dateDonation d.Date) error {
 	var err error = nil
+	var donorPtr *Donor
 	//
 	// Validate inputs
 	//
@@ -56,5 +148,39 @@ func (donorList *DonorList) AddDonation(nameDonor string, amountDonation dec.Dec
 		err = errors.New("amount of donation must not be negative: " + amountDonation.String())
 		return err
 	}
+	//
+	// Retrieve donor structure for the named donor
+	//
+	if !donorListPtr.hasDonor(nameDonor) {
+		err = errors.New("donor name not found in donation list: " + nameDonor)
+		return err
+	}
+	donorPtr = donorListPtr.getDonor(nameDonor)
+	//
+	// Update donation amounts based on donation date.
+	//
+	var fiscalYearIndicator = FiscalYearIndicator(dateDonation)
+	switch fiscalYearIndicator {
+	case FY2023:
+		donorPtr.AddFY23(amountDonation)
+	case FY2024:
+		donorPtr.AddFY24(amountDonation)
+	default:
+		err = errors.New("date of donation is not in either fiscal year: " + dateDonation.String())
+	}
 	return err
+}
+
+// hasDonor returns true if the donor's name is in the list.  Otherwise, it
+// returns false.
+func (donorListPtr *DonorList) hasDonor(nameDonor string) bool {
+	var _, found = (*donorListPtr)[nameDonor]
+	return found
+}
+
+// getDonor returns a pointer to the donor structure for the named donor.
+func (donorListPtr *DonorList) getDonor(nameDonor string) *Donor {
+	var donorPtr, found = (*donorListPtr)[nameDonor]
+	assert.Assert(found, "donor name not found in donation list: "+nameDonor)
+	return donorPtr
 }
