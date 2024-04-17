@@ -44,9 +44,7 @@ func main() {
 	var donorList donor_info.DonorList
 	var err error
 
-	fmt.Println("-----------------------------------------------------------")
-	fmt.Println("Acorn Scholarship Fund Donor Analysis")
-	fmt.Println("-----------------------------------------------------------")
+	printHeader()
 	//
 	// Obtain spreadsheet data
 	//
@@ -62,8 +60,25 @@ func main() {
 	if err != nil {
 		fmt.Println("Error generating donor list: " + err.Error())
 	}
-	if donorList != nil {
-		fmt.Println("the end")
-	}
+	//
+	// Calculate donor counts
+	//
+	var donorCount = donor_info.ComputeDonorCount(&donorList)
+	//
+	// Output results
+	//
+	printDonorCount(donorCount)
 	os.Exit(0)
+}
+
+// printHeader places the header information at the top of the page
+func printHeader() {
+	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("Acorn Scholarship Fund Donor Analysis")
+	fmt.Println("-----------------------------------------------------------")
+}
+
+// printDonorCount will print out the conor account informaiton
+func printDonorCount(donorCount donor_info.DonorCount) {
+	fmt.Printf("FY2023 donor count: %d\n", donorCount.TotalDonorsFY2023)
 }

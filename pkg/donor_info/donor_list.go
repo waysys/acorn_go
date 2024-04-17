@@ -20,6 +20,9 @@ import (
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
 	dec "github.com/shopspring/decimal"
 )
@@ -67,8 +70,12 @@ func NewDonorList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
 		if err != nil {
 			return donorList, err
 		}
+		value = strings.TrimSpace(value)
 		if value == payment {
 			err = processPayment(&donorList, sprdsht, row)
+			if err != nil {
+				return donorList, err
+			}
 		}
 	}
 	return donorList, err
@@ -78,7 +85,6 @@ func NewDonorList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
 func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, row int) error {
 	var value string
 	var err error = nil
-	var found = false
 	var amountDonation dec.Decimal
 	var dateDonation d.Date
 	//
@@ -107,7 +113,13 @@ func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, r
 	if err != nil {
 		return err
 	}
-	amountDonation, err = dec.NewFromString(value)
+	value = strings.ReplaceAll(value, ",", "")
+	value = strings.TrimSpace(value)
+	if value == "" {
+		amountDonation = dec.Zero
+	} else {
+		amountDonation, err = dec.NewFromString(value)
+	}
 	if err != nil {
 		return err
 	}
@@ -115,10 +127,10 @@ func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, r
 	// Create an entry in the donor list if there is not already one
 	// for this donor.
 	//
-	_, found = (*donorListPtr)[nameDonor]
-	if !found {
+	if !donorListPtr.hasDonor(nameDonor) {
 		var donor = New(nameDonor)
 		(*donorListPtr)[nameDonor] = &donor
+		fmt.Println("Donor added: " + nameDonor + " " + strconv.Itoa(len(*donorListPtr)))
 	}
 	//
 	// Update the donor information
