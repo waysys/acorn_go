@@ -19,6 +19,7 @@ package donor_info
 
 import (
 	"acorn_go/pkg/assert"
+	"sort"
 )
 
 // ----------------------------------------------------------------------------
@@ -94,4 +95,17 @@ func ComputeDonorCount(donorListPtr *DonorList) DonorCount {
 		"Total donor count does not agree with expected donor count")
 
 	return donorCount
+}
+
+// NonRepeatDonors returns a list of donors who donated in FY2023, but
+// not in FY2024.
+func NonRepeatDonors(donorListPtr *DonorList) []string {
+	var names = []string{}
+	for name, donorPtr := range *donorListPtr {
+		if (*donorPtr).IsFY23DonorOnly() {
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	return names
 }

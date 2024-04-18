@@ -20,8 +20,6 @@ import (
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"errors"
-	"fmt"
-	"strconv"
 	"strings"
 
 	dec "github.com/shopspring/decimal"
@@ -130,7 +128,6 @@ func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, r
 	if !donorListPtr.hasDonor(nameDonor) {
 		var donor = New(nameDonor)
 		(*donorListPtr)[nameDonor] = &donor
-		fmt.Println("Donor added: " + nameDonor + " " + strconv.Itoa(len(*donorListPtr)))
 	}
 	//
 	// Update the donor information

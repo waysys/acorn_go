@@ -68,6 +68,7 @@ func main() {
 	// Output results
 	//
 	printDonorCount(donorCount)
+	printNonRepeatDonors(&donorList)
 	os.Exit(0)
 }
 
@@ -80,5 +81,23 @@ func printHeader() {
 
 // printDonorCount will print out the conor account informaiton
 func printDonorCount(donorCount donor_info.DonorCount) {
-	fmt.Printf("FY2023 donor count: %d\n", donorCount.TotalDonorsFY2023)
+	fmt.Printf("FY2023 donor count:     %d\n", donorCount.TotalDonorsFY2023)
+	fmt.Printf("FY2024 donor count:     %d\n", donorCount.TotalDonorsFY2024)
+	fmt.Printf("Total number of donors: %d\n", donorCount.TotalDonors)
+	fmt.Println("")
+	fmt.Printf("Donors donating in FY2023 only: %d\n", donorCount.DonorsFY2023Only)
+	fmt.Printf("Donors donating in FY2024 only: %d\n", donorCount.DonorsFY2024Only)
+	fmt.Printf("Donors donating in boty years:  %d\n", donorCount.DonorsFY2023AndFY2024)
+}
+
+// printNonRepeatDonors prints a list of donors who donated in FY2023 but not FY2024.
+func printNonRepeatDonors(donorListPtr *donor_info.DonorList) {
+	var names = donor_info.NonRepeatDonors(donorListPtr)
+	var count = 0
+	fmt.Printf("\nDonors who donated in FY2023 but not FY2024\n\n")
+	for _, name := range names {
+		count++
+		fmt.Println(name)
+	}
+	fmt.Printf("\nNume of non-repeat donors: %d", count)
 }
