@@ -36,7 +36,9 @@ type Donor struct {
 // Constants
 // ----------------------------------------------------------------------------
 
-var ZERO = dec.NewFromInt(0)
+var ZERO = dec.Zero
+
+var MajorDonorLimit = dec.NewFromInt(2000)
 
 // ----------------------------------------------------------------------------
 // Factory methods
@@ -117,6 +119,18 @@ func (donor Donor) IsFY23AndFY24Donor() bool {
 	default:
 		result = false
 	}
+	return result
+}
+
+// IsMajorDonorFY23 returns true if the donor donated $2000 or more in FY2023
+func (donor Donor) IsMajorDonorFY23() bool {
+	var result = donor.donationFY23.GreaterThanOrEqual(MajorDonorLimit)
+	return result
+}
+
+// IsMajorDonorFY24 returns true if the donor donated $2000 or more in FY2023
+func (donor Donor) IsMajorDonorFY24() bool {
+	var result = donor.donationFY24.GreaterThanOrEqual(MajorDonorLimit)
 	return result
 }
 

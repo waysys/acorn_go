@@ -19,7 +19,10 @@ package donor_info
 
 import (
 	"acorn_go/pkg/assert"
+	"math"
 	"sort"
+
+	dec "github.com/shopspring/decimal"
 )
 
 // ----------------------------------------------------------------------------
@@ -35,10 +38,31 @@ type DonorCount struct {
 	DonorsFY2023AndFY2024 int
 }
 
+type Donations struct {
+	DonationsFY2023   dec.Decimal
+	DonationsFY2024   dec.Decimal
+	DonationsTotal    dec.Decimal
+	AvgDonationFY2023 float64
+	AvgDonationFY2024 float64
+	DonationChange    float64
+	CountRepeatDonors int
+}
+
+type MajorDonor struct {
+	MajorDonorsFY2023      int
+	MajorDonorsFY2024      int
+	DonationsMajorFY2023   dec.Decimal
+	DonationsMajorFY2024   dec.Decimal
+	AvgMajorDonationFY2023 float64
+	AvgMajorDonationFY2024 float64
+	DonationChange         float64
+}
+
 // ----------------------------------------------------------------------------
 // Factory Functions
 // ----------------------------------------------------------------------------
 
+// NewDonorCount creates a donor count struture initialized to zero for each element.
 func NewDonorCount() DonorCount {
 	donorCount := DonorCount{
 		TotalDonors:           0,
@@ -49,6 +73,34 @@ func NewDonorCount() DonorCount {
 		DonorsFY2023AndFY2024: 0,
 	}
 	return donorCount
+}
+
+// NewDonatons creates a Donations structure initializes to zero for each element.
+func NewDonations() Donations {
+	donations := Donations{
+		DonationsFY2023:   dec.Zero,
+		DonationsFY2024:   dec.Zero,
+		DonationsTotal:    dec.Zero,
+		AvgDonationFY2023: 0.0,
+		AvgDonationFY2024: 0.0,
+		DonationChange:    0.0,
+		CountRepeatDonors: 0,
+	}
+	return donations
+}
+
+// NewMajorDonor creates a MajorDonor structure initialized to zero for each element.
+func NewMajorDonor() MajorDonor {
+	majorDonor := MajorDonor{
+		MajorDonorsFY2023:      0,
+		MajorDonorsFY2024:      0,
+		DonationsMajorFY2023:   dec.Zero,
+		DonationsMajorFY2024:   dec.Zero,
+		AvgMajorDonationFY2023: 0.0,
+		AvgMajorDonationFY2024: 0.0,
+		DonationChange:         0.0,
+	}
+	return majorDonor
 }
 
 // ----------------------------------------------------------------------------
@@ -108,4 +160,65 @@ func NonRepeatDonors(donorListPtr *DonorList) []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+// ComputeDonations calculates the breakdown of donations.
+func ComputeDonations(donorListPtr *DonorList) Donations {
+	var donations = NewDonations()
+	var repeatDonationFY2023 = dec.Zero
+	var repeatDonationFy2024 = dec.Zero
+	var countRepeatDonors = 0
+
+	for _, donor := range *donorListPtr {
+		donations.DonationsTotal = donations.DonationsTotal.Add(donor.DonationFY23().Add(donor.DonationFY24()))
+		donations.DonationsFY2023 = donations.DonationsFY2023.Add(donor.DonationFY23())
+		donations.DonationsFY2024 = donations.DonationsFY2024.Add(donor.donationFY24)
+		if donor.IsFY23AndFY24Donor() {
+			countRepeatDonors++
+			repeatDonationFY2023 = repeatDonationFY2023.Add(donor.DonationFY23())
+			repeatDonationFy2024 = repeatDonationFy2024.Add(donor.DonationFY24())
+		}
+	}
+
+	var repFY2023, _ = repeatDonationFY2023.Float64()
+	var repFY2024, _ = repeatDonationFy2024.Float64()
+	var repCount = float64(countRepeatDonors)
+	donations.CountRepeatDonors = countRepeatDonors
+	donations.AvgDonationFY2023 = math.Round(repFY2023 / repCount)
+	donations.AvgDonationFY2024 = math.Round(repFY2024 / repCount)
+	donations.DonationChange =
+		math.Round(100.0 * (donations.AvgDonationFY2024 - donations.AvgDonationFY2023) /
+			donations.AvgDonationFY2023)
+
+	return donations
+}
+
+// ComputeMajorDonors computes the values for the MajorDonor structure
+func ComputeMajorDonors(donorListPtr *DonorList) MajorDonor {
+	var majorDonor = NewMajorDonor()
+
+	for _, donor := range *donorListPtr {
+		if donor.IsMajorDonorFY23() {
+			majorDonor.MajorDonorsFY2023++
+			majorDonor.DonationsMajorFY2023 = majorDonor.DonationsMajorFY2023.Add(donor.donationFY23)
+		}
+		if donor.IsMajorDonorFY24() {
+			majorDonor.MajorDonorsFY2024++
+			majorDonor.DonationsMajorFY2024 = majorDonor.DonationsMajorFY2024.Add(donor.donationFY24)
+		}
+	}
+
+	var majCountFY2023 = float64(majorDonor.MajorDonorsFY2023)
+	var majFY2023, _ = majorDonor.DonationsMajorFY2023.Float64()
+	majorDonor.AvgMajorDonationFY2023 = math.Round(majFY2023 / majCountFY2023)
+
+	var majCountFY2024 = float64(majorDonor.MajorDonorsFY2024)
+	var majFY2024, _ = majorDonor.DonationsMajorFY2024.Float64()
+	majorDonor.AvgMajorDonationFY2024 = math.Round(majFY2024 / majCountFY2024)
+
+	majorDonor.DonationChange = math.Round(100 *
+		(majorDonor.AvgMajorDonationFY2024 - majorDonor.AvgMajorDonationFY2023) /
+		majorDonor.AvgMajorDonationFY2023)
+
+	return majorDonor
 }
