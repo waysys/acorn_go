@@ -49,13 +49,15 @@ type Donations struct {
 }
 
 type MajorDonor struct {
-	MajorDonorsFY2023      int
-	MajorDonorsFY2024      int
-	DonationsMajorFY2023   dec.Decimal
-	DonationsMajorFY2024   dec.Decimal
-	AvgMajorDonationFY2023 float64
-	AvgMajorDonationFY2024 float64
-	DonationChange         float64
+	MajorDonorsFY2023           int
+	MajorDonorsFY2024           int
+	DonationsMajorFY2023        dec.Decimal
+	DonationsMajorFY2024        dec.Decimal
+	AvgMajorDonationFY2023      float64
+	AvgMajorDonationFY2024      float64
+	DonationChange              float64
+	PercentTotalDonationsFY2023 float64
+	PercentTotalDonationsFY2024 float64
 }
 
 // ----------------------------------------------------------------------------
@@ -196,8 +198,13 @@ func ComputeDonations(donorListPtr *DonorList) Donations {
 // ComputeMajorDonors computes the values for the MajorDonor structure
 func ComputeMajorDonors(donorListPtr *DonorList) MajorDonor {
 	var majorDonor = NewMajorDonor()
+	var donationsTotalFY2023 dec.Decimal
+	var donationsTotalFY2024 dec.Decimal
 
 	for _, donor := range *donorListPtr {
+		donationsTotalFY2023 = donationsTotalFY2023.Add(donor.DonationFY23())
+		donationsTotalFY2024 = donationsTotalFY2024.Add(donor.DonationFY24())
+
 		if donor.IsMajorDonorFY23() {
 			majorDonor.MajorDonorsFY2023++
 			majorDonor.DonationsMajorFY2023 = majorDonor.DonationsMajorFY2023.Add(donor.donationFY23)
@@ -220,5 +227,9 @@ func ComputeMajorDonors(donorListPtr *DonorList) MajorDonor {
 		(majorDonor.AvgMajorDonationFY2024 - majorDonor.AvgMajorDonationFY2023) /
 		majorDonor.AvgMajorDonationFY2023)
 
+	var totFY2023, _ = donationsTotalFY2023.Float64()
+	majorDonor.PercentTotalDonationsFY2023 = math.Round(100.0 * majFY2023 / totFY2023)
+	var totFY2024, _ = donationsTotalFY2024.Float64()
+	majorDonor.PercentTotalDonationsFY2024 = math.Round(100.0 * majFY2024 / totFY2024)
 	return majorDonor
 }
