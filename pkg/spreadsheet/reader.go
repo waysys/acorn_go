@@ -133,6 +133,7 @@ func (spreadsheet *Spreadsheet) Cell(row int, heading string) (string, error) {
 	}
 	if row < 1 || row >= spreadsheet.Size() {
 		err = errors.New("invalid row for spreadsheet: " + strconv.Itoa(row))
+		return cell, err
 	}
 	cell = spreadsheet.rows[row][column]
 	return cell, nil

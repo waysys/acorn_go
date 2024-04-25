@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //
-// Spreadsheet reader
+// Spreadsheet reader and writer test
 //
 // Author: William Shaffer
 // Version: 15-Apr-2024
@@ -33,7 +33,7 @@ func TestMain(m *testing.M) {
 }
 
 // ----------------------------------------------------------------------------
-// Test functions
+// Reader Test functions
 // ----------------------------------------------------------------------------
 
 // Test_ReadSpreadsheet checks that the specified spreadsheet can be read.
@@ -97,5 +97,39 @@ func Test_Cell(t *testing.T) {
 		t.Error("incorrect value of cell: " + cell)
 	} else {
 		fmt.Println(cell)
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Writer Test functions
+// ----------------------------------------------------------------------------
+
+func Test_CreateSpreadsheet(t *testing.T) {
+	var err error
+	var spFile SpreadsheetFile
+	//
+	// Create a new spreadsheet
+	//
+	spFile, err = New("/home/bozo/Downloads/test.xlsx", "Hello")
+	if err != nil {
+		t.Error(err.Error())
+	}
+	//
+	// Write a cell
+	//
+	err = (&spFile).SetCell("A1", "Test Value")
+	if err != nil {
+		t.Error(err.Error())
+	}
+	//
+	// Save and close the spreadsheet
+	//
+	err = (&spFile).Save()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = (&spFile).Close()
+	if err != nil {
+		t.Error(err.Error())
 	}
 }
