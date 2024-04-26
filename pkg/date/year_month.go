@@ -17,6 +17,10 @@ package date
 // Imports
 // ----------------------------------------------------------------------------
 
+import (
+	"strconv"
+)
+
 // ----------------------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------------------
@@ -25,6 +29,15 @@ type YearMonth struct {
 	Year  int
 	Month int
 }
+
+// ----------------------------------------------------------------------------
+// Constants
+// ----------------------------------------------------------------------------
+
+const (
+	startYear = 2022
+	endYear   = 2024
+)
 
 // ----------------------------------------------------------------------------
 // Factory Functions
@@ -47,14 +60,49 @@ func NewYearMonth(year int, month int) (YearMonth, error) {
 	// Set the values
 	//
 	yearMonth := YearMonth{
-		year,
-		month,
+		Year:  year,
+		Month: month,
 	}
-	return yearMonth, nil
+	return yearMonth, err
 }
 
 func NewYearMonthFromDate(date Date) (YearMonth, error) {
-	var year = int(date.Day())
+	var year = int(date.Year())
 	var month = int(date.Month())
 	return NewYearMonth(year, month)
+}
+
+// Keys returns a slice with the year month structures for 2023 and 2024.
+func Keys() ([]YearMonth, error) {
+	var keys []YearMonth
+	var err error
+	var yearMonth YearMonth
+
+	for year := startYear; year <= endYear; year++ {
+		for month := 1; month <= 12; month++ {
+			switch {
+			case year == startYear && month < 9:
+				// do nothing
+			case year == endYear && month > 5:
+				// do nothing
+			default:
+				yearMonth, err = NewYearMonth(year, month)
+				if err != nil {
+					return keys, err
+				}
+				keys = append(keys, yearMonth)
+			}
+		}
+	}
+	return keys, nil
+}
+
+// ----------------------------------------------------------------------------
+// Methods
+// ----------------------------------------------------------------------------
+
+// String converts a year month to a string in the format MM/YYYY.
+func (yearMonth YearMonth) String() string {
+	var value = strconv.Itoa(yearMonth.Month) + "/" + strconv.Itoa(yearMonth.Year)
+	return value
 }

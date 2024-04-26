@@ -59,6 +59,7 @@ func main() {
 	donorList, err = donor_info.NewDonorList(&sprdsht)
 	if err != nil {
 		fmt.Println("Error generating donor list: " + err.Error())
+		os.Exit(1)
 	}
 	//
 	// Calculate donor counts

@@ -41,7 +41,6 @@ type SpreadsheetFile struct {
 func New(filename string, sheetname string) (SpreadsheetFile, error) {
 	var spFile SpreadsheetFile
 	var err error = nil
-	var index int
 	//
 	// Preconditions
 	//
@@ -63,14 +62,11 @@ func New(filename string, sheetname string) (SpreadsheetFile, error) {
 	//
 	// Create a new sheet.
 	//
-	index, err = f.NewSheet(sheetname)
+	_, err = f.NewSheet(sheetname)
 	if err != nil {
 		return spFile, err
 	}
-	//
-	// Set active sheet of the workbook.
-	//
-	f.SetActiveSheet(index)
+	f.DeleteSheet("Sheet1")
 	return spFile, nil
 }
 
@@ -129,5 +125,24 @@ func (spFilePtr *SpreadsheetFile) SetCell(cell string, value string) error {
 	// Set value
 	//
 	err = file.SetCellValue(sheetname, cell, value)
+	return err
+}
+
+// SetCellFloat sets the value of a cell to a floating point number
+func (spFilePtr *SpreadsheetFile) SetCellFloat(cell string, value float64) error {
+	var err error = nil
+	var sheetname = (*spFilePtr).sheetname
+	var file = (*spFilePtr).filePtr
+	//
+	// Preconditions
+	//
+	if cell == "" {
+		err = errors.New("cell name must not be empty")
+		return err
+	}
+	//
+	// Set value
+	//
+	err = file.SetCellFloat(sheetname, cell, value, 0, 64)
 	return err
 }

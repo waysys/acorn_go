@@ -125,3 +125,14 @@ func (dsPtr *DonationSeries) hasYearMonth(yearMonth d.YearMonth) bool {
 	var _, found = (*dsPtr)[yearMonth]
 	return found
 }
+
+// GetAmount returns the amount of donations for a year and month rounded to
+// the nearest whole dollar amount.  If the donation series does not contain
+// and entry for the year and month, a zero amount is returned.
+func (dsPtr *DonationSeries) GetAmount(yearMonth d.YearMonth) float64 {
+	var amount, found = (*dsPtr)[yearMonth]
+	if !found {
+		amount = 0.00
+	}
+	return amount
+}
