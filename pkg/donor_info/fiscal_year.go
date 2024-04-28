@@ -67,6 +67,20 @@ func FiscalYearIndicator(date d.Date) FYIndicator {
 	return indicator
 }
 
+// FiscalYearFromYearMonth returns a FYIndicator value based on the YearMonth
+func FiscalYearFromYearMonth(yearMonth d.YearMonth) (FYIndicator, error) {
+	var err error = nil
+	var date d.Date
+	var fyIndicator FYIndicator
+	date, err = d.New(d.Month(yearMonth.Month), 1, d.Year(yearMonth.Year))
+	if err != nil {
+		fyIndicator = OutOfRange
+	} else {
+		fyIndicator = FiscalYearIndicator(date)
+	}
+	return fyIndicator, err
+}
+
 // ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------

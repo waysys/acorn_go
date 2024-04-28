@@ -25,6 +25,7 @@ import (
 	"os"
 	"strconv"
 
+	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/donor_info"
 	"acorn_go/pkg/spreadsheet"
@@ -95,6 +96,10 @@ func outputDonationSeries(dsPtr *(donor_info.DonationSeries)) error {
 	var keys []d.YearMonth
 	var cell string
 	var value string
+	var totalDonationsFY2023 float64 = 0.0
+	var totalDonationsFY2024 float64 = 0.0
+	var row int
+	var yearMonth d.YearMonth
 
 	if dsPtr == nil {
 		err = errors.New("pointer to donation series is nil")
@@ -113,7 +118,7 @@ func outputDonationSeries(dsPtr *(donor_info.DonationSeries)) error {
 	if err != nil {
 		return err
 	}
-	for row, yearMonth := range keys {
+	for row, yearMonth = range keys {
 		//
 		// Insert month and year
 		//
@@ -126,7 +131,18 @@ func outputDonationSeries(dsPtr *(donor_info.DonationSeries)) error {
 		cell = cellName("B", row+2)
 		amount := math.Round((*dsPtr).GetAmount(yearMonth))
 		output.SetCellFloat(cell, amount)
+		//
+		// Calculate total donations for FY2023 and FY2024
+		//
+		totalDonationsFY2023, totalDonationsFY2024 =
+			calcTotalDonations(yearMonth, amount, totalDonationsFY2023, totalDonationsFY2024)
 	}
+	//
+	// Ootput totals
+	//
+	row += 4
+	outputTotals(output, "FY2023 Donations", totalDonationsFY2023, row)
+	outputTotals(output, "FY2024 Donations", totalDonationsFY2024, row+1)
 	//
 	// Save the spreadsheet
 	//
@@ -138,4 +154,38 @@ func outputDonationSeries(dsPtr *(donor_info.DonationSeries)) error {
 func cellName(column string, row int) string {
 	var cellName = column + strconv.Itoa(row)
 	return cellName
+}
+
+// caldTotalDonations determines the fiscal year of the donation from the year month and
+// adds the amount to the appropriate total donation.
+func calcTotalDonations(
+	yearMonth d.YearMonth,
+	amount float64,
+	totDonFY2023 float64,
+	totDonFY2024 float64) (float64, float64) {
+	var err error = nil
+	var indicator donor_info.FYIndicator
+
+	indicator, err = donor_info.FiscalYearFromYearMonth(yearMonth)
+	assert.Assert(err == nil, "Unable to handle year month: "+yearMonth.String())
+	switch indicator {
+	case donor_info.FY2023:
+		totDonFY2023 += amount
+	case donor_info.FY2024:
+		totDonFY2024 += amount
+	default:
+		assert.Assert(false, "unmatched fiscal year: "+yearMonth.String())
+	}
+	return totDonFY2023, totDonFY2024
+}
+
+// outputTotals places the donation totals for each fiscal year in rows below the
+// time series
+func outputTotals(output spreadsheet.SpreadsheetFile, title string, totalDonation float64, row int) {
+	var cell string
+
+	cell = cellName("A", row)
+	output.SetCell(cell, title)
+	cell = cellName("B", row)
+	output.SetCellFloat(cell, totalDonation)
 }

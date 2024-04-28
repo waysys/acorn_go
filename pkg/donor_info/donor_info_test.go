@@ -175,3 +175,55 @@ func Test_FiscalYear(t *testing.T) {
 		t.Error("fiscal year indiator should be FY2024, but is: " + indicator.String())
 	}
 }
+
+// Test_FiscalYearFromYearMonth checks the determination of the Fiscal Year Indicator based
+// on a specified year and month
+func Test_FiscalYearFromYearMonth(t *testing.T) {
+	var indicator FYIndicator
+
+	var evaluate = func(month int, year int) FYIndicator {
+		var err error = nil
+		var yearMonth d.YearMonth
+
+		yearMonth, err = d.NewYearMonth(year, month)
+		if err != nil {
+			t.Error("year month not created: " + err.Error())
+			return OutOfRange
+		}
+		indicator, err = FiscalYearFromYearMonth(yearMonth)
+		if err != nil {
+			t.Error("fiscal year indicator not create: " + err.Error())
+			return OutOfRange
+		}
+		return indicator
+	}
+	//
+	// Beginning of FY2023
+	//
+	indicator = evaluate(9, 2022)
+	if indicator != FY2023 {
+		t.Error("indicator is not correct value: " + indicator.String())
+	}
+	//
+	// End of FY2023
+	//
+	indicator = evaluate(8, 2023)
+	if indicator != FY2023 {
+		t.Error("indicator is not correct valaue: " + indicator.String())
+	}
+	//
+	// Beginning of FY2024
+	//
+	indicator = evaluate(9, 2023)
+	if indicator != FY2024 {
+		t.Error("indicator is not correct value: " + indicator.String())
+	}
+	//
+	// End of FY2024
+	//
+	indicator = evaluate(8, 2024)
+	if indicator != FY2024 {
+		t.Error("indicator is not correct value: " + indicator.String())
+	}
+
+}
