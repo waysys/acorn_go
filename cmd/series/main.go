@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //
-// Donor analysis program
+// Donor series program
 //
 // Author: William Shaffer
 // Version: 12-Apr-2024
@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-// This program creates a spreasheet with a timeline of the number and
+// This program creates a spreasheet with a timeline of
 // amount of donations.
 
 package main
@@ -131,6 +131,12 @@ func outputDonationSeries(dsPtr *(donor_info.DonationSeries)) error {
 		cell = cellName("B", row+2)
 		amount := math.Round((*dsPtr).GetAmount(yearMonth))
 		output.SetCellFloat(cell, amount)
+		//
+		// Insert the number of donors for that month and year
+		//
+		cell = cellName("C", row+2)
+		count := (*dsPtr).GetCount(yearMonth)
+		output.SetCellInt(cell, count)
 		//
 		// Calculate total donations for FY2023 and FY2024
 		//

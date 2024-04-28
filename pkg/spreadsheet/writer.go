@@ -146,3 +146,22 @@ func (spFilePtr *SpreadsheetFile) SetCellFloat(cell string, value float64) error
 	err = file.SetCellFloat(sheetname, cell, value, 0, 64)
 	return err
 }
+
+// SetCellInt sets the value of a cell to an integer
+func (spFilePtr *SpreadsheetFile) SetCellInt(cell string, value int) error {
+	var err error = nil
+	var sheetname = (*spFilePtr).sheetname
+	var file = (*spFilePtr).filePtr
+	//
+	// Preconditions
+	//
+	if cell == "" {
+		err = errors.New("cell name must not be empty")
+		return err
+	}
+	//
+	// Set value
+	//
+	err = file.SetCellInt(sheetname, cell, value)
+	return err
+}

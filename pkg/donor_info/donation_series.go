@@ -29,7 +29,7 @@ import (
 // Types
 // ----------------------------------------------------------------------------
 
-type DonationSeries map[d.YearMonth]float64
+type DonationSeries map[d.YearMonth]*DonationInfo
 
 // ----------------------------------------------------------------------------
 // Factory Functions
@@ -69,6 +69,8 @@ func processSeries(dsPtr *DonationSeries, sprdsht *spreadsheet.Spreadsheet, row 
 	var yearMonth d.YearMonth
 	var amountDonation dec.Decimal
 	var dateDonation d.Date
+	var donationInfo DonationInfo
+	var donationInfoPtr *DonationInfo
 	//
 	// Obtain date of donation
 	//
@@ -106,12 +108,16 @@ func processSeries(dsPtr *DonationSeries, sprdsht *spreadsheet.Spreadsheet, row 
 	// if one does not already exist.
 	//
 	if !dsPtr.hasYearMonth(yearMonth) {
-		(*dsPtr)[yearMonth] = 0.0
+		donationInfo = NewDonationInfo()
+		(*dsPtr)[yearMonth] = &donationInfo
 	}
 	//
 	// Add amount to donation series
 	//
-	(*dsPtr)[yearMonth] += amountDonation.InexactFloat64()
+	donationInfoPtr = (*dsPtr)[yearMonth]
+	(*donationInfoPtr).AddAmount(amountDonation.InexactFloat64())
+	(*donationInfoPtr).AddCount(1)
+
 	return err
 }
 
@@ -128,11 +134,28 @@ func (dsPtr *DonationSeries) hasYearMonth(yearMonth d.YearMonth) bool {
 
 // GetAmount returns the amount of donations for a year and month rounded to
 // the nearest whole dollar amount.  If the donation series does not contain
-// and entry for the year and month, a zero amount is returned.
+// an entry for the year and month, a zero amount is returned.
 func (dsPtr *DonationSeries) GetAmount(yearMonth d.YearMonth) float64 {
-	var amount, found = (*dsPtr)[yearMonth]
+	var amount float64 = 0.0
+	var diPtr, found = (*dsPtr)[yearMonth]
 	if !found {
 		amount = 0.00
+	} else {
+		amount = (*diPtr).Amount()
 	}
 	return amount
+}
+
+// GetCount returns the number of donations for the year and month.  If the
+// donation series does not contain an entry for the year and month, zero
+// is returned.
+func (dsPtr *DonationSeries) GetCount(yearMonth d.YearMonth) int {
+	var count = 0
+	var diPtr, found = (*dsPtr)[yearMonth]
+	if !found {
+		count = 0
+	} else {
+		count = (*diPtr).Count()
+	}
+	return count
 }
