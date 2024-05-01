@@ -148,7 +148,7 @@ func printMajorDonorAnalysis(majorDonor donor_info.MajorDonor) {
 	fmt.Printf("Average major donations in FY2023: $%5.0f\n", majorDonor.AvgMajorDonationFY2023)
 	fmt.Printf("Average major donations in FY2024: $%5.0f\n", majorDonor.AvgMajorDonationFY2024)
 	fmt.Printf("Percent change in average major donations: %3.0f percent\n", majorDonor.DonationChange)
-	fmt.Printf("Percent of total donations by major donors FY2023: %3.0f peercent\n",
+	fmt.Printf("Percent of total donations by major donors FY2023: %3.0f percent\n",
 		majorDonor.PercentTotalDonationsFY2023)
 	fmt.Printf("Percent of total donations by major donors FY2024: %3.0f percent\n",
 		majorDonor.PercentTotalDonationsFY2024)

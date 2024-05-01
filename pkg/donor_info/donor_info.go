@@ -18,6 +18,7 @@ package donor_info
 
 import (
 	"acorn_go/pkg/assert"
+	"strconv"
 
 	dec "github.com/shopspring/decimal"
 )
@@ -32,6 +33,8 @@ type Donor struct {
 	donationFY24 dec.Decimal
 }
 
+type DonorType int
+
 // ----------------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------------
@@ -40,8 +43,26 @@ var ZERO = dec.Zero
 
 var MajorDonorLimit = dec.NewFromInt(2000)
 
+const (
+	DonorFY2023Only      = 0
+	DonorFY2024Only      = 1
+	DonorFY2023AndFY2024 = 2
+)
+
+var donorTypeNames = [3]string{"Donor FY2023 Only", "Donor FY2024 Only", "Donor FY2023 and FY2024"}
+
 // ----------------------------------------------------------------------------
-// Factory methods
+// Donor type methods
+// ----------------------------------------------------------------------------
+
+func (donorType DonorType) String() string {
+	assert.Assert(donorType >= DonorFY2023Only && donorType <= DonorFY2023AndFY2024,
+		"invalid donor type: "+strconv.Itoa((int(donorType))))
+	return donorTypeNames[int(donorType)]
+}
+
+// ----------------------------------------------------------------------------
+// Factory Functions
 // ----------------------------------------------------------------------------
 
 func New(name string) Donor {
@@ -135,7 +156,7 @@ func (donor Donor) IsMajorDonorFY24() bool {
 }
 
 // ----------------------------------------------------------------------------
-// Operations
+// Methods
 // ----------------------------------------------------------------------------
 
 // AddFY23 adds the payment to the FY2023 donations for this donor.

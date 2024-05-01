@@ -31,12 +31,12 @@ type FYIndicator int
 // ----------------------------------------------------------------------------
 
 const (
-	FY2023     = FYIndicator(1)
-	FY2024     = FYIndicator(2)
-	OutOfRange = FYIndicator(3)
+	FY2023     = FYIndicator(0)
+	FY2024     = FYIndicator(1)
+	OutOfRange = FYIndicator(2)
 )
 
-var IndNames = [4]string{"", "FY2023", "FY2024", "OutOfRange"}
+var IndNames = [3]string{"FY2023", "FY2024", "OutOfRange"}
 
 var FiscalYear2023Begin, _ = d.New(9, 1, 2022)
 var FiscalYear2023End, _ = d.New(8, 31, 2023)
