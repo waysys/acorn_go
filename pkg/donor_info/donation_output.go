@@ -28,13 +28,8 @@ import (
 // ----------------------------------------------------------------------------
 
 type Donations struct {
-	DonationsFY2023   dec.Decimal
-	DonationsFY2024   dec.Decimal
-	DonationsTotal    dec.Decimal
-	AvgDonationFY2023 float64
-	AvgDonationFY2024 float64
-	DonationChange    float64
-	CountRepeatDonors int
+	donations  [3][2]dec.Decimal
+	donorCount [3]int
 }
 
 // ----------------------------------------------------------------------------
@@ -44,13 +39,14 @@ type Donations struct {
 // NewDonatons creates a Donations structure initializes to zero for each element.
 func NewDonations() Donations {
 	donations := Donations{
-		DonationsFY2023:   dec.Zero,
-		DonationsFY2024:   dec.Zero,
-		DonationsTotal:    dec.Zero,
-		AvgDonationFY2023: 0.0,
-		AvgDonationFY2024: 0.0,
-		DonationChange:    0.0,
-		CountRepeatDonors: 0,
+		donations: [3][2]dec.Decimal{
+			{ZERO, ZERO}, // FY2023 donor only
+			{ZERO, ZERO}, // FY2024 donor only
+			{ZERO, ZERO}, // FY2023 and FY2024 donor
+		},
+		donorCount: [3]int{
+			0, 0, 0,
+		},
 	}
 	return donations
 }
@@ -61,37 +57,79 @@ func NewDonations() Donations {
 
 // ComputeDonations calculates the breakdown of donations.
 func ComputeDonations(donorListPtr *DonorList) Donations {
-	var donations = NewDonations()
-	var repeatDonationFY2023 = dec.Zero
-	var repeatDonationFy2024 = dec.Zero
-	var countRepeatDonors = 0
+	var dons = NewDonations()
 
 	for _, donor := range *donorListPtr {
-		donations.DonationsTotal = donations.DonationsTotal.Add(donor.DonationFY23().Add(donor.DonationFY24()))
-		donations.DonationsFY2023 = donations.DonationsFY2023.Add(donor.DonationFY23())
-		donations.DonationsFY2024 = donations.DonationsFY2024.Add(donor.donationFY24)
-		if donor.IsFY23AndFY24Donor() {
-			countRepeatDonors++
-			repeatDonationFY2023 = repeatDonationFY2023.Add(donor.DonationFY23())
-			repeatDonationFy2024 = repeatDonationFy2024.Add(donor.DonationFY24())
+		if donor.IsFY23DonorOnly() {
+			dons.donations[DonorFY2023Only][FY2023] =
+				dons.donations[DonorFY2023Only][FY2023].Add(donor.donationFY23)
+			dons.donorCount[DonorFY2023Only]++
+		} else if donor.IsFY24DonorOnly() {
+			dons.donations[DonorFY2024Only][FY2024] =
+				dons.donations[DonorFY2024Only][FY2024].Add(donor.donationFY24)
+			dons.donorCount[DonorFY2024Only]++
+		} else if donor.IsFY23AndFY24Donor() {
+			dons.donations[DonorFY2023AndFY2024][FY2023] =
+				dons.donations[DonorFY2023AndFY2024][FY2023].Add(donor.donationFY23)
+			dons.donations[DonorFY2023AndFY2024][FY2024] =
+				dons.donations[DonorFY2023AndFY2024][FY2024].Add(donor.donationFY24)
+			dons.donorCount[DonorFY2023AndFY2024]++
 		}
 	}
-
-	var repFY2023, _ = repeatDonationFY2023.Float64()
-	var repFY2024, _ = repeatDonationFy2024.Float64()
-	var repCount = float64(countRepeatDonors)
-	donations.CountRepeatDonors = countRepeatDonors
-	donations.AvgDonationFY2023 = math.Round(repFY2023 / repCount)
-	donations.AvgDonationFY2024 = math.Round(repFY2024 / repCount)
-	donations.DonationChange =
-		math.Round(100.0 * (donations.AvgDonationFY2024 - donations.AvgDonationFY2023) /
-			donations.AvgDonationFY2023)
-
-	return donations
+	return dons
 }
 
 // ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------
 
-//
+// Donation returns the donation for a particular type of donor and a
+// particular fiscal year
+func (dons Donations) Donation(donorType DonorType, fy FYIndicator) float64 {
+	var value = dons.donations[donorType][fy]
+	var donation = value.InexactFloat64()
+	return math.Round(donation)
+}
+
+// FYDonation returns the total donation for the fiscal year
+func (dons Donations) FYDonation(fy FYIndicator) float64 {
+	var donation float64 = 0
+	var donorType DonorType
+
+	for donorType = DonorFY2023Only; donorType <= DonorFY2023AndFY2024; donorType++ {
+		donation += dons.Donation(donorType, fy)
+	}
+	return donation
+}
+
+// TotalDonation returns the total donation made for all fiscal years
+func (dons Donations) TotalDonation() float64 {
+	var donation float64 = 0
+	for fy := FY2023; fy <= FY2024; fy++ {
+		donation += dons.FYDonation(fy)
+	}
+	return donation
+}
+
+// DonorCount returns the number of donors of the specified type.
+func (dons Donations) DonorCount(donorType DonorType) int {
+	var count = dons.donorCount[donorType]
+	return count
+}
+
+// AvgDonation return the average donation for a specified donor type and fiscal year
+func (dons Donations) AvgDonation(donorType DonorType, fy FYIndicator) float64 {
+	var donation = dons.Donation(donorType, fy)
+	var count = dons.DonorCount(donorType)
+	var avg = donation / float64(count)
+	return math.Round(avg)
+}
+
+// DonationChange computes the percent change in donations for a particular donor type.
+func (dons Donations) DonationChange(donorType DonorType) float64 {
+	var change float64
+	var avgFY2023 = dons.AvgDonation(donorType, FY2023)
+	var avgFY2024 = dons.AvgDonation(donorType, FY2024)
+	change = (avgFY2024 - avgFY2023) * 100.00 / avgFY2023
+	return math.Round(change)
+}

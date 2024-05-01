@@ -123,19 +123,22 @@ func printNonRepeatDonors(donorListPtr *donor_info.DonorList) {
 // current fiscal year and the prior fiscal year.
 func printAmountAnalysis(donations donor_info.Donations) {
 	fmt.Printf("\n\n\nDonations\n\n")
-	fmt.Printf("FY2023 donations: $%v\n", donations.DonationsFY2023)
-	fmt.Printf("FY2024 donations: $%v\n", donations.DonationsFY2024)
-	fmt.Printf("Total donations:  $%v\n", donations.DonationsTotal)
+	fmt.Printf("FY2023 donations: $%v\n", donations.FYDonation(donor_info.FY2023))
+	fmt.Printf("FY2024 donations: $%v\n", donations.FYDonation(donor_info.FY2024))
+	fmt.Printf("Total donations:  $%v\n", donations.TotalDonation())
 }
 
 // printRepeatDonations prints the values comparing FY2023 and FY2024 donations
 // from repeat donors.
 func printRepeatAnalysis(donations donor_info.Donations) {
 	fmt.Printf("\n\nRepeat Donation Analysis\n\n")
-	fmt.Printf("Number of repeat donors: %d\n", donations.CountRepeatDonors)
-	fmt.Printf("Average FY2023 donations for repeat donors: $%5.0f\n", donations.AvgDonationFY2023)
-	fmt.Printf("Average FY2024 donations for repeat donors: $%5.0f\n", donations.AvgDonationFY2024)
-	fmt.Printf("Percent change in average donations: %3.0f percent\n", donations.DonationChange)
+	fmt.Printf("Number of repeat donors: %d\n", donations.DonorCount(donor_info.DonorFY2023AndFY2024))
+	fmt.Printf("Average FY2023 donations for repeat donors: $%5.0f\n",
+		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, donor_info.FY2023))
+	fmt.Printf("Average FY2024 donations for repeat donors: $%5.0f\n",
+		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, donor_info.FY2024))
+	fmt.Printf("Percent change in average donations: %3.0f percent\n",
+		donations.DonationChange(donor_info.DonorFY2023AndFY2024))
 }
 
 // printMajorDonorAnalysis prints the values for major donors
