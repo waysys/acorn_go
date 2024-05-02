@@ -21,6 +21,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"acorn_go/pkg/donor_info"
 	"acorn_go/pkg/spreadsheet"
@@ -34,6 +35,14 @@ import (
 // Constants
 // ----------------------------------------------------------------------------
 
+const outputFile = "/home/bozo/Downloads/analysis.xlsx"
+
+var donorTypes = []string{
+	"FY2023 Only Donors",
+	"FY2024 Only Donors",
+	"FY2023 and FY2024 Donors",
+}
+
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
@@ -43,32 +52,33 @@ func main() {
 	var sprdsht spreadsheet.Spreadsheet
 	var donorList donor_info.DonorList
 	var err error
+	var output spreadsheet.SpreadsheetFile
 
 	printHeader()
 	//
 	// Obtain spreadsheet data
 	//
 	sprdsht, err = spreadsheet.ProcessData()
-	if err != nil {
-		fmt.Println("Error processing spreadsheet: " + err.Error())
-		os.Exit(1)
-	}
+	check(err, "Error processing spreadsheet: ")
 	//
 	// Generate donor list
 	//
 	donorList, err = donor_info.NewDonorList(&sprdsht)
-	if err != nil {
-		fmt.Println("Error generating donor list: " + err.Error())
-		os.Exit(1)
-	}
+	check(err, "Error generating donor list: ")
 	//
 	// Calculate donor counts
 	//
 	var donorCount = donor_info.ComputeDonorCount(&donorList)
 	//
+	// Create output spreadsheet
+	//
+	output, err = spreadsheet.New(outputFile, "DonorCount")
+	check(err, "Error opening output file: ")
+	//
 	// Output results from donor counts
 	//
 	printDonorCount(donorCount)
+	outputDonorCount(donorCount, &output)
 	printNonRepeatDonors(&donorList)
 	//
 	// Calculate donations
@@ -79,14 +89,27 @@ func main() {
 	//
 	printAmountAnalysis(donations)
 	printRepeatAnalysis(donations)
+	output, err = output.AddSheet("Donation Analysis")
+	check(err, "Error adding donor analysis sheet: ")
+	outputDonations(donations, &output)
 	//
 	// Calculate major donor statistics
 	//
 	var majorDonor = donor_info.ComputeMajorDonors(&donorList)
 	printMajorDonorAnalysis(majorDonor)
-
+	//
+	// Finish up
+	//
+	err = output.Save()
+	check(err, "Error saving output file: ")
+	err = output.Close()
+	check(err, "Error closing output file: ")
 	os.Exit(0)
 }
+
+// ----------------------------------------------------------------------------
+// Print Functions
+// ----------------------------------------------------------------------------
 
 // printHeader places the header information at the top of the page
 func printHeader() {
@@ -155,4 +178,133 @@ func printMajorDonorAnalysis(majorDonor donor_info.MajorDonor) {
 		majorDonor.PercentTotalDonationsFY2023)
 	fmt.Printf("Percent of total donations by major donors FY2024: %3.0f percent\n",
 		majorDonor.PercentTotalDonationsFY2024)
+}
+
+// ----------------------------------------------------------------------------
+// Support Functions
+// ----------------------------------------------------------------------------
+
+// check tests an error to see if it is null.  If not, it prints an
+// error message and exits the program.
+func check(err error, message string) {
+	if err != nil {
+		fmt.Println(message + err.Error())
+		os.Exit(1)
+	}
+}
+
+// cellName generates a string representing a cell in the spreadsheet.
+func cellName(column string, row int) string {
+	var cellName = column + strconv.Itoa(row)
+	return cellName
+}
+
+// writeCell outputs a string value to the specified cell
+func writeCell(
+	outputPtr *spreadsheet.SpreadsheetFile,
+	column string,
+	row int,
+	value string) {
+
+	var cell = cellName(column, row)
+	var err = outputPtr.SetCell(cell, value)
+	check(err, "Error writing cell "+cell+": ")
+}
+
+// writeCellInt outputs an integer value to the specified cell
+func writeCellInt(
+	outputPtr *spreadsheet.SpreadsheetFile,
+	column string,
+	row int,
+	value int) {
+
+	var cell = cellName(column, row)
+	var err = outputPtr.SetCellInt(cell, value)
+	check(err, "Error writing cell "+cell+": ")
+}
+
+// writeCellFloat outputs a float64 value to the specified cell
+func writeCellFloat(
+	outputPtr *spreadsheet.SpreadsheetFile,
+	column string,
+	row int,
+	value float64) {
+
+	var cell = cellName(column, row)
+	var err = outputPtr.SetCellFloat(cell, value)
+	check(err, "Error writing cell "+cell+": ")
+}
+
+// ----------------------------------------------------------------------------
+// Spreadsheet Functions
+// ----------------------------------------------------------------------------
+
+// outputDonorCount inserts the donor count data into a sheet in the
+// spreadsheet file
+func outputDonorCount(
+	donorCount donor_info.DonorCount,
+	outputPtr *spreadsheet.SpreadsheetFile) {
+	var row int = 1
+	//
+	// Place Title
+	//
+	writeCell(outputPtr, "A", row, "Donor Count Analysis")
+	//
+	// Place Headings
+	//
+	row += 2
+	writeCell(outputPtr, "A", row, "Donor Type")
+	writeCell(outputPtr, "B", row, "FY2023 Donors")
+	writeCell(outputPtr, "C", row, "FY2024 Donors")
+	writeCell(outputPtr, "D", row, "Total Donors")
+	//
+	// Place data rows
+	//
+	row++
+	writeCell(outputPtr, "A", row, donorTypes[0])
+	writeCellInt(outputPtr, "B", row, donorCount.DonorsFY2023Only)
+	writeCellInt(outputPtr, "C", row, 0)
+	row++
+	writeCell(outputPtr, "A", row, donorTypes[1])
+	writeCellInt(outputPtr, "B", row, 0)
+	writeCellInt(outputPtr, "C", row, donorCount.DonorsFY2024Only)
+	row++
+	writeCell(outputPtr, "A", row, donorTypes[2])
+	writeCellInt(outputPtr, "B", row, donorCount.DonorsFY2023AndFY2024)
+	writeCellInt(outputPtr, "C", row, donorCount.DonorsFY2023AndFY2024)
+	row++
+	writeCell(outputPtr, "A", row, "Total Donors")
+	writeCellInt(outputPtr, "B", row, donorCount.TotalDonorsFY2023)
+	writeCellInt(outputPtr, "C", row, donorCount.TotalDonorsFY2024)
+	writeCellInt(outputPtr, "D", row, donorCount.TotalDonors)
+}
+
+func outputDonations(
+	donations donor_info.Donations,
+	outputPtr *spreadsheet.SpreadsheetFile) {
+
+	var row = 1
+	//
+	// Place Title
+	//
+	writeCell(outputPtr, "A", row, "Donation analysis")
+	//
+	// Place Headings
+	//
+	row += 2
+	writeCell(outputPtr, "A", row, "Donor Type")
+	writeCell(outputPtr, "B", row, "FY2023 Donations")
+	writeCell(outputPtr, "C", row, "FY2024 Donations")
+	writeCell(outputPtr, "D", row, "Total Donations")
+	//
+	// Ouput Data
+	//
+	var donorType donor_info.DonorType
+	for donorType = donor_info.DonorFY2023Only; donorType <= donor_info.DonorFY2023AndFY2024; donorType++ {
+		row++
+		writeCell(outputPtr, "A", row, donorTypes[donorType])
+		writeCellFloat(outputPtr, "B", row, donations.Donation(donorType, donor_info.FY2023))
+		writeCellFloat(outputPtr, "C", row, donations.Donation(donorType, donor_info.FY2024))
+	}
+
 }
