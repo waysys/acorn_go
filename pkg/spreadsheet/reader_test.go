@@ -122,6 +122,17 @@ func Test_CreateSpreadsheet(t *testing.T) {
 		t.Error(err.Error())
 	}
 	//
+	// Add another sheet
+	//
+	spFile, err = spFile.AddSheet("Goodbye")
+	if err != nil {
+		t.Error(err.Error())
+	}
+	err = spFile.SetCell("A1", "Another Value")
+	if err != nil {
+		t.Error(err.Error())
+	}
+	//
 	// Save and close the spreadsheet
 	//
 	err = (&spFile).Save()

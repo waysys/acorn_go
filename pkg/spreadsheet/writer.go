@@ -109,6 +109,32 @@ func (spFilePtr *SpreadsheetFile) Close() error {
 	return err
 }
 
+// AddSheet creates a new sheet in the spreadsheet file and returns
+// a new spreadsheet file structure pointing to the same file, but
+// with the new sheet name.
+func (spFilePtr *SpreadsheetFile) AddSheet(sheetname string) (SpreadsheetFile, error) {
+	var err error = nil
+	var spFile SpreadsheetFile
+	//
+	// Precondition
+	//
+	if sheetname == "" {
+		err = errors.New("sheetname must not be an empty string")
+		return spFile, err
+	}
+	//
+	// Make copy of spreadsheet file structure
+	//
+	spFile.filename = spFilePtr.filename
+	spFile.filePtr = spFilePtr.filePtr
+	spFile.sheetname = sheetname
+	//
+	// Create new sheet
+	//
+	_, err = spFilePtr.filePtr.NewSheet(sheetname)
+	return spFile, err
+}
+
 // SetCell sets the value of a cell in the specified spreadsheet
 func (spFilePtr *SpreadsheetFile) SetCell(cell string, value string) error {
 	var err error = nil
