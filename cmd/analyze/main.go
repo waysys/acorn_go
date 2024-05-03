@@ -296,6 +296,8 @@ func outputDonations(
 	writeCell(outputPtr, "B", row, "FY2023 Donations")
 	writeCell(outputPtr, "C", row, "FY2024 Donations")
 	writeCell(outputPtr, "D", row, "Total Donations")
+	writeCell(outputPtr, "E", row, "FY2023 Average Donations")
+	writeCell(outputPtr, "F", row, "FY2023 Average Donations")
 	//
 	// Ouput Data
 	//
@@ -305,6 +307,13 @@ func outputDonations(
 		writeCell(outputPtr, "A", row, donorTypes[donorType])
 		writeCellFloat(outputPtr, "B", row, donations.Donation(donorType, donor_info.FY2023))
 		writeCellFloat(outputPtr, "C", row, donations.Donation(donorType, donor_info.FY2024))
+		writeCellFloat(outputPtr, "E", row, donations.AvgDonation(donorType, donor_info.FY2023))
+		writeCellFloat(outputPtr, "F", row, donations.AvgDonation(donorType, donor_info.FY2024))
 	}
+	row++
+	writeCell(outputPtr, "A", row, "Total Donations")
+	writeCellFloat(outputPtr, "B", row, donations.FYDonation(donor_info.FY2023))
+	writeCellFloat(outputPtr, "C", row, donations.FYDonation(donor_info.FY2024))
+	writeCellFloat(outputPtr, "D", row, donations.TotalDonation())
 
 }
