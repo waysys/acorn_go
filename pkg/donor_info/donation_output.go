@@ -117,10 +117,23 @@ func (dons Donations) DonorCount(donorType DonorType) int {
 	return count
 }
 
-// AvgDonation return the average donation for a specified donor type and fiscal year
+// AvgDonation returns the average donation for a specified donor type and fiscal year
 func (dons Donations) AvgDonation(donorType DonorType, fy FYIndicator) float64 {
 	var donation = dons.Donation(donorType, fy)
 	var count = dons.DonorCount(donorType)
+	var avg = donation / float64(count)
+	return math.Round(avg)
+}
+
+// FYAvgDonation returns the average donations for all donors in a fiscal year
+func (dons Donations) FYAvgDonation(fy FYIndicator) float64 {
+	var donation = dons.FYDonation(fy)
+	var count = 0
+	if fy == FY2023 {
+		count = dons.DonorCount(DonorFY2023Only) + dons.DonorCount(DonorFY2023AndFY2024)
+	} else if fy == FY2024 {
+		count = dons.DonorCount(DonorFY2024Only) + dons.DonorCount(DonorFY2023AndFY2024)
+	}
 	var avg = donation / float64(count)
 	return math.Round(avg)
 }

@@ -72,7 +72,7 @@ func main() {
 	//
 	// Create output spreadsheet
 	//
-	output, err = spreadsheet.New(outputFile, "DonorCount")
+	output, err = spreadsheet.New(outputFile, "Donor Count")
 	check(err, "Error opening output file: ")
 	//
 	// Output results from donor counts
@@ -97,6 +97,9 @@ func main() {
 	//
 	var majorDonor = donor_info.ComputeMajorDonors(&donorList)
 	printMajorDonorAnalysis(majorDonor)
+	output, err = output.AddSheet("Major Donor")
+	check(err, "Error adding major donor sheet")
+	outputMajorDonor(majorDonor, &output)
 	//
 	// Finish up
 	//
@@ -167,17 +170,17 @@ func printRepeatAnalysis(donations donor_info.Donations) {
 // printMajorDonorAnalysis prints the values for major donors
 func printMajorDonorAnalysis(majorDonor donor_info.MajorDonor) {
 	fmt.Printf("\n\nMajor Donor Analysis\n\n")
-	fmt.Printf("Number of major donors in FY2023: %d\n", majorDonor.MajorDonorsFY2023)
-	fmt.Printf("Number of major donors in FY2024: %d\n", majorDonor.MajorDonorsFY2024)
-	fmt.Printf("Major donations in FY2023: $%v\n", majorDonor.DonationsMajorFY2023.IntPart())
-	fmt.Printf("Major donations in FY2024: $%v\n", majorDonor.DonationsMajorFY2024.IntPart())
-	fmt.Printf("Average major donations in FY2023: $%5.0f\n", majorDonor.AvgMajorDonationFY2023)
-	fmt.Printf("Average major donations in FY2024: $%5.0f\n", majorDonor.AvgMajorDonationFY2024)
-	fmt.Printf("Percent change in average major donations: %3.0f percent\n", majorDonor.DonationChange)
+	fmt.Printf("Number of major donors in FY2023: %d\n", majorDonor.MajorDonorCount(donor_info.FY2023))
+	fmt.Printf("Number of major donors in FY2024: %d\n", majorDonor.MajorDonorCount(donor_info.FY2024))
+	fmt.Printf("Major donations in FY2023: $%6.0f\n", majorDonor.DonationsMajor(donor_info.FY2023))
+	fmt.Printf("Major donations in FY2024: $%6.0f\n", majorDonor.DonationsMajor(donor_info.FY2024))
+	fmt.Printf("Average major donations in FY2023: $%5.0f\n", majorDonor.AvgDonation(donor_info.FY2023))
+	fmt.Printf("Average major donations in FY2024: $%5.0f\n", majorDonor.AvgDonation(donor_info.FY2024))
+	fmt.Printf("Percent change in average major donations: %3.0f percent\n", majorDonor.PercentChange())
 	fmt.Printf("Percent of total donations by major donors FY2023: %3.0f percent\n",
-		majorDonor.PercentTotalDonationsFY2023)
+		majorDonor.PercentDonation(donor_info.FY2023))
 	fmt.Printf("Percent of total donations by major donors FY2024: %3.0f percent\n",
-		majorDonor.PercentTotalDonationsFY2024)
+		majorDonor.PercentDonation(donor_info.FY2024))
 }
 
 // ----------------------------------------------------------------------------
@@ -256,7 +259,6 @@ func outputDonorCount(
 	writeCell(outputPtr, "A", row, "Donor Type")
 	writeCell(outputPtr, "B", row, "FY2023 Donors")
 	writeCell(outputPtr, "C", row, "FY2024 Donors")
-	writeCell(outputPtr, "D", row, "Total Donors")
 	//
 	// Place data rows
 	//
@@ -276,9 +278,18 @@ func outputDonorCount(
 	writeCell(outputPtr, "A", row, "Total Donors")
 	writeCellInt(outputPtr, "B", row, donorCount.TotalDonorsFY2023)
 	writeCellInt(outputPtr, "C", row, donorCount.TotalDonorsFY2024)
-	writeCellInt(outputPtr, "D", row, donorCount.TotalDonors)
+	row += 2
+	writeCell(outputPtr, "A", row, "Total donors")
+	writeCellInt(outputPtr, "B", row, donorCount.TotalDonors)
+	row++
+	writeCell(outputPtr, "A", row, "Retention Rate")
+	writeCellFloat(outputPtr, "B", row, donorCount.RetentionRate())
+	row++
+	writeCell(outputPtr, "A", row, "Acquisition Rate")
+	writeCellFloat(outputPtr, "B", row, donorCount.AcquisitionRate())
 }
 
+// outputDonations inserts the donation data into the spreadsheet.
 func outputDonations(
 	donations donor_info.Donations,
 	outputPtr *spreadsheet.SpreadsheetFile) {
@@ -295,7 +306,6 @@ func outputDonations(
 	writeCell(outputPtr, "A", row, "Donor Type")
 	writeCell(outputPtr, "B", row, "FY2023 Donations")
 	writeCell(outputPtr, "C", row, "FY2024 Donations")
-	writeCell(outputPtr, "D", row, "Total Donations")
 	writeCell(outputPtr, "E", row, "FY2023 Average Donations")
 	writeCell(outputPtr, "F", row, "FY2023 Average Donations")
 	//
@@ -314,6 +324,49 @@ func outputDonations(
 	writeCell(outputPtr, "A", row, "Total Donations")
 	writeCellFloat(outputPtr, "B", row, donations.FYDonation(donor_info.FY2023))
 	writeCellFloat(outputPtr, "C", row, donations.FYDonation(donor_info.FY2024))
-	writeCellFloat(outputPtr, "D", row, donations.TotalDonation())
+	writeCellFloat(outputPtr, "E", row, donations.FYAvgDonation(donor_info.FY2023))
+	writeCellFloat(outputPtr, "F", row, donations.FYAvgDonation(donor_info.FY2024))
+	row += 2
+	writeCell(outputPtr, "A", row, "Total Donations for Both Years")
+	writeCellFloat(outputPtr, "B", row, donations.TotalDonation())
+}
 
+// outputMajorDonor inserts the major donor data into the spreadsheet.
+func outputMajorDonor(
+	md donor_info.MajorDonor,
+	outputPtr *spreadsheet.SpreadsheetFile) {
+	var row = 1
+	//
+	// Place Title
+	//
+	writeCell(outputPtr, "A", row, "Major Donor Analysis")
+	//
+	// Place Headings
+	//
+	row += 2
+	writeCell(outputPtr, "A", row, "")
+	writeCell(outputPtr, "B", row, "FY2023")
+	writeCell(outputPtr, "C", row, "FY2024")
+	//
+	// Ouput Data
+	//
+	row += 2
+	writeCell(outputPtr, "A", row, "Major donors")
+	writeCellInt(outputPtr, "B", row, md.MajorDonorCount(donor_info.FY2023))
+	writeCellInt(outputPtr, "C", row, int(md.MajorDonorCount(donor_info.FY2024)))
+	row++
+	writeCell(outputPtr, "A", row, "Major donor donations")
+	writeCellFloat(outputPtr, "B", row, md.DonationsMajor(donor_info.FY2023))
+	writeCellFloat(outputPtr, "C", row, md.DonationsMajor(donor_info.FY2024))
+	row++
+	writeCell(outputPtr, "A", row, "Average major donor donation")
+	writeCellFloat(outputPtr, "B", row, md.AvgDonation(donor_info.FY2023))
+	writeCellFloat(outputPtr, "C", row, md.AvgDonation(donor_info.FY2024))
+	row++
+	writeCell(outputPtr, "A", row, "Percent of total donations by major donors")
+	writeCellFloat(outputPtr, "B", row, md.PercentDonation(donor_info.FY2023))
+	writeCellFloat(outputPtr, "C", row, md.PercentDonation(donor_info.FY2024))
+	row += 2
+	writeCell(outputPtr, "A", row, "Percent change in average donations")
+	writeCellFloat(outputPtr, "B", row, md.PercentChange())
 }
