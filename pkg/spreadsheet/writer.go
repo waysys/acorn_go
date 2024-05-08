@@ -32,6 +32,17 @@ type SpreadsheetFile struct {
 	filePtr   *excelize.File
 }
 
+type FormatIndex int
+
+// ----------------------------------------------------------------------------
+// Constant
+// ----------------------------------------------------------------------------
+
+const (
+	FormatPerCent FormatIndex = 9
+	FormatDate    FormatIndex = 14
+)
+
 // ----------------------------------------------------------------------------
 // Factory Functions
 // ----------------------------------------------------------------------------
@@ -190,4 +201,18 @@ func (spFilePtr *SpreadsheetFile) SetCellInt(cell string, value int) error {
 	//
 	err = file.SetCellInt(sheetname, cell, value)
 	return err
+}
+
+// SetNumFmt sets the number format on a cell.
+// For format codes, see https://xuri.me/excelize/en/style.html#number_format
+func (spFilePtr *SpreadsheetFile) SetNumFmt(cell string, index FormatIndex) error {
+	var style = excelize.Style{
+		NumFmt: int(index),
+	}
+	var st, err = spFilePtr.filePtr.NewStyle(&style)
+	if err != nil {
+		return err
+	}
+	spFilePtr.filePtr.SetCellStyle(spFilePtr.sheetname, cell, cell, st)
+	return nil
 }

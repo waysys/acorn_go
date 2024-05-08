@@ -117,10 +117,10 @@ func main() {
 	sprdsht, err = spreadsheet.ProcessData()
 	check(err, "Error processing spreadsheet")
 	//
-	// Generate donor list
+	// Generate donation series
 	//
 	donationSeries, err = donor_info.NewDonationSeries(&sprdsht)
-	check(err, "Error generating donor list")
+	check(err, "Error generating donation series")
 	//
 	// Output donation series to spreadsheet
 	//

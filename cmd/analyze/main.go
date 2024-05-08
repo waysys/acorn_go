@@ -79,7 +79,6 @@ func main() {
 	//
 	printDonorCount(donorCount)
 	outputDonorCount(donorCount, &output)
-	printNonRepeatDonors(&donorList)
 	//
 	// Calculate donations
 	//
@@ -130,18 +129,6 @@ func printDonorCount(donorCount donor_info.DonorCount) {
 	fmt.Printf("Donors donating in FY2023 only: %d\n", donorCount.DonorsFY2023Only)
 	fmt.Printf("Donors donating in FY2024 only: %d\n", donorCount.DonorsFY2024Only)
 	fmt.Printf("Donors donating in both years:  %d\n", donorCount.DonorsFY2023AndFY2024)
-}
-
-// printNonRepeatDonors prints a list of donors who donated in FY2023 but not FY2024.
-func printNonRepeatDonors(donorListPtr *donor_info.DonorList) {
-	var names = donor_info.NonRepeatDonors(donorListPtr)
-	var count = 0
-	fmt.Printf("\nDonors who donated in FY2023 but not FY2024\n\n")
-	for _, name := range names {
-		count++
-		fmt.Println(name)
-	}
-	fmt.Printf("\nNumber of non-repeat donors: %d", count)
 }
 
 // printAmountAnalysis prints the amounts of donations by fiscal year, by repeat donors
