@@ -5,7 +5,7 @@
 // Author: William Shaffer
 // Version: 15-Apr-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -23,6 +23,11 @@ import (
 	"testing"
 )
 
+const (
+	inputFile = "/home/bozo/golang/acorn_go/data/register.xlsx"
+	tab       = "Worksheet"
+)
+
 // ----------------------------------------------------------------------------
 // Test Main
 // ----------------------------------------------------------------------------
@@ -38,7 +43,7 @@ func TestMain(m *testing.M) {
 
 // Test_ReadSpreadsheet checks that the specified spreadsheet can be read.
 func Test_ReadSpreadsheet(t *testing.T) {
-	var spreadsheet, err = ProcessData()
+	var spreadsheet, err = ProcessData(inputFile, tab)
 	if err != nil {
 		t.Error("error reading spreadsheet: " + err.Error())
 	}
@@ -56,7 +61,7 @@ func Test_Column(t *testing.T) {
 	var spreadsheet Spreadsheet
 	var column int
 
-	spreadsheet, err = ProcessData()
+	spreadsheet, err = ProcessData(inputFile, tab)
 	if err != nil {
 		t.Error("error reading spreadsheet: " + err.Error())
 	}
@@ -86,7 +91,7 @@ func Test_Cell(t *testing.T) {
 	var spreadsheet Spreadsheet
 	var cell string
 
-	spreadsheet, err = ProcessData()
+	spreadsheet, err = ProcessData(inputFile, tab)
 	if err != nil {
 		t.Error("error reading spreadsheet: " + err.Error())
 	}

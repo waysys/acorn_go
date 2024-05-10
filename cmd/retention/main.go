@@ -5,7 +5,7 @@
 // Author: William Shaffer
 // Version: 7-May-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -38,6 +38,8 @@ import (
 // ----------------------------------------------------------------------------
 
 const (
+	inputFile      = "/home/bozo/golang/acorn_go/data/register.xlsx"
+	tab            = "Worksheet"
 	outputFileName = "/home/bozo/Downloads/nonrepeat.xlsx"
 	sheetName      = "Non-Repeat Donors"
 )
@@ -114,7 +116,7 @@ func main() {
 	//
 	// Obtain spreadsheet data
 	//
-	sprdsht, err = spreadsheet.ProcessData()
+	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
 	check(err, "Error processing spreadsheet")
 	//
 	// Generate donor list

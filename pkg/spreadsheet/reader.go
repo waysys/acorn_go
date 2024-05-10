@@ -5,7 +5,7 @@
 // Author: William Shaffer
 // Version: 15-Apr-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -36,9 +36,6 @@ type Spreadsheet struct {
 // Constants
 // ----------------------------------------------------------------------------
 
-const inputFile = "/home/bozo/golang/acorn_go/data/register.xlsx"
-const tab = "Worksheet"
-
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
@@ -67,15 +64,15 @@ func readData(excelFillName string, tab string) ([][]string, error) {
 }
 
 // ProcessData reads the donation Excel file and returns the column headings
-// an a slice of the data.
-func ProcessData() (Spreadsheet, error) {
+// and a slice of the data in a Spreadsheet structure.
+func ProcessData(fileName string, tab string) (Spreadsheet, error) {
 	var rows [][]string
 	var err error
 	var spreadsheet Spreadsheet
 	//
 	// Retieve data form .xlsx file
 	//
-	rows, err = readData(inputFile, tab)
+	rows, err = readData(fileName, tab)
 	if err != nil {
 		return spreadsheet, err
 	}

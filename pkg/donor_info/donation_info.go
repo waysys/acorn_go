@@ -5,7 +5,7 @@
 // Author: William Shaffer
 // Version: 12-Apr-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2024 William Shaffer All rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ type DonationInfo struct {
 }
 
 // ----------------------------------------------------------------------------
-// Factory Methods
+// Factory Functions
 // ----------------------------------------------------------------------------
 
 func NewDonationInfo() DonationInfo {
