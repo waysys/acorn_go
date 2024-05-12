@@ -16,6 +16,7 @@ package donor_info
 // ----------------------------------------------------------------------------
 
 import (
+	a "acorn_go/pkg/accounting"
 	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
@@ -168,11 +169,11 @@ func (donorListPtr *DonorList) AddDonation(nameDonor string, amountDonation dec.
 	//
 	// Update donation amounts based on donation date.
 	//
-	var fiscalYearIndicator = FiscalYearIndicator(dateDonation)
+	var fiscalYearIndicator = a.FiscalYearIndicator(dateDonation)
 	switch fiscalYearIndicator {
-	case FY2023:
+	case a.FY2023:
 		donorPtr.AddFY23(amountDonation)
-	case FY2024:
+	case a.FY2024:
 		donorPtr.AddFY24(amountDonation)
 	default:
 		err = errors.New("date of donation is not in either fiscal year: " + dateDonation.String())

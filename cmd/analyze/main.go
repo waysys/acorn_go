@@ -23,6 +23,7 @@ import (
 	"os"
 	"strconv"
 
+	a "acorn_go/pkg/accounting"
 	"acorn_go/pkg/donor_info"
 	"acorn_go/pkg/spreadsheet"
 )
@@ -138,8 +139,8 @@ func printDonorCount(donorCount donor_info.DonorCount) {
 // current fiscal year and the prior fiscal year.
 func printAmountAnalysis(donations donor_info.Donations) {
 	fmt.Printf("\n\n\nDonations\n\n")
-	fmt.Printf("FY2023 donations: $%v\n", donations.FYDonation(donor_info.FY2023))
-	fmt.Printf("FY2024 donations: $%v\n", donations.FYDonation(donor_info.FY2024))
+	fmt.Printf("FY2023 donations: $%v\n", donations.FYDonation(a.FY2023))
+	fmt.Printf("FY2024 donations: $%v\n", donations.FYDonation(a.FY2024))
 	fmt.Printf("Total donations:  $%v\n", donations.TotalDonation())
 }
 
@@ -149,9 +150,9 @@ func printRepeatAnalysis(donations donor_info.Donations) {
 	fmt.Printf("\n\nRepeat Donation Analysis\n\n")
 	fmt.Printf("Number of repeat donors: %d\n", donations.DonorCount(donor_info.DonorFY2023AndFY2024))
 	fmt.Printf("Average FY2023 donations for repeat donors: $%5.0f\n",
-		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, donor_info.FY2023))
+		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, a.FY2023))
 	fmt.Printf("Average FY2024 donations for repeat donors: $%5.0f\n",
-		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, donor_info.FY2024))
+		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, a.FY2024))
 	fmt.Printf("Percent change in average donations: %3.0f percent\n",
 		donations.DonationChange(donor_info.DonorFY2023AndFY2024))
 }
@@ -159,17 +160,17 @@ func printRepeatAnalysis(donations donor_info.Donations) {
 // printMajorDonorAnalysis prints the values for major donors
 func printMajorDonorAnalysis(majorDonor donor_info.MajorDonor) {
 	fmt.Printf("\n\nMajor Donor Analysis\n\n")
-	fmt.Printf("Number of major donors in FY2023: %d\n", majorDonor.MajorDonorCount(donor_info.FY2023))
-	fmt.Printf("Number of major donors in FY2024: %d\n", majorDonor.MajorDonorCount(donor_info.FY2024))
-	fmt.Printf("Major donations in FY2023: $%6.0f\n", majorDonor.DonationsMajor(donor_info.FY2023))
-	fmt.Printf("Major donations in FY2024: $%6.0f\n", majorDonor.DonationsMajor(donor_info.FY2024))
-	fmt.Printf("Average major donations in FY2023: $%5.0f\n", majorDonor.AvgDonation(donor_info.FY2023))
-	fmt.Printf("Average major donations in FY2024: $%5.0f\n", majorDonor.AvgDonation(donor_info.FY2024))
+	fmt.Printf("Number of major donors in FY2023: %d\n", majorDonor.MajorDonorCount(a.FY2023))
+	fmt.Printf("Number of major donors in FY2024: %d\n", majorDonor.MajorDonorCount(a.FY2024))
+	fmt.Printf("Major donations in FY2023: $%6.0f\n", majorDonor.DonationsMajor(a.FY2023))
+	fmt.Printf("Major donations in FY2024: $%6.0f\n", majorDonor.DonationsMajor(a.FY2024))
+	fmt.Printf("Average major donations in FY2023: $%5.0f\n", majorDonor.AvgDonation(a.FY2023))
+	fmt.Printf("Average major donations in FY2024: $%5.0f\n", majorDonor.AvgDonation(a.FY2024))
 	fmt.Printf("Percent change in average major donations: %3.0f percent\n", majorDonor.PercentChange())
 	fmt.Printf("Percent of total donations by major donors FY2023: %3.0f percent\n",
-		majorDonor.PercentDonation(donor_info.FY2023))
+		majorDonor.PercentDonation(a.FY2023))
 	fmt.Printf("Percent of total donations by major donors FY2024: %3.0f percent\n",
-		majorDonor.PercentDonation(donor_info.FY2024))
+		majorDonor.PercentDonation(a.FY2024))
 }
 
 // ----------------------------------------------------------------------------
@@ -304,17 +305,17 @@ func outputDonations(
 	for donorType = donor_info.DonorFY2023Only; donorType <= donor_info.DonorFY2023AndFY2024; donorType++ {
 		row++
 		writeCell(outputPtr, "A", row, donorTypes[donorType])
-		writeCellFloat(outputPtr, "B", row, donations.Donation(donorType, donor_info.FY2023))
-		writeCellFloat(outputPtr, "C", row, donations.Donation(donorType, donor_info.FY2024))
-		writeCellFloat(outputPtr, "E", row, donations.AvgDonation(donorType, donor_info.FY2023))
-		writeCellFloat(outputPtr, "F", row, donations.AvgDonation(donorType, donor_info.FY2024))
+		writeCellFloat(outputPtr, "B", row, donations.Donation(donorType, a.FY2023))
+		writeCellFloat(outputPtr, "C", row, donations.Donation(donorType, a.FY2024))
+		writeCellFloat(outputPtr, "E", row, donations.AvgDonation(donorType, a.FY2023))
+		writeCellFloat(outputPtr, "F", row, donations.AvgDonation(donorType, a.FY2024))
 	}
 	row++
 	writeCell(outputPtr, "A", row, "Total Donations")
-	writeCellFloat(outputPtr, "B", row, donations.FYDonation(donor_info.FY2023))
-	writeCellFloat(outputPtr, "C", row, donations.FYDonation(donor_info.FY2024))
-	writeCellFloat(outputPtr, "E", row, donations.FYAvgDonation(donor_info.FY2023))
-	writeCellFloat(outputPtr, "F", row, donations.FYAvgDonation(donor_info.FY2024))
+	writeCellFloat(outputPtr, "B", row, donations.FYDonation(a.FY2023))
+	writeCellFloat(outputPtr, "C", row, donations.FYDonation(a.FY2024))
+	writeCellFloat(outputPtr, "E", row, donations.FYAvgDonation(a.FY2023))
+	writeCellFloat(outputPtr, "F", row, donations.FYAvgDonation(a.FY2024))
 	row += 2
 	writeCell(outputPtr, "A", row, "Total Donations for Both Years")
 	writeCellFloat(outputPtr, "B", row, donations.TotalDonation())
@@ -341,20 +342,20 @@ func outputMajorDonor(
 	//
 	row += 2
 	writeCell(outputPtr, "A", row, "Major donors")
-	writeCellInt(outputPtr, "B", row, md.MajorDonorCount(donor_info.FY2023))
-	writeCellInt(outputPtr, "C", row, int(md.MajorDonorCount(donor_info.FY2024)))
+	writeCellInt(outputPtr, "B", row, md.MajorDonorCount(a.FY2023))
+	writeCellInt(outputPtr, "C", row, int(md.MajorDonorCount(a.FY2024)))
 	row++
 	writeCell(outputPtr, "A", row, "Major donor donations")
-	writeCellFloat(outputPtr, "B", row, md.DonationsMajor(donor_info.FY2023))
-	writeCellFloat(outputPtr, "C", row, md.DonationsMajor(donor_info.FY2024))
+	writeCellFloat(outputPtr, "B", row, md.DonationsMajor(a.FY2023))
+	writeCellFloat(outputPtr, "C", row, md.DonationsMajor(a.FY2024))
 	row++
 	writeCell(outputPtr, "A", row, "Average major donor donation")
-	writeCellFloat(outputPtr, "B", row, md.AvgDonation(donor_info.FY2023))
-	writeCellFloat(outputPtr, "C", row, md.AvgDonation(donor_info.FY2024))
+	writeCellFloat(outputPtr, "B", row, md.AvgDonation(a.FY2023))
+	writeCellFloat(outputPtr, "C", row, md.AvgDonation(a.FY2024))
 	row++
 	writeCell(outputPtr, "A", row, "Percent of total donations by major donors")
-	writeCellFloat(outputPtr, "B", row, md.PercentDonation(donor_info.FY2023))
-	writeCellFloat(outputPtr, "C", row, md.PercentDonation(donor_info.FY2024))
+	writeCellFloat(outputPtr, "B", row, md.PercentDonation(a.FY2023))
+	writeCellFloat(outputPtr, "C", row, md.PercentDonation(a.FY2024))
 	row += 2
 	writeCell(outputPtr, "A", row, "Percent change in average donations")
 	writeCellFloat(outputPtr, "B", row, md.PercentChange())

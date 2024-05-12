@@ -20,6 +20,7 @@ import (
 	"os"
 	"testing"
 
+	a "acorn_go/pkg/accounting"
 	d "acorn_go/pkg/date"
 
 	dec "github.com/shopspring/decimal"
@@ -158,20 +159,20 @@ func Test_FiscalYear(t *testing.T) {
 	var date d.Date
 
 	date, _ = d.New(1, 1, 1950)
-	var indicator = FiscalYearIndicator(date)
-	if indicator != OutOfRange {
+	var indicator = a.FiscalYearIndicator(date)
+	if indicator != a.OutOfRange {
 		t.Error("fiscal year indicator should be OutOfRange, but is: " + indicator.String())
 	}
 
 	date, _ = d.New(9, 1, 2022)
-	indicator = FiscalYearIndicator(date)
-	if indicator != FY2023 {
+	indicator = a.FiscalYearIndicator(date)
+	if indicator != a.FY2023 {
 		t.Error("fiscal year idicator should be FY2023, but is: " + indicator.String())
 	}
 
 	date, _ = d.New(8, 31, 2024)
-	indicator = FiscalYearIndicator(date)
-	if indicator != FY2024 {
+	indicator = a.FiscalYearIndicator(date)
+	if indicator != a.FY2024 {
 		t.Error("fiscal year indiator should be FY2024, but is: " + indicator.String())
 	}
 }
@@ -179,21 +180,21 @@ func Test_FiscalYear(t *testing.T) {
 // Test_FiscalYearFromYearMonth checks the determination of the Fiscal Year Indicator based
 // on a specified year and month
 func Test_FiscalYearFromYearMonth(t *testing.T) {
-	var indicator FYIndicator
+	var indicator a.FYIndicator
 
-	var evaluate = func(month int, year int) FYIndicator {
+	var evaluate = func(month int, year int) a.FYIndicator {
 		var err error = nil
 		var yearMonth d.YearMonth
 
 		yearMonth, err = d.NewYearMonth(year, month)
 		if err != nil {
 			t.Error("year month not created: " + err.Error())
-			return OutOfRange
+			return a.OutOfRange
 		}
-		indicator, err = FiscalYearFromYearMonth(yearMonth)
+		indicator, err = a.FiscalYearFromYearMonth(yearMonth)
 		if err != nil {
 			t.Error("fiscal year indicator not create: " + err.Error())
-			return OutOfRange
+			return a.OutOfRange
 		}
 		return indicator
 	}
@@ -201,28 +202,28 @@ func Test_FiscalYearFromYearMonth(t *testing.T) {
 	// Beginning of FY2023
 	//
 	indicator = evaluate(9, 2022)
-	if indicator != FY2023 {
+	if indicator != a.FY2023 {
 		t.Error("indicator is not correct value: " + indicator.String())
 	}
 	//
 	// End of FY2023
 	//
 	indicator = evaluate(8, 2023)
-	if indicator != FY2023 {
+	if indicator != a.FY2023 {
 		t.Error("indicator is not correct valaue: " + indicator.String())
 	}
 	//
 	// Beginning of FY2024
 	//
 	indicator = evaluate(9, 2023)
-	if indicator != FY2024 {
+	if indicator != a.FY2024 {
 		t.Error("indicator is not correct value: " + indicator.String())
 	}
 	//
 	// End of FY2024
 	//
 	indicator = evaluate(8, 2024)
-	if indicator != FY2024 {
+	if indicator != a.FY2024 {
 		t.Error("indicator is not correct value: " + indicator.String())
 	}
 

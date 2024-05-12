@@ -5,11 +5,11 @@
 // Author: William Shaffer
 // Version: 14-Apr-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
-package donor_info
+package accounting
 
 // ----------------------------------------------------------------------------
 // Imports

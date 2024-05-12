@@ -25,6 +25,7 @@ import (
 	"os"
 	"strconv"
 
+	a "acorn_go/pkg/accounting"
 	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/donor_info"
@@ -227,14 +228,14 @@ func calcTotalDonations(
 	totDonFY2023 float64,
 	totDonFY2024 float64) (float64, float64) {
 	var err error = nil
-	var indicator donor_info.FYIndicator
+	var indicator a.FYIndicator
 
-	indicator, err = donor_info.FiscalYearFromYearMonth(yearMonth)
+	indicator, err = a.FiscalYearFromYearMonth(yearMonth)
 	assert.Assert(err == nil, "Unable to handle year month: "+yearMonth.String())
 	switch indicator {
-	case donor_info.FY2023:
+	case a.FY2023:
 		totDonFY2023 += amount
-	case donor_info.FY2024:
+	case a.FY2024:
 		totDonFY2024 += amount
 	default:
 		assert.Assert(false, "unmatched fiscal year: "+yearMonth.String())

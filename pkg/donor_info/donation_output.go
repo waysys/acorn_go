@@ -5,7 +5,7 @@
 // Author: William Shaffer
 // Version: 30-Apr-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -19,6 +19,8 @@ package donor_info
 
 import (
 	"math"
+
+	a "acorn_go/pkg/accounting"
 
 	dec "github.com/shopspring/decimal"
 )
@@ -61,18 +63,18 @@ func ComputeDonations(donorListPtr *DonorList) Donations {
 
 	for _, donor := range *donorListPtr {
 		if donor.IsFY23DonorOnly() {
-			dons.donations[DonorFY2023Only][FY2023] =
-				dons.donations[DonorFY2023Only][FY2023].Add(donor.donationFY23)
+			dons.donations[DonorFY2023Only][a.FY2023] =
+				dons.donations[DonorFY2023Only][a.FY2023].Add(donor.donationFY23)
 			dons.donorCount[DonorFY2023Only]++
 		} else if donor.IsFY24DonorOnly() {
-			dons.donations[DonorFY2024Only][FY2024] =
-				dons.donations[DonorFY2024Only][FY2024].Add(donor.donationFY24)
+			dons.donations[DonorFY2024Only][a.FY2024] =
+				dons.donations[DonorFY2024Only][a.FY2024].Add(donor.donationFY24)
 			dons.donorCount[DonorFY2024Only]++
 		} else if donor.IsFY23AndFY24Donor() {
-			dons.donations[DonorFY2023AndFY2024][FY2023] =
-				dons.donations[DonorFY2023AndFY2024][FY2023].Add(donor.donationFY23)
-			dons.donations[DonorFY2023AndFY2024][FY2024] =
-				dons.donations[DonorFY2023AndFY2024][FY2024].Add(donor.donationFY24)
+			dons.donations[DonorFY2023AndFY2024][a.FY2023] =
+				dons.donations[DonorFY2023AndFY2024][a.FY2023].Add(donor.donationFY23)
+			dons.donations[DonorFY2023AndFY2024][a.FY2024] =
+				dons.donations[DonorFY2023AndFY2024][a.FY2024].Add(donor.donationFY24)
 			dons.donorCount[DonorFY2023AndFY2024]++
 		}
 	}
@@ -85,14 +87,14 @@ func ComputeDonations(donorListPtr *DonorList) Donations {
 
 // Donation returns the donation for a particular type of donor and a
 // particular fiscal year
-func (dons Donations) Donation(donorType DonorType, fy FYIndicator) float64 {
+func (dons Donations) Donation(donorType DonorType, fy a.FYIndicator) float64 {
 	var value = dons.donations[donorType][fy]
 	var donation = value.InexactFloat64()
 	return math.Round(donation)
 }
 
 // FYDonation returns the total donation for the fiscal year
-func (dons Donations) FYDonation(fy FYIndicator) float64 {
+func (dons Donations) FYDonation(fy a.FYIndicator) float64 {
 	var donation float64 = 0
 	var donorType DonorType
 
@@ -105,7 +107,7 @@ func (dons Donations) FYDonation(fy FYIndicator) float64 {
 // TotalDonation returns the total donation made for all fiscal years
 func (dons Donations) TotalDonation() float64 {
 	var donation float64 = 0
-	for fy := FY2023; fy <= FY2024; fy++ {
+	for fy := a.FY2023; fy <= a.FY2024; fy++ {
 		donation += dons.FYDonation(fy)
 	}
 	return donation
@@ -118,7 +120,7 @@ func (dons Donations) DonorCount(donorType DonorType) int {
 }
 
 // AvgDonation returns the average donation for a specified donor type and fiscal year
-func (dons Donations) AvgDonation(donorType DonorType, fy FYIndicator) float64 {
+func (dons Donations) AvgDonation(donorType DonorType, fy a.FYIndicator) float64 {
 	var donation = dons.Donation(donorType, fy)
 	var count = dons.DonorCount(donorType)
 	var avg = donation / float64(count)
@@ -126,12 +128,12 @@ func (dons Donations) AvgDonation(donorType DonorType, fy FYIndicator) float64 {
 }
 
 // FYAvgDonation returns the average donations for all donors in a fiscal year
-func (dons Donations) FYAvgDonation(fy FYIndicator) float64 {
+func (dons Donations) FYAvgDonation(fy a.FYIndicator) float64 {
 	var donation = dons.FYDonation(fy)
 	var count = 0
-	if fy == FY2023 {
+	if fy == a.FY2023 {
 		count = dons.DonorCount(DonorFY2023Only) + dons.DonorCount(DonorFY2023AndFY2024)
-	} else if fy == FY2024 {
+	} else if fy == a.FY2024 {
 		count = dons.DonorCount(DonorFY2024Only) + dons.DonorCount(DonorFY2023AndFY2024)
 	}
 	var avg = donation / float64(count)
@@ -141,8 +143,8 @@ func (dons Donations) FYAvgDonation(fy FYIndicator) float64 {
 // DonationChange computes the percent change in donations for a particular donor type.
 func (dons Donations) DonationChange(donorType DonorType) float64 {
 	var change float64
-	var avgFY2023 = dons.AvgDonation(donorType, FY2023)
-	var avgFY2024 = dons.AvgDonation(donorType, FY2024)
+	var avgFY2023 = dons.AvgDonation(donorType, a.FY2023)
+	var avgFY2024 = dons.AvgDonation(donorType, a.FY2024)
 	change = (avgFY2024 - avgFY2023) * 100.00 / avgFY2023
 	return math.Round(change)
 }

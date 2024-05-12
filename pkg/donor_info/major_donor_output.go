@@ -18,6 +18,7 @@ package donor_info
 // ----------------------------------------------------------------------------
 
 import (
+	a "acorn_go/pkg/accounting"
 	"math"
 )
 
@@ -60,15 +61,15 @@ func ComputeMajorDonors(donorListPtr *DonorList) MajorDonor {
 		donationFY2024 = donor.DonationFY24().InexactFloat64()
 
 		if donor.IsMajorDonorFY23() {
-			majorDonor.donorCount[FY2023]++
-			majorDonor.donations[FY2023] += donationFY2023
+			majorDonor.donorCount[a.FY2023]++
+			majorDonor.donations[a.FY2023] += donationFY2023
 		}
 		if donor.IsMajorDonorFY24() {
-			majorDonor.donorCount[FY2024]++
-			majorDonor.donations[FY2024] += donationFY2024
+			majorDonor.donorCount[a.FY2024]++
+			majorDonor.donations[a.FY2024] += donationFY2024
 		}
-		majorDonor.donationsTotal[FY2023] += donationFY2023
-		majorDonor.donationsTotal[FY2024] += donationFY2024
+		majorDonor.donationsTotal[a.FY2023] += donationFY2023
+		majorDonor.donationsTotal[a.FY2024] += donationFY2024
 	}
 	return majorDonor
 }
@@ -78,18 +79,18 @@ func ComputeMajorDonors(donorListPtr *DonorList) MajorDonor {
 // ----------------------------------------------------------------------------
 
 // MajorDonors returns the number of major donors for the specified fiscal year
-func (majorDonor MajorDonor) MajorDonorCount(fy FYIndicator) int {
+func (majorDonor MajorDonor) MajorDonorCount(fy a.FYIndicator) int {
 	return majorDonor.donorCount[fy]
 }
 
 // DonationsMajor returns the amount of donations by major donors.
-func (majorDonor MajorDonor) DonationsMajor(fy FYIndicator) float64 {
+func (majorDonor MajorDonor) DonationsMajor(fy a.FYIndicator) float64 {
 	return math.Round(majorDonor.donations[fy])
 }
 
 // AverageDonation returns the average donation by major donors for the
 // specified fiscal year
-func (majorDonor MajorDonor) AvgDonation(fy FYIndicator) float64 {
+func (majorDonor MajorDonor) AvgDonation(fy a.FYIndicator) float64 {
 	var count = float64(majorDonor.MajorDonorCount(fy))
 	var donation = majorDonor.donations[fy]
 	var avg = math.Round(donation / count)
@@ -98,7 +99,7 @@ func (majorDonor MajorDonor) AvgDonation(fy FYIndicator) float64 {
 
 // PercentDonation returns the donations by major donors as a percent
 // of the total donations for the specified fiscal year.
-func (majorDonor MajorDonor) PercentDonation(fy FYIndicator) float64 {
+func (majorDonor MajorDonor) PercentDonation(fy a.FYIndicator) float64 {
 	var donation = majorDonor.donations[fy]
 	var donationsTotal = majorDonor.donationsTotal[fy]
 	var percent = math.Round(100.0 * donation / donationsTotal)
@@ -108,8 +109,8 @@ func (majorDonor MajorDonor) PercentDonation(fy FYIndicator) float64 {
 // PercentChange returns the percent change in average donations from
 // the current fiscal year compared to the prior fiscal year.
 func (majorDonor MajorDonor) PercentChange() float64 {
-	var avgDonationFY2023 = majorDonor.AvgDonation(FY2023)
-	var avgDonationFY2024 = majorDonor.AvgDonation(FY2024)
+	var avgDonationFY2023 = majorDonor.AvgDonation(a.FY2023)
+	var avgDonationFY2024 = majorDonor.AvgDonation(a.FY2024)
 	var percentChange = 100 * (avgDonationFY2024 - avgDonationFY2023) / avgDonationFY2023
 	return math.Round(percentChange)
 }
