@@ -16,6 +16,7 @@ package recipient
 // ----------------------------------------------------------------------------
 
 import (
+	a "acorn_go/pkg/accounting"
 	d "acorn_go/pkg/date"
 	r "acorn_go/pkg/daterange"
 	"errors"
@@ -82,4 +83,10 @@ func (group AwardGroup) AwardDate() d.Date {
 // award range.
 func (group AwardGroup) InAwardGroup(date d.Date) bool {
 	return group.awardRange.InRange(date)
+}
+
+// FiscalYear returns the fiscal year indicator based on
+// the award date.
+func (group AwardGroup) FiscalYear() a.FYIndicator {
+	return a.FiscalYearIndicator(group.AwardDate())
 }
