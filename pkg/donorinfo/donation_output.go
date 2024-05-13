@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donor_info
+package donorinfo
 
 // This file contains code for computing the output related to donations.
 

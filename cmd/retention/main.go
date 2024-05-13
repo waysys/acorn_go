@@ -20,7 +20,7 @@ package main
 
 import (
 	d "acorn_go/pkg/date"
-	"acorn_go/pkg/donor_info"
+	"acorn_go/pkg/donorinfo"
 	"acorn_go/pkg/spreadsheet"
 	"fmt"
 	"os"
@@ -108,8 +108,8 @@ func writeCellDecimal(
 // with the list of non-repeat donors
 func main() {
 	var sprdsht spreadsheet.Spreadsheet
-	var donorList donor_info.DonorList
-	var nonrepeats []donor_info.NonRepeat
+	var donorList donorinfo.DonorList
+	var nonrepeats []donorinfo.NonRepeat
 	var err error
 
 	printHeader()
@@ -121,12 +121,12 @@ func main() {
 	//
 	// Generate donor list
 	//
-	donorList, err = donor_info.NewDonorList(&sprdsht)
+	donorList, err = donorinfo.NewDonorList(&sprdsht)
 	check(err, "Error generating donor list: ")
 	//
 	// Generate donor list
 	//
-	nonrepeats = donor_info.ComputeNonRepeatDonors(&donorList, &sprdsht)
+	nonrepeats = donorinfo.ComputeNonRepeatDonors(&donorList, &sprdsht)
 	check(err, "Error generating donor list")
 	//
 	// Output donation series to spreadsheet
@@ -145,7 +145,7 @@ func printHeader() {
 
 // outputRetention produces a spreadsheet with the non-repeat donors names
 // and donation dates and amounts listed.
-func outputRetention(nonrepeats []donor_info.NonRepeat) error {
+func outputRetention(nonrepeats []donorinfo.NonRepeat) error {
 	var err error
 	var output spreadsheet.SpreadsheetFile
 	//

@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donor_info
+package donorinfo
 
 // This file defines a structure containing the number of donations and the
 // amont of donations in a month

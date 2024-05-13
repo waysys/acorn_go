@@ -24,7 +24,7 @@ import (
 	"strconv"
 
 	a "acorn_go/pkg/accounting"
-	"acorn_go/pkg/donor_info"
+	"acorn_go/pkg/donorinfo"
 	"acorn_go/pkg/spreadsheet"
 )
 
@@ -53,7 +53,7 @@ var donorTypes = []string{
 // main supervises the processing of the donation data.
 func main() {
 	var sprdsht spreadsheet.Spreadsheet
-	var donorList donor_info.DonorList
+	var donorList donorinfo.DonorList
 	var err error
 	var output spreadsheet.SpreadsheetFile
 
@@ -66,12 +66,12 @@ func main() {
 	//
 	// Generate donor list
 	//
-	donorList, err = donor_info.NewDonorList(&sprdsht)
+	donorList, err = donorinfo.NewDonorList(&sprdsht)
 	check(err, "Error generating donor list: ")
 	//
 	// Calculate donor counts
 	//
-	var donorCount = donor_info.ComputeDonorCount(&donorList)
+	var donorCount = donorinfo.ComputeDonorCount(&donorList)
 	//
 	// Create output spreadsheet
 	//
@@ -85,7 +85,7 @@ func main() {
 	//
 	// Calculate donations
 	//
-	var donations = donor_info.ComputeDonations(&donorList)
+	var donations = donorinfo.ComputeDonations(&donorList)
 	//
 	// Output results from donations and repeat donors
 	//
@@ -97,7 +97,7 @@ func main() {
 	//
 	// Calculate major donor statistics
 	//
-	var majorDonor = donor_info.ComputeMajorDonors(&donorList)
+	var majorDonor = donorinfo.ComputeMajorDonors(&donorList)
 	printMajorDonorAnalysis(majorDonor)
 	output, err = output.AddSheet("Major Donor")
 	check(err, "Error adding major donor sheet")
@@ -124,7 +124,7 @@ func printHeader() {
 }
 
 // printDonorCount will print out the conor account informaiton
-func printDonorCount(donorCount donor_info.DonorCount) {
+func printDonorCount(donorCount donorinfo.DonorCount) {
 	fmt.Printf("FY2023 donor count:     %d\n", donorCount.TotalDonorsFY2023)
 	fmt.Printf("FY2024 donor count:     %d\n", donorCount.TotalDonorsFY2024)
 	fmt.Printf("Total number of donors: %d\n", donorCount.TotalDonors)
@@ -137,7 +137,7 @@ func printDonorCount(donorCount donor_info.DonorCount) {
 // printAmountAnalysis prints the amounts of donations by fiscal year, by repeat donors
 // versus non-repeat donors, and the comparisons of average donations between the
 // current fiscal year and the prior fiscal year.
-func printAmountAnalysis(donations donor_info.Donations) {
+func printAmountAnalysis(donations donorinfo.Donations) {
 	fmt.Printf("\n\n\nDonations\n\n")
 	fmt.Printf("FY2023 donations: $%v\n", donations.FYDonation(a.FY2023))
 	fmt.Printf("FY2024 donations: $%v\n", donations.FYDonation(a.FY2024))
@@ -146,19 +146,19 @@ func printAmountAnalysis(donations donor_info.Donations) {
 
 // printRepeatDonations prints the values comparing FY2023 and FY2024 donations
 // from repeat donors.
-func printRepeatAnalysis(donations donor_info.Donations) {
+func printRepeatAnalysis(donations donorinfo.Donations) {
 	fmt.Printf("\n\nRepeat Donation Analysis\n\n")
-	fmt.Printf("Number of repeat donors: %d\n", donations.DonorCount(donor_info.DonorFY2023AndFY2024))
+	fmt.Printf("Number of repeat donors: %d\n", donations.DonorCount(donorinfo.DonorFY2023AndFY2024))
 	fmt.Printf("Average FY2023 donations for repeat donors: $%5.0f\n",
-		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, a.FY2023))
+		donations.AvgDonation(donorinfo.DonorFY2023AndFY2024, a.FY2023))
 	fmt.Printf("Average FY2024 donations for repeat donors: $%5.0f\n",
-		donations.AvgDonation(donor_info.DonorFY2023AndFY2024, a.FY2024))
+		donations.AvgDonation(donorinfo.DonorFY2023AndFY2024, a.FY2024))
 	fmt.Printf("Percent change in average donations: %3.0f percent\n",
-		donations.DonationChange(donor_info.DonorFY2023AndFY2024))
+		donations.DonationChange(donorinfo.DonorFY2023AndFY2024))
 }
 
 // printMajorDonorAnalysis prints the values for major donors
-func printMajorDonorAnalysis(majorDonor donor_info.MajorDonor) {
+func printMajorDonorAnalysis(majorDonor donorinfo.MajorDonor) {
 	fmt.Printf("\n\nMajor Donor Analysis\n\n")
 	fmt.Printf("Number of major donors in FY2023: %d\n", majorDonor.MajorDonorCount(a.FY2023))
 	fmt.Printf("Number of major donors in FY2024: %d\n", majorDonor.MajorDonorCount(a.FY2024))
@@ -235,7 +235,7 @@ func writeCellFloat(
 // outputDonorCount inserts the donor count data into a sheet in the
 // spreadsheet file
 func outputDonorCount(
-	donorCount donor_info.DonorCount,
+	donorCount donorinfo.DonorCount,
 	outputPtr *spreadsheet.SpreadsheetFile) {
 	var row int = 1
 	//
@@ -281,7 +281,7 @@ func outputDonorCount(
 
 // outputDonations inserts the donation data into the spreadsheet.
 func outputDonations(
-	donations donor_info.Donations,
+	donations donorinfo.Donations,
 	outputPtr *spreadsheet.SpreadsheetFile) {
 
 	var row = 1
@@ -301,8 +301,8 @@ func outputDonations(
 	//
 	// Ouput Data
 	//
-	var donorType donor_info.DonorType
-	for donorType = donor_info.DonorFY2023Only; donorType <= donor_info.DonorFY2023AndFY2024; donorType++ {
+	var donorType donorinfo.DonorType
+	for donorType = donorinfo.DonorFY2023Only; donorType <= donorinfo.DonorFY2023AndFY2024; donorType++ {
 		row++
 		writeCell(outputPtr, "A", row, donorTypes[donorType])
 		writeCellFloat(outputPtr, "B", row, donations.Donation(donorType, a.FY2023))
@@ -323,7 +323,7 @@ func outputDonations(
 
 // outputMajorDonor inserts the major donor data into the spreadsheet.
 func outputMajorDonor(
-	md donor_info.MajorDonor,
+	md donorinfo.MajorDonor,
 	outputPtr *spreadsheet.SpreadsheetFile) {
 	var row = 1
 	//

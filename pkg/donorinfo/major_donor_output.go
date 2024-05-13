@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donor_info
+package donorinfo
 
 // This file computes the output values for major donors
 

@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donor_info
+package donorinfo
 
 // This file produces the outputs from the donor list.
 

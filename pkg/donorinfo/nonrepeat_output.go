@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donor_info
+package donorinfo
 
 // This file builds a slice of donation data.
 

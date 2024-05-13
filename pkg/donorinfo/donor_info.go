@@ -9,8 +9,8 @@
 //
 // ----------------------------------------------------------------------------
 
-// Package donor_info performs the manipulaton of data for a single donor.
-package donor_info
+// Package donorinfo performs the manipulaton of data for a single donor.
+package donorinfo
 
 // ----------------------------------------------------------------------------
 // Imports

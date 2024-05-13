@@ -28,7 +28,7 @@ import (
 	a "acorn_go/pkg/accounting"
 	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
-	"acorn_go/pkg/donor_info"
+	"acorn_go/pkg/donorinfo"
 	"acorn_go/pkg/spreadsheet"
 )
 
@@ -110,7 +110,7 @@ func writeCellFloat(
 // with the donation series by year and month
 func main() {
 	var sprdsht spreadsheet.Spreadsheet
-	var donationSeries donor_info.DonationSeries
+	var donationSeries donorinfo.DonationSeries
 	var err error
 
 	printHeader()
@@ -122,7 +122,7 @@ func main() {
 	//
 	// Generate donation series
 	//
-	donationSeries, err = donor_info.NewDonationSeries(&sprdsht)
+	donationSeries, err = donorinfo.NewDonationSeries(&sprdsht)
 	check(err, "Error generating donation series")
 	//
 	// Output donation series to spreadsheet
@@ -140,7 +140,7 @@ func printHeader() {
 }
 
 // outputDonationSeries produces a spreadsheet with the donation time series
-func outputDonationSeries(dsPtr *(donor_info.DonationSeries)) error {
+func outputDonationSeries(dsPtr *(donorinfo.DonationSeries)) error {
 	var err error = nil
 	var output spreadsheet.SpreadsheetFile
 	var keys []d.YearMonth
