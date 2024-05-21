@@ -36,7 +36,7 @@ import (
 // Constants
 // ----------------------------------------------------------------------------
 
-const inputFile = "/home/bozo/golang/acorn_go/data/register.xlsx"
+const inputFile = "/home/bozo/golang/acorn_go/data/donations.xlsx"
 const tab = "Worksheet"
 const outputFile = "/home/bozo/Downloads/analysis.xlsx"
 

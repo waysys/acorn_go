@@ -21,6 +21,7 @@ import (
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"errors"
+	"sort"
 	"strings"
 
 	dec "github.com/shopspring/decimal"
@@ -126,7 +127,7 @@ func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, r
 	// Create an entry in the donor list if there is not already one
 	// for this donor.
 	//
-	if !donorListPtr.hasDonor(nameDonor) {
+	if !donorListPtr.Contains(nameDonor) {
 		var donor = New(nameDonor)
 		(*donorListPtr)[nameDonor] = &donor
 	}
@@ -161,11 +162,11 @@ func (donorListPtr *DonorList) AddDonation(nameDonor string, amountDonation dec.
 	//
 	// Retrieve donor structure for the named donor
 	//
-	if !donorListPtr.hasDonor(nameDonor) {
+	if !donorListPtr.Contains(nameDonor) {
 		err = errors.New("donor name not found in donation list: " + nameDonor)
 		return err
 	}
-	donorPtr = donorListPtr.getDonor(nameDonor)
+	donorPtr = donorListPtr.GetDonor(nameDonor)
 	//
 	// Update donation amounts based on donation date.
 	//
@@ -183,14 +184,31 @@ func (donorListPtr *DonorList) AddDonation(nameDonor string, amountDonation dec.
 
 // hasDonor returns true if the donor's name is in the list.  Otherwise, it
 // returns false.
-func (donorListPtr *DonorList) hasDonor(nameDonor string) bool {
+func (donorListPtr *DonorList) Contains(nameDonor string) bool {
 	var _, found = (*donorListPtr)[nameDonor]
 	return found
 }
 
 // getDonor returns a pointer to the donor structure for the named donor.
-func (donorListPtr *DonorList) getDonor(nameDonor string) *Donor {
+func (donorListPtr *DonorList) GetDonor(nameDonor string) *Donor {
 	var donorPtr, found = (*donorListPtr)[nameDonor]
 	assert.Assert(found, "donor name not found in donation list: "+nameDonor)
 	return donorPtr
+}
+
+// DonorCount returns the number of donors in the list.
+func (donorListPtr *DonorList) DonorCount() int {
+	return len(*donorListPtr)
+}
+
+// DonorKeys returns a alphabetically sorted slice of donor list keys
+func (donorListPtr *DonorList) DonorKeys() []string {
+	keys := make([]string, 0, len(*donorListPtr))
+	for k := range *donorListPtr {
+		keys = append(keys, k)
+	}
+
+	//sort the slice of keys alphabetically
+	sort.Strings(keys)
+	return keys
 }

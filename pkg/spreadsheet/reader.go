@@ -19,6 +19,7 @@ package spreadsheet
 import (
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -133,5 +134,6 @@ func (spreadsheet *Spreadsheet) Cell(row int, heading string) (string, error) {
 		return cell, err
 	}
 	cell = spreadsheet.rows[row][column]
+	cell = strings.TrimSpace(cell)
 	return cell, nil
 }
