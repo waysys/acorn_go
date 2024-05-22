@@ -19,6 +19,7 @@ package donors
 
 import (
 	a "acorn_go/pkg/address"
+	s "strings"
 )
 
 // ----------------------------------------------------------------------------
@@ -69,7 +70,11 @@ func (donor Donor) Name() string {
 
 // Street returns the street address of the donor
 func (donor Donor) Street() string {
-	return donor.address.Street
+	var street = donor.address.Street
+	street = s.Replace(street, "DriveUnit", "Drive, Unit", 1)
+	street = s.Replace(street, "\n", ", ", 1)
+	street = s.Replace(street, "DrUnit", "Drive, Unit", 1)
+	return street
 }
 
 // City returns the city of the donor

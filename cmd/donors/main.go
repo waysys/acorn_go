@@ -128,6 +128,7 @@ func outputAddresses(donorList *donorinfo.DonorList, addressList *donors.DonorLi
 	//
 	// Process donors
 	//
+	var personCount = 0
 	var keys = donorList.DonorKeys()
 	for _, key := range keys {
 		var donor = donorList.GetDonor(key)
@@ -141,10 +142,15 @@ func outputAddresses(donorList *donorinfo.DonorList, addressList *donors.DonorLi
 				writeCell(&output, "E", row, address.State())
 				writeCell(&output, "F", row, address.Zip())
 				writeCellInt(&output, "G", row, address.NumberInHousehold())
+				personCount += address.NumberInHousehold()
 				row++
 			}
 		}
 	}
+	//
+	// Output to person count
+	//
+	fmt.Println("Number of people donating: " + strconv.Itoa(personCount))
 	//
 	// Finish
 	//
@@ -163,7 +169,7 @@ func selectDonor(donor donorinfo.Donor) bool {
 // printHeader places the header information at the top of the page
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
-	fmt.Println("Acorn Scholarship Fund Retention Analysis")
+	fmt.Println("Acorn Scholarship Fund Mailing List")
 	fmt.Println("-----------------------------------------------------------")
 }
 
