@@ -131,7 +131,7 @@ func outputAddresses(donorList *donorinfo.DonorList, addressList *donors.DonorLi
 	var personCount = 0
 	var keys = donorList.DonorKeys()
 	for _, key := range keys {
-		var donor = donorList.GetDonor(key)
+		var donor = donorList.Get(key)
 		if addressList.Contains(key) {
 			if selectDonor(*donor) {
 				var address = addressList.Get(key)

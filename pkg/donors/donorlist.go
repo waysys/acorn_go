@@ -163,7 +163,7 @@ func (donorList *DonorList) Get(key string) *Donor {
 	return (*donorList)[key]
 }
 
-// DonorCount returns the number of entries in the donor list.
-func (donorList *DonorList) DonorCount() int {
+// Count returns the number of entries in the donor list.
+func (donorList *DonorList) Count() int {
 	return len(*donorList)
 }

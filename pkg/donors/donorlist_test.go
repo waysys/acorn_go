@@ -66,7 +66,7 @@ func Test_NewDonorList(t *testing.T) {
 	var testFunction = func(t *testing.T) {
 		var apple = "Apple, Julietta"
 
-		var count = (&donorList).DonorCount()
+		var count = (&donorList).Count()
 		if count != 169 {
 			t.Error("donor count is not 169: " + strconv.Itoa(count))
 		}

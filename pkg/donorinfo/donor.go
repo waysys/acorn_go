@@ -166,7 +166,7 @@ func (donorListPtr *DonorList) AddDonation(nameDonor string, amountDonation dec.
 		err = errors.New("donor name not found in donation list: " + nameDonor)
 		return err
 	}
-	donorPtr = donorListPtr.GetDonor(nameDonor)
+	donorPtr = donorListPtr.Get(nameDonor)
 	//
 	// Update donation amounts based on donation date.
 	//
@@ -189,8 +189,8 @@ func (donorListPtr *DonorList) Contains(nameDonor string) bool {
 	return found
 }
 
-// getDonor returns a pointer to the donor structure for the named donor.
-func (donorListPtr *DonorList) GetDonor(nameDonor string) *Donor {
+// Get returns a pointer to the donor structure for the named donor.
+func (donorListPtr *DonorList) Get(nameDonor string) *Donor {
 	var donorPtr, found = (*donorListPtr)[nameDonor]
 	assert.Assert(found, "donor name not found in donation list: "+nameDonor)
 	return donorPtr
