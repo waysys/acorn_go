@@ -3,14 +3,12 @@
 // AP Transaction
 //
 // Author: William Shaffer
-// Version: 24-May-2024
+// Version: 25-May-2024
 //
 // Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
-// The quickbooks package contains code to read spreadsheets produced by
-// Quickbooks and convert the data to arrays or maps of structures.
 package quickbooks
 
 // ----------------------------------------------------------------------------
@@ -18,58 +16,68 @@ package quickbooks
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
-
-	dec "github.com/shopspring/decimal"
+	"acorn_go/pkg/assert"
+	"strconv"
 )
 
 // ----------------------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------------------
 
-type Money dec.Decimal
-
-type APTransaction struct {
-	transactionDate d.Date
-	vendor          *Vendor
-	recipient       *Recipient
-	transactionType QuickbooksTransactionType
-	amount          Money
-}
+type QuickbooksTransactionType int
 
 // ----------------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------------
 
+const (
+	Unknown      QuickbooksTransactionType = 0
+	Bill         QuickbooksTransactionType = 1
+	BillPayment  QuickbooksTransactionType = 2
+	VendorCredit QuickbooksTransactionType = 3
+)
+
+const (
+	strUnknown      = "Unknown"
+	strBill         = "Bill"
+	strBillPayment  = "Bill Payment"
+	strVendorCredit = "Vendor Credit"
+)
+
+var strValues = [4]string{
+	strUnknown,
+	strBill,
+	strBillPayment,
+	strVendorCredit,
+}
+
 // ----------------------------------------------------------------------------
 // Factory Functions
 // ----------------------------------------------------------------------------
 
-// NewAPTransaction returns a new AP Transaction based on the values
-// supplied.
-func NewAPTransaction(
-	date d.Date,
-	vendorName string,
-	recipientName string,
-	transTypeValue string,
-	amount Money) APTransaction {
-	var vendor = (&APVendorList).Add(vendorName)
-	var recipient = (&APRecipientList).Add(recipientName)
-	var transType = NewQuickbooksTransactionType(transTypeValue)
-	var transaction = APTransaction{
-		transactionDate: date,
-		vendor:          vendor,
-		recipient:       recipient,
-		transactionType: transType,
-		amount:          amount,
+// NewQuickbooksTransactionType returns a transaction type based on the value.
+func NewQuickbooksTransactionType(value string) QuickbooksTransactionType {
+	var aType = Unknown
+	switch value {
+	case strBill:
+		aType = Bill
+	case strBillPayment:
+		aType = BillPayment
+	case strVendorCredit:
+		aType = VendorCredit
+	default:
+		aType = Unknown
 	}
-	return transaction
+	return aType
 }
-
-// ----------------------------------------------------------------------------
-// Properties
-// ----------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------
+
+// String returns the string description of the transaction type.
+func (transType QuickbooksTransactionType) String() string {
+	assert.Assert(0 <= transType && transType <= 3,
+		"Incorrect value for Quickbooks transaction type: "+strconv.Itoa(int(transType)))
+	return strValues[transType]
+}

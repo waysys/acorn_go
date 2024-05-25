@@ -42,6 +42,8 @@ func TestMain(m *testing.M) {
 // Test functions
 // ----------------------------------------------------------------------------
 
+// Test_NewDonorList checks the reading of the donor spreadsheet and the
+// creation of the donor list.
 func Test_NewDonorList(t *testing.T) {
 	var sprdsht spreadsheet.Spreadsheet
 	var err error = nil
