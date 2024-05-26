@@ -50,7 +50,7 @@ func NewDonationSeries(sprdsht *spreadsheet.Spreadsheet) (DonationSeries, error)
 		if err != nil {
 			return donationSeries, err
 		}
-		value = strings.TrimSpace(value)
+
 		if value == payment {
 			err = processSeries(&donationSeries, sprdsht, row)
 			if err != nil {
@@ -94,7 +94,6 @@ func processSeries(dsPtr *DonationSeries, sprdsht *spreadsheet.Spreadsheet, row 
 		return err
 	}
 	value = strings.ReplaceAll(value, ",", "")
-	value = strings.TrimSpace(value)
 	if value == "" {
 		amountDonation = dec.Zero
 	} else {

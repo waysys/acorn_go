@@ -102,15 +102,32 @@ func Test_NewAPTransaction(t *testing.T) {
 	var transactionDate, _ = d.New(1, 2, 2024)
 	var vendorName = "Wake Technical Community College"
 	var recipientName = "Jones, Jake"
-	var transactionType = "Bill"
+	var transactionType = Bill
 	var amount Money = Money(dec.NewFromInt(100))
-	var transaction = NewAPTransaction(transactionDate, vendorName, recipientName, transactionType, amount)
+	var account = "7050 Grants, contracts, & direct assistance:Awards & grants - individuals"
+	var transaction = NewAPTransaction(transactionDate, vendorName, recipientName, transactionType, amount, account)
+	var transPtr = &transaction
 
 	var testFunction = func(t *testing.T) {
-		if transaction.transactionDate != transactionDate {
+		if transPtr.transactionDate != transactionDate {
 			t.Error("transaction date did not matching origin")
+		}
+		if transPtr.Vendor().Name() != vendorName {
+			t.Error("vendor name is not correct: " + transPtr.Vendor().Name())
+		}
+		if transPtr.Recipient().Name() != recipientName {
+			t.Error("recipient name is not correct: " + transPtr.Recipient().Name())
+		}
+		if transPtr.Amount() != amount {
+			t.Error("amount of transaction is incorrect: " + dec.Decimal(transPtr.Amount()).String())
+		}
+		if !transPtr.GTZero() {
+			t.Error("amount of transaction is not considered greater than zero")
+		}
+		if !transPtr.IsBill() {
+			t.Error("transaction is not considered a valid bill")
 		}
 	}
 
-	t.Run("Test_New", testFunction)
+	t.Run("Test_NewAPTransaction", testFunction)
 }

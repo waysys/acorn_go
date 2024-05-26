@@ -18,9 +18,11 @@ package spreadsheet
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
+	dec "github.com/shopspring/decimal"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -54,6 +56,16 @@ func readData(excelFillName string, tab string) ([][]string, error) {
 	if err != nil {
 		return rows, err
 	}
+	//
+	// Function to close file
+	//
+	defer func() {
+		// Close the spreadsheet.
+		if err := file.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
 	//
 	// Read rows
 	//
@@ -136,4 +148,18 @@ func (spreadsheet *Spreadsheet) Cell(row int, heading string) (string, error) {
 	cell = spreadsheet.rows[row][column]
 	cell = strings.TrimSpace(cell)
 	return cell, nil
+}
+
+// CellDecimal returns the value in the cell of the spreadsheet.
+func (spreadsheet *Spreadsheet) CellDecimal(row int, heading string) (dec.Decimal, error) {
+	var value string
+	var err error
+	var amount dec.Decimal = dec.Zero
+
+	value, err = spreadsheet.Cell(row, heading)
+	if err == nil {
+		amount, err = dec.NewFromString(value)
+	}
+
+	return amount, err
 }
