@@ -109,17 +109,7 @@ func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, r
 	//
 	// Obtain amount of donation
 	//
-	value, err = sprdsht.Cell(row, columnPayment)
-	if err != nil {
-		return err
-	}
-	value = strings.ReplaceAll(value, ",", "")
-	value = strings.TrimSpace(value)
-	if value == "" {
-		amountDonation = dec.Zero
-	} else {
-		amountDonation, err = dec.NewFromString(value)
-	}
+	amountDonation, err = sprdsht.CellDecimal(row, columnPayment)
 	if err != nil {
 		return err
 	}

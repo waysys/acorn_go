@@ -145,8 +145,15 @@ func (spreadsheet *Spreadsheet) Cell(row int, heading string) (string, error) {
 		err = errors.New("invalid row for spreadsheet: " + strconv.Itoa(row))
 		return cell, err
 	}
-	cell = spreadsheet.rows[row][column]
-	cell = strings.TrimSpace(cell)
+	//
+	// Handle truncated row when last column cell is empty.
+	//
+	if column >= len(spreadsheet.rows[row]) {
+		cell = ""
+	} else {
+		cell = spreadsheet.rows[row][column]
+		cell = strings.TrimSpace(cell)
+	}
 	return cell, nil
 }
 
@@ -157,8 +164,13 @@ func (spreadsheet *Spreadsheet) CellDecimal(row int, heading string) (dec.Decima
 	var amount dec.Decimal = dec.Zero
 
 	value, err = spreadsheet.Cell(row, heading)
+	value = strings.ReplaceAll(value, ",", "")
 	if err == nil {
-		amount, err = dec.NewFromString(value)
+		if value == "" {
+			amount = dec.Zero
+		} else {
+			amount, err = dec.NewFromString(value)
+		}
 	}
 
 	return amount, err

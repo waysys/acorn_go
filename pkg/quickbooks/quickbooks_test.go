@@ -131,3 +131,11 @@ func Test_NewAPTransaction(t *testing.T) {
 
 	t.Run("Test_NewAPTransaction", testFunction)
 }
+
+// Test_ReadAPTransaction tests the ReadAPTransaction function.
+func Test_ReadAPTransaction(t *testing.T) {
+	var err = ReadAPTransactions()
+	if err != nil {
+		t.Error(err.Error())
+	}
+}

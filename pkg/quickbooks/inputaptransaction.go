@@ -52,7 +52,7 @@ const (
 
 var ZERO = Money(dec.Zero)
 
-var TransList = make(APTransactionList, 200)
+var TransList = make(APTransactionList, 0, 1000)
 
 // ----------------------------------------------------------------------------
 // Factory Function
@@ -60,7 +60,7 @@ var TransList = make(APTransactionList, 200)
 
 // ReadAPtransactions reads the accounts_payable.xlsx spreadsheet and
 // generates the AP transaction list
-func ReadAPtransactions() error {
+func ReadAPTransactions() error {
 	var sprdsht spreadsheet.Spreadsheet
 	var err error
 	//
@@ -77,17 +77,18 @@ func ReadAPtransactions() error {
 // the transaction list.
 func processTransactions(
 	sprdshtPtr *spreadsheet.Spreadsheet) error {
-	var err error = nil
 	var numRows = sprdshtPtr.Size()
-	var transaction APTransaction
 
 	for row := 1; row < numRows; row++ {
-		transaction, err = processTransaction(sprdshtPtr, row)
-		if err == nil && selectTransaction(&transaction) {
-			(&TransList).add(&transaction)
+		var transaction, err = processTransaction(sprdshtPtr, row)
+		if err != nil {
+			return err
+		}
+		if selectTransaction(&transaction) {
+			TransList = append(TransList, &transaction)
 		}
 	}
-	return err
+	return nil
 }
 
 // selectTransaction returns true if the transaction should be added to
@@ -180,13 +181,4 @@ func retrieveAmount(
 	}
 
 	return Money(amount), err
-}
-
-// ----------------------------------------------------------------------------
-// Methods
-// ----------------------------------------------------------------------------
-
-// append adds the transaction to the transaction list.
-func (transListPtr *APTransactionList) add(transaction *APTransaction) {
-	TransList = append(*transListPtr, transaction)
 }

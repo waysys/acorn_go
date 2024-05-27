@@ -15,10 +15,6 @@ package quickbooks
 // Imports
 // ----------------------------------------------------------------------------
 
-import (
-	"acorn_go/pkg/assert"
-)
-
 // ----------------------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------------------
@@ -38,7 +34,6 @@ type Recipient struct {
 
 // NewRecipient returns a recipient structure with the specified name.
 func NewRecipient(name string) Recipient {
-	assert.Assert(name != "", "recipient name must not be an empty string")
 	var recipient = Recipient{
 		name: name,
 	}
