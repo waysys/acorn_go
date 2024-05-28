@@ -17,6 +17,7 @@ package spreadsheet
 // ----------------------------------------------------------------------------
 
 import (
+	d "acorn_go/pkg/date"
 	"errors"
 	"fmt"
 	"strconv"
@@ -174,4 +175,17 @@ func (spreadsheet *Spreadsheet) CellDecimal(row int, heading string) (dec.Decima
 	}
 
 	return amount, err
+}
+
+// CellDate returns the value in the cell as a date.
+func (spreadsheet *Spreadsheet) CellDate(row int, heading string) (d.Date, error) {
+	var value string
+	var err error
+	var date d.Date = d.MinDate
+
+	value, err = spreadsheet.Cell(row, heading)
+	if err == nil {
+		date, err = d.NewFromString(value)
+	}
+	return date, err
 }

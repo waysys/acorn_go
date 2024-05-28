@@ -18,6 +18,7 @@ package quickbooks
 import (
 	d "acorn_go/pkg/date"
 	"os"
+	"strconv"
 	"testing"
 
 	dec "github.com/shopspring/decimal"
@@ -134,8 +135,12 @@ func Test_NewAPTransaction(t *testing.T) {
 
 // Test_ReadAPTransaction tests the ReadAPTransaction function.
 func Test_ReadAPTransaction(t *testing.T) {
-	var err = ReadAPTransactions()
+	var transList, err = ReadAPTransactions()
 	if err != nil {
 		t.Error(err.Error())
+	}
+	var size = (&transList).Size()
+	if size < 50 {
+		t.Error("transList is too small: " + strconv.Itoa(size))
 	}
 }

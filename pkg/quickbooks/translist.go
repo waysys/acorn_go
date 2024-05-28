@@ -19,8 +19,10 @@ package quickbooks
 // ----------------------------------------------------------------------------
 
 import (
+	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
+	"strconv"
 
 	dec "github.com/shopspring/decimal"
 )
@@ -29,7 +31,10 @@ import (
 // Types
 // ----------------------------------------------------------------------------
 
-type APTransactionList []*APTransaction
+type TransList struct {
+	trans []*APTransaction
+	count int
+}
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -39,6 +44,8 @@ const (
 	inputFile = "/home/bozo/golang/acorn_go/data/accounts_payable.xlsx"
 	tab       = "Worksheet"
 )
+
+var ZERO = Money(dec.Zero)
 
 const (
 	columnTransactionDate = "Date"
@@ -50,33 +57,34 @@ const (
 	columnAccount         = "Account"
 )
 
-var ZERO = Money(dec.Zero)
-
-var TransList = make(APTransactionList, 0, 1000)
-
 // ----------------------------------------------------------------------------
 // Factory Function
 // ----------------------------------------------------------------------------
 
 // ReadAPtransactions reads the accounts_payable.xlsx spreadsheet and
 // generates the AP transaction list
-func ReadAPTransactions() error {
+func ReadAPTransactions() (TransList, error) {
 	var sprdsht spreadsheet.Spreadsheet
 	var err error
+	var transList = TransList{
+		trans: make([]*APTransaction, 200),
+		count: 0,
+	}
 	//
 	// Obtain spreadsheet data
 	//
 	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
 	if err == nil {
-		err = processTransactions(&sprdsht)
+		err = processTransactions(&sprdsht, &transList)
 	}
-	return err
+	return transList, err
 }
 
 // processTransaction processes the data in the spreadsheet to populate
 // the transaction list.
 func processTransactions(
-	sprdshtPtr *spreadsheet.Spreadsheet) error {
+	sprdshtPtr *spreadsheet.Spreadsheet,
+	transList *TransList) error {
 	var numRows = sprdshtPtr.Size()
 
 	for row := 1; row < numRows; row++ {
@@ -85,7 +93,7 @@ func processTransactions(
 			return err
 		}
 		if selectTransaction(&transaction) {
-			TransList = append(TransList, &transaction)
+			transList.Add(&transaction)
 		}
 	}
 	return nil
@@ -103,7 +111,6 @@ func processTransaction(sprdshtPtr *spreadsheet.Spreadsheet, row int) (APTransac
 	var err error = nil
 	var transaction = APTransaction{}
 	var account string
-	var dateString string
 	var transactionDate d.Date
 	var vendorName string
 	var recipientName string
@@ -114,10 +121,7 @@ func processTransaction(sprdshtPtr *spreadsheet.Spreadsheet, row int) (APTransac
 	//
 	account, err = sprdshtPtr.Cell(row, columnAccount)
 	if err == nil {
-		dateString, err = sprdshtPtr.Cell(row, columnTransactionDate)
-	}
-	if err == nil {
-		transactionDate, err = d.NewFromString(dateString)
+		transactionDate, err = sprdshtPtr.CellDate(row, columnTransactionDate)
 	}
 	if err == nil {
 		vendorName, err = sprdshtPtr.Cell(row, columnVendor)
@@ -181,4 +185,56 @@ func retrieveAmount(
 	}
 
 	return Money(amount), err
+}
+
+// ----------------------------------------------------------------------------
+// Methods
+// ----------------------------------------------------------------------------
+
+// Add adds a transaction to the list of transactions.
+func (transList *TransList) Add(trans *APTransaction) {
+	transList.trans[transList.count] = trans
+	transList.count++
+}
+
+// Size returns the number of transactions
+func (transList *TransList) Size() int {
+	return transList.count
+}
+
+// Get returns a transaction at the specified index
+func (transList *TransList) Get(index int) *APTransaction {
+	assert.Assert(0 <= index && index < transList.count,
+		"index is out of range: "+strconv.Itoa(index))
+	return transList.trans[index]
+}
+
+// Return the transaction that matches the supplied attributes
+func (transList *TransList) Find(
+	transType QuickbooksTransactionType,
+	vendorName string,
+	recipientName string,
+	transDate d.Date,
+) *APTransaction {
+	var trans *APTransaction = nil
+	var num = transList.count
+
+	var match = func(tran *APTransaction) bool {
+		var result = true
+		result = result && tran.TransactionType() == transType
+		result = result && tran.Vendor().name == vendorName
+		result = result && tran.Vendor().name == recipientName
+		result = result && tran.TransactionDate() == transDate
+		return result
+	}
+
+	for index := 0; index < num; num++ {
+		var item = transList.Get(index)
+		if match(item) {
+			trans = item
+			break
+		}
+	}
+
+	return trans
 }
