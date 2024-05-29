@@ -17,9 +17,10 @@ package donors
 
 import (
 	a "acorn_go/pkg/address"
-	"acorn_go/pkg/assert"
 	"acorn_go/pkg/spreadsheet"
 	"strconv"
+
+	"github.com/waysys/assert/assert"
 )
 
 // This file contains functions that manage a map of donors with their donation

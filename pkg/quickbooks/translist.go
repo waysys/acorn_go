@@ -19,10 +19,11 @@ package quickbooks
 // ----------------------------------------------------------------------------
 
 import (
-	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"strconv"
+
+	"github.com/waysys/assert/assert"
 
 	dec "github.com/shopspring/decimal"
 )

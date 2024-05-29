@@ -17,12 +17,13 @@ package donorinfo
 
 import (
 	a "acorn_go/pkg/accounting"
-	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"errors"
 	"sort"
 	"strings"
+
+	"github.com/waysys/assert/assert"
 
 	dec "github.com/shopspring/decimal"
 )

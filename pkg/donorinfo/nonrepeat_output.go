@@ -18,11 +18,12 @@ package donorinfo
 // ----------------------------------------------------------------------------
 
 import (
-	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"sort"
 	"strings"
+
+	"github.com/waysys/assert/assert"
 
 	dec "github.com/shopspring/decimal"
 )

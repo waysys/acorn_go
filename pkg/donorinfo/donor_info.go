@@ -17,8 +17,9 @@ package donorinfo
 // ----------------------------------------------------------------------------
 
 import (
-	"acorn_go/pkg/assert"
 	"strconv"
+
+	"github.com/waysys/assert/assert"
 
 	dec "github.com/shopspring/decimal"
 )

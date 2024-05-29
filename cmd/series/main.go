@@ -26,10 +26,11 @@ import (
 	"strconv"
 
 	a "acorn_go/pkg/accounting"
-	"acorn_go/pkg/assert"
 	d "acorn_go/pkg/date"
 	"acorn_go/pkg/donorinfo"
 	"acorn_go/pkg/spreadsheet"
+
+	"github.com/waysys/assert/assert"
 )
 
 // ----------------------------------------------------------------------------

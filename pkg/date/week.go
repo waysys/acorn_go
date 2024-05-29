@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strconv"
 
-	"acorn_go/pkg/assert"
+	"github.com/waysys/assert/assert"
 )
 
 // This file implements functions related to the day of the week.
