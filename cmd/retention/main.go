@@ -19,12 +19,13 @@ package main
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
 	"acorn_go/pkg/donorinfo"
 	"acorn_go/pkg/spreadsheet"
 	"fmt"
 	"os"
 	"strconv"
+
+	d "github.com/waysys/waydate/pkg/date"
 
 	dec "github.com/shopspring/decimal"
 )

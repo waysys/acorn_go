@@ -18,9 +18,10 @@ package donorinfo
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"strings"
+
+	d "github.com/waysys/waydate/pkg/date"
 
 	dec "github.com/shopspring/decimal"
 )

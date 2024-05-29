@@ -16,8 +16,9 @@ package accounting
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
-	"acorn_go/pkg/daterange"
+	"github.com/waysys/waydate/pkg/daterange"
+
+	d "github.com/waysys/waydate/pkg/date"
 )
 
 // ----------------------------------------------------------------------------

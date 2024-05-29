@@ -21,7 +21,8 @@ import (
 	"testing"
 
 	a "acorn_go/pkg/accounting"
-	d "acorn_go/pkg/date"
+
+	d "github.com/waysys/waydate/pkg/date"
 
 	dec "github.com/shopspring/decimal"
 )

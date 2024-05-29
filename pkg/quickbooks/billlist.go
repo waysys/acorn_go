@@ -18,9 +18,10 @@ package quickbooks
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"errors"
+
+	d "github.com/waysys/waydate/pkg/date"
 )
 
 // ----------------------------------------------------------------------------

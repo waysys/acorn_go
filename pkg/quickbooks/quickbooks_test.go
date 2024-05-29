@@ -16,10 +16,11 @@ package quickbooks
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
 	"os"
 	"strconv"
 	"testing"
+
+	d "github.com/waysys/waydate/pkg/date"
 
 	dec "github.com/shopspring/decimal"
 )

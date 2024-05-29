@@ -18,7 +18,7 @@ package donorinfo
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
+	d "github.com/waysys/waydate/pkg/date"
 
 	"github.com/waysys/assert/assert"
 

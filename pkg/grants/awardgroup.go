@@ -17,9 +17,11 @@ package grants
 
 import (
 	a "acorn_go/pkg/accounting"
-	d "acorn_go/pkg/date"
-	r "acorn_go/pkg/daterange"
 	"errors"
+
+	r "github.com/waysys/waydate/pkg/daterange"
+
+	d "github.com/waysys/waydate/pkg/date"
 )
 
 // ----------------------------------------------------------------------------

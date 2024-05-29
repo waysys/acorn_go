@@ -18,10 +18,11 @@ package donorinfo
 // ----------------------------------------------------------------------------
 
 import (
-	d "acorn_go/pkg/date"
 	"acorn_go/pkg/spreadsheet"
 	"sort"
 	"strings"
+
+	d "github.com/waysys/waydate/pkg/date"
 
 	"github.com/waysys/assert/assert"
 
