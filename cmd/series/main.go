@@ -43,7 +43,7 @@ import (
 // ----------------------------------------------------------------------------
 
 const (
-	inputFile      = "/home/bozo/golang/acorn_go/data/register.xlsx"
+	inputFile      = "/home/bozo/golang/acorn_go/data/donations.xlsx"
 	tab            = "Worksheet"
 	outputFileName = "/home/bozo/Downloads/donations.xlsx"
 	sheetName      = "Donations"
