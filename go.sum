@@ -15,6 +15,8 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/waysys/assert v0.0.0-20240529004304-2e5a32d3c3ea h1:9FaTeu4N3dlxyyla/hqnQjBhg9UXLGvE87jFf8stJq4=
 github.com/waysys/assert v0.0.0-20240529004304-2e5a32d3c3ea/go.mod h1:RHJf9yXJQrdpsLtl6q5PNTXBp/RUkvy4yfjM1D8dQSE=
+github.com/waysys/assert v1.0.0 h1:PlMf8ECbJGkrDW982Xtg4qDQN6WehNwkRpM2Rdwu6uQ=
+github.com/waysys/assert v1.0.0/go.mod h1:RHJf9yXJQrdpsLtl6q5PNTXBp/RUkvy4yfjM1D8dQSE=
 github.com/waysys/waydate v1.0.0 h1:6Elxj4iZOHqQ0fgo7jTyYt3xOGTH9TM55JlnRq8IlzY=
 github.com/waysys/waydate v1.0.0/go.mod h1:Ck9QFeksCXLmFnx1VECZmgFYYZb01JMPcub+2hWBUag=
 github.com/xuri/efp v0.0.0-20231025114914-d1ff6096ae53 h1:Chd9DkqERQQuHpXjR/HSV1jLZA6uaoiwwH3vSuF3IW0=

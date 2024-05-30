@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/shopspring/decimal v1.4.0
-	github.com/waysys/assert v0.0.0-20240529004304-2e5a32d3c3ea
+	github.com/waysys/assert v1.0.0
 	github.com/waysys/waydate v1.0.0
 	github.com/xuri/excelize/v2 v2.8.1
 )
