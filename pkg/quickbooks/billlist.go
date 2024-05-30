@@ -20,7 +20,9 @@ package quickbooks
 import (
 	"acorn_go/pkg/spreadsheet"
 	"errors"
+	"strconv"
 
+	"github.com/waysys/assert/assert"
 	d "github.com/waysys/waydate/pkg/date"
 )
 
@@ -39,7 +41,7 @@ type BillList struct {
 
 const (
 	billFile = "/home/bozo/golang/acorn_go/data/bills.xlsx"
-	billTab  = "Worksheet"
+	billTab  = "Sheet1"
 )
 
 // ----------------------------------------------------------------------------
@@ -127,8 +129,9 @@ func processBill(
 	//
 	// Create bill
 	//
-	bill = NewEducationBill(trans, billType)
-
+	if err == nil {
+		bill = NewEducationBill(trans, billType)
+	}
 	return bill, err
 }
 
@@ -140,4 +143,17 @@ func processBill(
 func (billList *BillList) Add(bill *EducationBill) {
 	billList.bills[billList.count] = bill
 	billList.count++
+}
+
+// Size returns the number of bills in the list
+func (billList *BillList) Size() int {
+	return billList.count
+}
+
+// Get returns the bill at the specified index.
+func (billList *BillList) Get(index int) *EducationBill {
+	assert.Assert(0 <= index && index < billList.count, "invalid index: "+
+		strconv.Itoa(index))
+
+	return billList.bills[index]
 }

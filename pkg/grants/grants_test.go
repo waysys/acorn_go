@@ -22,7 +22,11 @@ import (
 
 	r "github.com/waysys/waydate/pkg/daterange"
 
+	q "acorn_go/pkg/quickbooks"
+
 	d "github.com/waysys/waydate/pkg/date"
+
+	dec "github.com/shopspring/decimal"
 )
 
 // ----------------------------------------------------------------------------
@@ -73,4 +77,36 @@ func Test_NewAwardGroup(t *testing.T) {
 
 	t.Run("Test_NewAwardGroup", testFunction)
 
+}
+
+// Test_NewTransaction tests the creation of a new transaction.
+func Test_NewTransaction(t *testing.T) {
+	var transType = Grant
+	const recipientName = "Jone, Jack"
+	var recipient q.Recipient = q.NewRecipient(recipientName)
+	const edInstName = "Wake Tech"
+	var edInst q.Vendor = q.NewVendor(edInstName)
+	var amount = dec.NewFromInt(1000)
+	var transaction = NewTransaction(awardDate, transType, recipient, edInst, amount)
+
+	var testFunction = func(t *testing.T) {
+		if transaction.Recipient() != recipientName {
+			t.Error("recipient not returned correctly: " +
+				transaction.Recipient())
+		}
+		if transaction.TransType() != Grant {
+			t.Error("grant was not returned correctly: " +
+				transaction.TransType().String())
+		}
+		if transaction.TransactionDate() != awardDate {
+			t.Error("transaction date was not returned correctly: " +
+				transaction.transactionDate.String())
+		}
+		if transaction.EducationalInstitution() != edInstName {
+			t.Error("education institution was not returned correctly: " +
+				transaction.EducationalInstitution())
+		}
+	}
+
+	t.Run("Test_NewTransaction", testFunction)
 }

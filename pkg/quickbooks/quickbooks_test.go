@@ -141,7 +141,35 @@ func Test_ReadAPTransaction(t *testing.T) {
 		t.Error(err.Error())
 	}
 	var size = (&transList).Size()
-	if size < 50 {
-		t.Error("transList is too small: " + strconv.Itoa(size))
+
+	var testFunction = func(t *testing.T) {
+		if size < 50 {
+			t.Error("transList is too small: " + strconv.Itoa(size))
+		}
 	}
+	t.Run("Test_ReadAPTransaction", testFunction)
+}
+
+// Test_BillList tests the the creation of the bill list
+func Test_BillList(t *testing.T) {
+	var err error = nil
+	var transList TransList
+	var billList BillList
+
+	transList, err = ReadAPTransactions()
+	if err == nil {
+		billList, err = ReadBills(&transList)
+	}
+
+	var testFunction = func(t *testing.T) {
+		if err != nil {
+			t.Error(err.Error())
+			return
+		}
+		if billList.Size() < 30 {
+			t.Error("size is wrong on bill list")
+		}
+	}
+
+	t.Run("Test_ReadAPTransaction", testFunction)
 }

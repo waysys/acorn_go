@@ -222,15 +222,16 @@ func (transList *TransList) Find(
 	var num = transList.count
 
 	var match = func(tran *APTransaction) bool {
-		var result = true
-		result = result && tran.TransactionType() == transType
-		result = result && tran.Vendor().name == vendorName
-		result = result && tran.Vendor().name == recipientName
-		result = result && tran.TransactionDate() == transDate
+		var result = false
+		if tran.TransactionType() == transType {
+			result = tran.Vendor().name == vendorName
+			result = result && tran.Recipient().name == recipientName
+			result = result && tran.TransactionDate() == transDate
+		}
 		return result
 	}
 
-	for index := 0; index < num; num++ {
+	for index := 0; index < num; index++ {
 		var item = transList.Get(index)
 		if match(item) {
 			trans = item
