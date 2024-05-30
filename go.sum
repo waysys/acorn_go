@@ -13,8 +13,6 @@ github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp
 github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/waysys/assert v0.0.0-20240529004304-2e5a32d3c3ea h1:9FaTeu4N3dlxyyla/hqnQjBhg9UXLGvE87jFf8stJq4=
-github.com/waysys/assert v0.0.0-20240529004304-2e5a32d3c3ea/go.mod h1:RHJf9yXJQrdpsLtl6q5PNTXBp/RUkvy4yfjM1D8dQSE=
 github.com/waysys/assert v1.0.0 h1:PlMf8ECbJGkrDW982Xtg4qDQN6WehNwkRpM2Rdwu6uQ=
 github.com/waysys/assert v1.0.0/go.mod h1:RHJf9yXJQrdpsLtl6q5PNTXBp/RUkvy4yfjM1D8dQSE=
 github.com/waysys/waydate v1.0.0 h1:6Elxj4iZOHqQ0fgo7jTyYt3xOGTH9TM55JlnRq8IlzY=
