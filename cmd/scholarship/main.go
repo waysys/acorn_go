@@ -104,7 +104,6 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 	writeCell(output, "C", row, "Total Transfers")
 	writeCell(output, "D", row, "Payments")
 	writeCell(output, "E", row, "Write-Off")
-	writeCell(output, "F", row, "Discrepancy")
 	row++
 	//
 	// Amounts
@@ -118,11 +117,6 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 	writeCellDecimal(output, "D", row, paymentTotal)
 	var writeOffTotal = grantList.TotalTransAmount(a.FY2023, g.WriteOff)
 	writeCellDecimal(output, "E", row, writeOffTotal)
-	//
-	var discrepancy = grantTotal.Sub(transferTotal)
-	discrepancy = discrepancy.Sub(paymentTotal)
-	discrepancy = discrepancy.Sub(writeOffTotal)
-	writeCellDecimal(output, "F", row, discrepancy)
 	row++
 	//
 	writeCell(output, "A", row, "FY2024")
@@ -134,11 +128,6 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 	writeCellDecimal(output, "D", row, paymentTotal)
 	writeOffTotal = grantList.TotalTransAmount(a.FY2024, g.WriteOff)
 	writeCellDecimal(output, "E", row, writeOffTotal)
-	//
-	discrepancy = grantTotal.Sub(transferTotal)
-	discrepancy = discrepancy.Sub(paymentTotal)
-	discrepancy = discrepancy.Sub(writeOffTotal)
-	writeCellDecimal(output, "F", row, discrepancy)
 }
 
 // ----------------------------------------------------------------------------

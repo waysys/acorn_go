@@ -112,14 +112,13 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 func processOtherTransactions(transList *q.TransList, grantList *GrantList) {
 	var numTrans = transList.Size()
 	var apTrans *q.APTransaction
-	var transaction Transaction
 	//
 	// Cycle through the transaction list
 	//
 	for index := 0; index < numTrans; index++ {
 		apTrans = transList.Get(index)
 		if selectTransaction(apTrans) {
-			transaction = processTransaction(apTrans)
+			var transaction = processTransaction(apTrans)
 			grantList.Add(&transaction)
 		}
 	}

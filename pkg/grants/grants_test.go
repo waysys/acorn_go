@@ -138,3 +138,29 @@ func Test_GrantList(t *testing.T) {
 
 	t.Run("Test_GrantList", testFunction)
 }
+
+// Test_PaymentCalculation
+func Test_PaymentCalculation(t *testing.T) {
+	//
+	// Create a grant payment
+	//
+	var transType = GrantPayment
+	const recipientName = "Jone, Jack"
+	var recipient q.Recipient = q.NewRecipient(recipientName)
+	const edInstName = "Wake Tech"
+	var edInst q.Vendor = q.NewVendor(edInstName)
+	var amount = dec.NewFromInt(1000)
+	var transaction = NewTransaction(awardDate, transType, &recipient, &edInst, amount)
+	var grantList = NewGrantList()
+	grantList.Add(&transaction)
+	var total = grantList.TotalTransAmount(a.FY2023, transType)
+
+	var testFunction = func(t *testing.T) {
+		var anotherAmount = dec.NewFromInt(1000)
+		if !anotherAmount.Equal(total) {
+			t.Error("total not equal 1000: " + total.String())
+		}
+	}
+
+	t.Run("Test_GrantList", testFunction)
+}

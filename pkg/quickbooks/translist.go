@@ -104,7 +104,21 @@ func processTransactions(
 // selectTransaction returns true if the transaction should be added to
 // the transaction list
 func selectTransaction(transaction *APTransaction) bool {
-	var result = transaction.IsBill() || transaction.IsPayment() || transaction.IsVendorCredit()
+	var result = false
+	if transaction.GTZero() {
+		if transaction.Recipient().Name() != "" {
+			switch {
+			case transaction.IsBill():
+				result = transaction.IsScholarshipAccount()
+			case transaction.IsPayment():
+				result = true
+			case transaction.IsVendorCredit():
+				result = transaction.IsScholarshipAccount()
+			default:
+				result = false
+			}
+		}
+	}
 	return result
 }
 

@@ -17,8 +17,10 @@ package grants
 
 import (
 	q "acorn_go/pkg/quickbooks"
+	"strconv"
 
 	dec "github.com/shopspring/decimal"
+	"github.com/waysys/assert/assert"
 	d "github.com/waysys/waydate/pkg/date"
 )
 
@@ -47,6 +49,8 @@ func NewTransaction(
 	edInst *q.Vendor,
 	amount dec.Decimal,
 ) Transaction {
+	assert.Assert(IsTransType(transType),
+		"invalid transaction type: "+strconv.Itoa(int(transType)))
 	var tran = Transaction{
 		transactionDate: date,
 		transType:       transType,

@@ -40,6 +40,20 @@ const (
 )
 
 // ----------------------------------------------------------------------------
+// Validation
+// ----------------------------------------------------------------------------
+
+// IsTransType returns true if the argument is a valid value for the traansaction
+// type
+func IsTransType(value TransType) bool {
+	var result = true
+	if value < Grant || value > GrantPayment {
+		result = false
+	}
+	return result
+}
+
+// ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------
 
