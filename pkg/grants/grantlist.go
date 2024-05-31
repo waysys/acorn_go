@@ -16,9 +16,11 @@ package grants
 // ----------------------------------------------------------------------------
 
 import (
+	a "acorn_go/pkg/accounting"
 	q "acorn_go/pkg/quickbooks"
 	"strconv"
 
+	"github.com/shopspring/decimal"
 	dec "github.com/shopspring/decimal"
 	"github.com/waysys/assert/assert"
 	d "github.com/waysys/waydate/pkg/date"
@@ -29,7 +31,7 @@ import (
 // ----------------------------------------------------------------------------
 
 type GrantList struct {
-	trans []Transaction
+	trans []*Transaction
 	count int
 }
 
@@ -40,7 +42,7 @@ type GrantList struct {
 // NewGrantList returns an initialized grant list
 func NewGrantList() GrantList {
 	var grantList = GrantList{
-		trans: make([]Transaction, 200),
+		trans: make([]*Transaction, 200),
 		count: 0,
 	}
 
@@ -48,7 +50,7 @@ func NewGrantList() GrantList {
 }
 
 // AssembleGrantList populates the grant list with bill and AP transaction data.
-func AssembleGrantList(billList *q.BillList, tranList *q.TransList) (GrantList, error) {
+func AssembleGrantList(billList *q.BillList, transList *q.TransList) (GrantList, error) {
 	var err error = nil
 	//
 	// Create grant list
@@ -58,6 +60,10 @@ func AssembleGrantList(billList *q.BillList, tranList *q.TransList) (GrantList, 
 	// Add grants and transfers
 	//
 	processBills(billList, &grantList)
+	//
+	// Add write-offs and payments
+	//
+	processOtherTransactions(transList, &grantList)
 
 	return grantList, err
 }
@@ -65,11 +71,11 @@ func AssembleGrantList(billList *q.BillList, tranList *q.TransList) (GrantList, 
 // processBills cycles through bills and populates the grants and transfers
 func processBills(billList *q.BillList, grantList *GrantList) {
 	var numBills = billList.Size()
-	var bill q.EducationBill
+	var bill *q.EducationBill
 	var date d.Date
 	var amount dec.Decimal
-	var recipient q.Recipient
-	var edInst q.Vendor
+	var recipient *q.Recipient
+	var edInst *q.Vendor
 	var transType TransType
 	var transaction Transaction
 	//
@@ -79,12 +85,12 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 		//
 		// Extract data
 		//
-		bill = *billList.Get(index)
+		bill = billList.Get(index)
 		date = bill.TransactionDate()
 		amount = bill.Amount()
 		recipient = bill.Recipient()
 		edInst = bill.Vendor()
-		transType = convertTranType(bill.BType())
+		transType = convertBillType(bill.BType())
 		//
 		// Create transaction
 		//
@@ -98,12 +104,85 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 		//
 		// Add transaction
 		//
-		grantList.Add(transaction)
+		grantList.Add(&transaction)
 	}
 }
 
+// processOtherTransactions cylces through the TransList and adds them to
+// the grant list.
+func processOtherTransactions(transList *q.TransList, grantList *GrantList) {
+	var numTrans = transList.Size()
+	var apTrans *q.APTransaction
+	var transaction Transaction
+	//
+	// Cycle through the transaction list
+	//
+	for index := 0; index < numTrans; index++ {
+		apTrans = transList.Get(index)
+		if selectTransaction(apTrans) {
+			transaction = processTransaction(apTrans)
+			grantList.Add(&transaction)
+		}
+	}
+}
+
+// selectTransaction returns true if the transaction should be included in the
+// grant list
+func selectTransaction(apTrans *q.APTransaction) bool {
+	var result = false
+	switch {
+	case apTrans.IsVendorCredit():
+		result = true
+	case apTrans.IsPayment():
+		result = true
+	default:
+		result = false
+	}
+	return result
+}
+
+// processTransaction extracts data from the AP transaction and populates
+// the grant transaction
+func processTransaction(apTrans *q.APTransaction) Transaction {
+	//
+	// Extract the data
+	//
+	var date = apTrans.TransactionDate()
+	var transType = convertTransType(apTrans)
+	var recipient = apTrans.Recipient()
+	var vendor = apTrans.Vendor()
+	var amount = decimal.Decimal(apTrans.Amount())
+	//
+	// Create transaction
+	//
+	var transaction = NewTransaction(
+		date,
+		transType,
+		recipient,
+		vendor,
+		amount,
+	)
+	return transaction
+}
+
+// convertTransType computes the Grant transaction from the AP transaction
+func convertTransType(apTrans *q.APTransaction) TransType {
+	var transType = Grant
+	switch {
+	case apTrans.IsBill():
+		transType = Grant
+	case apTrans.IsVendorCredit():
+		transType = WriteOff
+	case apTrans.IsPayment():
+		transType = GrantPayment
+	default:
+		assert.Assert(false, "unrecognized grant transaction type")
+	}
+	return transType
+}
+
 // convertTranType converts the bill type to the grant transacton type
-func convertTranType(billType q.BillType) TransType {
+func convertBillType(billType q.BillType) TransType {
 	var tranType TransType
 	switch billType {
 	case q.Grant:
@@ -121,7 +200,45 @@ func convertTranType(billType q.BillType) TransType {
 // ----------------------------------------------------------------------------
 
 // Add adds a grant transaction to the grant list.
-func (grantList *GrantList) Add(transaction Transaction) {
+func (grantList *GrantList) Add(transaction *Transaction) {
 	grantList.trans[grantList.count] = transaction
 	grantList.count++
+}
+
+// Size returns the number of transaction
+func (grantList *GrantList) Size() int {
+	return grantList.count
+}
+
+// Get returns the transaction at the position indicated by the index
+func (grantList *GrantList) Get(index int) *Transaction {
+	assert.Assert(index >= 0 && index < grantList.count,
+		"index is out of range in grant list: "+strconv.Itoa(index))
+	return grantList.trans[index]
+}
+
+// TotalGrantAmount returns the total amount of grants for a fisca year
+func (grantList *GrantList) TotalGrantAmount(fiscalYear a.FYIndicator) dec.Decimal {
+	var total dec.Decimal = dec.Zero
+	var numTrans = grantList.Size()
+	var transaction Transaction
+
+	var match = func(tran Transaction) bool {
+		var transactionDate = tran.TransactionDate()
+		var transType = tran.TransType()
+		var result = false
+		if transType == Grant {
+			var fyIndicator = a.FiscalYearIndicator(transactionDate)
+			result = fyIndicator == fiscalYear
+		}
+		return result
+	}
+
+	for index := 0; index < numTrans; index++ {
+		transaction = *grantList.Get(index)
+		if match(transaction) {
+			total = total.Add(transaction.Amount())
+		}
+	}
+	return total
 }

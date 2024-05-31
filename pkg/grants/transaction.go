@@ -31,8 +31,8 @@ import (
 type Transaction struct {
 	transactionDate d.Date
 	transType       TransType
-	recipient       q.Recipient
-	edInst          q.Vendor
+	recipient       *q.Recipient
+	edInst          *q.Vendor
 	amount          dec.Decimal
 }
 
@@ -43,8 +43,8 @@ type Transaction struct {
 func NewTransaction(
 	date d.Date,
 	transType TransType,
-	recipient q.Recipient,
-	edInst q.Vendor,
+	recipient *q.Recipient,
+	edInst *q.Vendor,
 	amount dec.Decimal,
 ) Transaction {
 	var tran = Transaction{
@@ -80,4 +80,9 @@ func (trans *Transaction) Recipient() string {
 // educational institution
 func (trans *Transaction) EducationalInstitution() string {
 	return trans.edInst.Name()
+}
+
+// Amount returns the amount of the transaction.
+func (trans *Transaction) Amount() dec.Decimal {
+	return trans.amount
 }

@@ -18,6 +18,7 @@ package grants
 import (
 	a "acorn_go/pkg/accounting"
 	"os"
+	"strconv"
 	"testing"
 
 	r "github.com/waysys/waydate/pkg/daterange"
@@ -87,7 +88,7 @@ func Test_NewTransaction(t *testing.T) {
 	const edInstName = "Wake Tech"
 	var edInst q.Vendor = q.NewVendor(edInstName)
 	var amount = dec.NewFromInt(1000)
-	var transaction = NewTransaction(awardDate, transType, recipient, edInst, amount)
+	var transaction = NewTransaction(awardDate, transType, &recipient, &edInst, amount)
 
 	var testFunction = func(t *testing.T) {
 		if transaction.Recipient() != recipientName {
@@ -109,4 +110,31 @@ func Test_NewTransaction(t *testing.T) {
 	}
 
 	t.Run("Test_NewTransaction", testFunction)
+}
+
+// Test_GrantList tests the creation and use of grant lists
+func Test_GrantList(t *testing.T) {
+	var apTranLIst q.TransList
+	var err error
+	var billList q.BillList
+	var grantList GrantList
+
+	apTranLIst, err = q.ReadAPTransactions()
+	if err == nil {
+		billList, err = q.ReadBills(&apTranLIst)
+	}
+	if err == nil {
+		grantList, err = AssembleGrantList(&billList, &apTranLIst)
+	}
+
+	var testFunction = func(t *testing.T) {
+		if err != nil {
+			t.Error(err.Error())
+		}
+		if grantList.Size() < 10 {
+			t.Error("grant list is too small: " + strconv.Itoa(grantList.Size()))
+		}
+	}
+
+	t.Run("Test_GrantList", testFunction)
 }

@@ -19,7 +19,6 @@ package quickbooks
 
 import (
 	"acorn_go/pkg/spreadsheet"
-	"errors"
 	"strconv"
 
 	"github.com/waysys/assert/assert"
@@ -76,11 +75,13 @@ func processBills(sprdsht *spreadsheet.Spreadsheet,
 	// Loop through the spreadsheet
 	//
 	for row := 1; row < numRows; row++ {
-		var bill, err = processBill(sprdsht, row, transList)
+		var bill, err, okToUse = processBill(sprdsht, row, transList)
 		if err != nil {
 			return err
 		}
-		billList.Add(&bill)
+		if okToUse {
+			billList.Add(&bill)
+		}
 	}
 	return nil
 }
@@ -89,13 +90,16 @@ func processBills(sprdsht *spreadsheet.Spreadsheet,
 func processBill(
 	sprdsht *spreadsheet.Spreadsheet,
 	row int,
-	transList *TransList) (EducationBill, error) {
+	transList *TransList) (EducationBill, error, bool) {
 	var err error = nil
 	var bill = EducationBill{}
 	var billDate d.Date
 	var vendorName string
 	var billType string
 	var recipientName string
+	var trans *APTransaction
+	var okToUse bool
+
 	const (
 		columnTransDate     = "Bill date"
 		columnVendorName    = "Vendor"
@@ -118,21 +122,23 @@ func processBill(
 	//
 	// Find associated AP transaction
 	//
-	var trans = transList.Find(Bill, vendorName, recipientName, billDate)
-	if trans == nil {
-		var message = "transaction not found: \n" +
-			"vendor: " + vendorName + "\n" +
-			"recipient: " + recipientName + "\n" +
-			"date: " + billDate.String()
-		err = errors.New(message)
+	if err == nil {
+		trans = transList.Find(Bill, vendorName, recipientName, billDate)
+	} else {
+		trans = nil
 	}
+
 	//
 	// Create bill
 	//
-	if err == nil {
+	if trans != nil {
 		bill = NewEducationBill(trans, billType)
+		okToUse = true
+	} else {
+		bill = EducationBill{}
+		okToUse = false
 	}
-	return bill, err
+	return bill, err, okToUse
 }
 
 // ----------------------------------------------------------------------------

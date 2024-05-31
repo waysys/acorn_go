@@ -18,12 +18,15 @@ package main
 // ----------------------------------------------------------------------------
 
 import (
+	a "acorn_go/pkg/accounting"
 	g "acorn_go/pkg/grants"
 	q "acorn_go/pkg/quickbooks"
 	"acorn_go/pkg/spreadsheet"
 	"fmt"
 	"os"
 	"strconv"
+
+	dec "github.com/shopspring/decimal"
 )
 
 // ----------------------------------------------------------------------------
@@ -66,10 +69,14 @@ func main() {
 	//
 	if err == nil {
 		output, err = spreadsheet.New(outputFile, "Summary")
+		check(err, "Error opening output file: ")
 	}
-	if err == nil {
-		outputGrantSummary(&output, &grantList)
-	}
+
+	defer output.Close()
+	//
+	// Produce spreadsheet
+	//
+	outputGrantSummary(&output, &grantList)
 
 }
 
@@ -80,7 +87,23 @@ func main() {
 // outputGrantSummary populates the Summary tab with the amounts by transaction
 // type
 func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantList) {
-
+	//
+	// Insert title
+	//
+	var row = 1
+	writeCell(output, "A", row, "List of non-repeat donors")
+	row += 2
+	//
+	// Insert headings
+	//
+	writeCell(output, "A", row, "Fiscal Year")
+	writeCell(output, "B", row, "Total Grants")
+	var fy2023Total = grantList.TotalGrantAmount(a.FY2023)
+	writeCell(output, "A", row, "FY2023")
+	writeCellDecimal(output, "B", row, fy2023Total)
+	var fy2024Total = grantList.TotalGrantAmount(a.FY2024)
+	writeCell(output, "A", row, "FY2024")
+	writeCellDecimal(output, "B", row, fy2024Total)
 }
 
 // ----------------------------------------------------------------------------
@@ -125,26 +148,15 @@ func writeCell(
 	check(err, "Error writing cell "+cell+": ")
 }
 
-// writeCellInt outputs an integer value to the specified cell
-func writeCellInt(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value int) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCellInt(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
 // writeCellFloat outputs a float64 value to the specified cell
-func writeCellFloat(
+func writeCellDecimal(
 	outputPtr *spreadsheet.SpreadsheetFile,
 	column string,
 	row int,
-	value float64) {
+	value dec.Decimal) {
 
 	var cell = cellName(column, row)
-	var err = outputPtr.SetCellFloat(cell, value)
+	var amount = value.String()
+	var err = outputPtr.SetCell(cell, amount)
 	check(err, "Error writing cell "+cell+": ")
 }

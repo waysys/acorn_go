@@ -75,11 +75,11 @@ func (bill *EducationBill) Amount() dec.Decimal {
 }
 
 // Recipient returns the recipient associated with this bill
-func (bill *EducationBill) Recipient() Recipient {
-	return *bill.trans.recipient
+func (bill *EducationBill) Recipient() *Recipient {
+	return bill.trans.recipient
 }
 
 // Vendor returns the vendor associated with this bill
-func (bill *EducationBill) Vendor() Vendor {
-	return *bill.trans.vendor
+func (bill *EducationBill) Vendor() *Vendor {
+	return bill.trans.vendor
 }
