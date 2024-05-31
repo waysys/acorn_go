@@ -20,7 +20,6 @@ import (
 	q "acorn_go/pkg/quickbooks"
 	"strconv"
 
-	"github.com/shopspring/decimal"
 	dec "github.com/shopspring/decimal"
 	"github.com/waysys/assert/assert"
 	d "github.com/waysys/waydate/pkg/date"
@@ -77,7 +76,7 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 	var recipient *q.Recipient
 	var edInst *q.Vendor
 	var transType TransType
-	var transaction Transaction
+
 	//
 	// Cycle through list of bills
 	//
@@ -94,7 +93,7 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 		//
 		// Create transaction
 		//
-		transaction = NewTransaction(
+		var transaction = NewTransaction(
 			date,
 			transType,
 			recipient,
@@ -151,7 +150,7 @@ func processTransaction(apTrans *q.APTransaction) Transaction {
 	var transType = convertTransType(apTrans)
 	var recipient = apTrans.Recipient()
 	var vendor = apTrans.Vendor()
-	var amount = decimal.Decimal(apTrans.Amount())
+	var amount = dec.Decimal(apTrans.Amount())
 	//
 	// Create transaction
 	//
@@ -217,17 +216,18 @@ func (grantList *GrantList) Get(index int) *Transaction {
 	return grantList.trans[index]
 }
 
-// TotalGrantAmount returns the total amount of grants for a fisca year
-func (grantList *GrantList) TotalGrantAmount(fiscalYear a.FYIndicator) dec.Decimal {
+// TotalTransAmount returns the total amount of amounts for a fisca year
+// and transaction type
+func (grantList *GrantList) TotalTransAmount(fiscalYear a.FYIndicator, transType TransType) dec.Decimal {
 	var total dec.Decimal = dec.Zero
 	var numTrans = grantList.Size()
 	var transaction Transaction
 
 	var match = func(tran Transaction) bool {
 		var transactionDate = tran.TransactionDate()
-		var transType = tran.TransType()
+		var tt = tran.TransType()
 		var result = false
-		if transType == Grant {
+		if tt == transType {
 			var fyIndicator = a.FiscalYearIndicator(transactionDate)
 			result = fyIndicator == fiscalYear
 		}

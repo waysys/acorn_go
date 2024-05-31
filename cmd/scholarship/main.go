@@ -77,7 +77,10 @@ func main() {
 	// Produce spreadsheet
 	//
 	outputGrantSummary(&output, &grantList)
-
+	//
+	// Save results
+	//
+	output.Save()
 }
 
 // ----------------------------------------------------------------------------
@@ -91,19 +94,51 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 	// Insert title
 	//
 	var row = 1
-	writeCell(output, "A", row, "List of non-repeat donors")
+	writeCell(output, "A", row, "Summary of Scholarship Payments")
 	row += 2
 	//
 	// Insert headings
 	//
 	writeCell(output, "A", row, "Fiscal Year")
 	writeCell(output, "B", row, "Total Grants")
-	var fy2023Total = grantList.TotalGrantAmount(a.FY2023)
+	writeCell(output, "C", row, "Total Transfers")
+	writeCell(output, "D", row, "Payments")
+	writeCell(output, "E", row, "Write-Off")
+	writeCell(output, "F", row, "Discrepancy")
+	row++
+	//
+	// Amounts
+	//
 	writeCell(output, "A", row, "FY2023")
-	writeCellDecimal(output, "B", row, fy2023Total)
-	var fy2024Total = grantList.TotalGrantAmount(a.FY2024)
+	var grantTotal = grantList.TotalTransAmount(a.FY2023, g.Grant)
+	writeCellDecimal(output, "B", row, grantTotal)
+	var transferTotal = grantList.TotalTransAmount(a.FY2023, g.Transfer)
+	writeCellDecimal(output, "C", row, transferTotal)
+	var paymentTotal = grantList.TotalTransAmount(a.FY2023, g.GrantPayment)
+	writeCellDecimal(output, "D", row, paymentTotal)
+	var writeOffTotal = grantList.TotalTransAmount(a.FY2023, g.WriteOff)
+	writeCellDecimal(output, "E", row, writeOffTotal)
+	//
+	var discrepancy = grantTotal.Sub(transferTotal)
+	discrepancy = discrepancy.Sub(paymentTotal)
+	discrepancy = discrepancy.Sub(writeOffTotal)
+	writeCellDecimal(output, "F", row, discrepancy)
+	row++
+	//
 	writeCell(output, "A", row, "FY2024")
-	writeCellDecimal(output, "B", row, fy2024Total)
+	grantTotal = grantList.TotalTransAmount(a.FY2024, g.Grant)
+	writeCellDecimal(output, "B", row, grantTotal)
+	transferTotal = grantList.TotalTransAmount(a.FY2024, g.Transfer)
+	writeCellDecimal(output, "C", row, transferTotal)
+	paymentTotal = grantList.TotalTransAmount(a.FY2024, g.GrantPayment)
+	writeCellDecimal(output, "D", row, paymentTotal)
+	writeOffTotal = grantList.TotalTransAmount(a.FY2024, g.WriteOff)
+	writeCellDecimal(output, "E", row, writeOffTotal)
+	//
+	discrepancy = grantTotal.Sub(transferTotal)
+	discrepancy = discrepancy.Sub(paymentTotal)
+	discrepancy = discrepancy.Sub(writeOffTotal)
+	writeCellDecimal(output, "F", row, discrepancy)
 }
 
 // ----------------------------------------------------------------------------
@@ -113,7 +148,7 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 // printHeader places the header information at the top of the page
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
-	fmt.Println("Acorn Scholarship Fund Donor Analysis")
+	fmt.Println("Acorn Scholarship Fund Scholarship Analysis")
 	fmt.Println("-----------------------------------------------------------")
 }
 
