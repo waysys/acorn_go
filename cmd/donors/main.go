@@ -12,6 +12,7 @@
 package main
 
 // This program produces a spreadsheet of donor names and addresses.
+// It is currently programmed to create the list for donors in FY2024.
 
 // ----------------------------------------------------------------------------
 // Imports
