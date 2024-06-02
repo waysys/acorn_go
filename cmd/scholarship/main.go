@@ -74,9 +74,14 @@ func main() {
 
 	defer output.Close()
 	//
-	// Produce spreadsheet
+	// Produce summary tab
 	//
 	outputGrantSummary(&output, &grantList)
+	//
+	// Produce recipient tab
+	//
+	// output, err = output.AddSheet("Recipients")
+	// outputRecipientList(&output, &grantList)
 	//
 	// Save results
 	//
@@ -102,9 +107,8 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 	//
 	writeCell(output, "A", row, "Fiscal Year")
 	writeCell(output, "B", row, "Total Grants")
-	writeCell(output, "C", row, "Total Transfers")
-	writeCell(output, "D", row, "Total Payments")
-	writeCell(output, "E", row, "Total Write-Off")
+	writeCell(output, "C", row, "Total Payments")
+	writeCell(output, "D", row, "Total Net Write-Offs")
 	row++
 	//
 	// Amounts
@@ -112,39 +116,38 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 	writeCell(output, "A", row, "FY2023")
 	var grantTotal2023 = grantList.TotalTransAmount(a.FY2023, g.Grant)
 	writeCellDecimal(output, "B", row, grantTotal2023)
-	var transferTotal2023 = grantList.TotalTransAmount(a.FY2023, g.Transfer)
-	writeCellDecimal(output, "C", row, transferTotal2023)
 	var paymentTotal2023 = grantList.TotalTransAmount(a.FY2023, g.GrantPayment)
-	writeCellDecimal(output, "D", row, paymentTotal2023)
-	var writeOffTotal2023 = grantList.TotalTransAmount(a.FY2023, g.WriteOff)
-	writeCellDecimal(output, "E", row, writeOffTotal2023)
+	writeCellDecimal(output, "C", row, paymentTotal2023)
+	var writeOffTotal2023 = grantList.TotalNetWriteOff(a.FY2023)
+	writeCellDecimal(output, "D", row, writeOffTotal2023)
 	row++
 	//
 	writeCell(output, "A", row, "FY2024")
 	var grantTotal2024 = grantList.TotalTransAmount(a.FY2024, g.Grant)
 	writeCellDecimal(output, "B", row, grantTotal2024)
-	var transferTotal2024 = grantList.TotalTransAmount(a.FY2024, g.Transfer)
-	writeCellDecimal(output, "C", row, transferTotal2024)
 	var paymentTotal2024 = grantList.TotalTransAmount(a.FY2024, g.GrantPayment)
-	writeCellDecimal(output, "D", row, paymentTotal2024)
-	var writeOffTotal2024 = grantList.TotalTransAmount(a.FY2024, g.WriteOff)
-	writeCellDecimal(output, "E", row, writeOffTotal2024)
+	writeCellDecimal(output, "C", row, paymentTotal2024)
+	var writeOffTotal2024 = grantList.TotalNetWriteOff(a.FY2024)
+	writeCellDecimal(output, "D", row, writeOffTotal2024)
 	row += 2
 	//
 	writeCell(output, "A", row, "Total All Years")
 	var grantTotal = grantTotal2023.Add(grantTotal2024)
 	writeCellDecimal(output, "B", row, grantTotal)
-	var transferTotal = transferTotal2023.Add(transferTotal2024)
-	writeCellDecimal(output, "C", row, transferTotal)
 	var paymentTotal = paymentTotal2023.Add(paymentTotal2024)
-	writeCellDecimal(output, "D", row, paymentTotal)
+	writeCellDecimal(output, "C", row, paymentTotal)
 	var writeOffTotal = writeOffTotal2023.Add(writeOffTotal2024)
-	writeCellDecimal(output, "E", row, writeOffTotal)
+	writeCellDecimal(output, "D", row, writeOffTotal)
 	row += 2
 	//
-	var remainingGrants = grantTotal.Add(transferTotal).Sub(paymentTotal).Sub(writeOffTotal)
+	var remainingGrants = grantTotal.Sub(paymentTotal).Sub(writeOffTotal)
 	writeCell(output, "A", row, "Remaining Grants")
 	writeCellDecimal(output, "B", row, remainingGrants)
+}
+
+// outputRecipientList produces a list of recipients organized by fiscal year and
+// award group
+func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.GrantList) {
 
 }
 

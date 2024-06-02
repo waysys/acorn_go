@@ -43,7 +43,7 @@ type APTransaction struct {
 // ----------------------------------------------------------------------------
 
 const (
-	accountScholarship = "7050"
+	accountScholarship = "7040"
 	accountChecking    = "1010"
 )
 

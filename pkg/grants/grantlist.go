@@ -241,3 +241,11 @@ func (grantList *GrantList) TotalTransAmount(fiscalYear a.FYIndicator, transType
 	}
 	return total
 }
+
+// TotalNetWriteOff returns the netwriteoff which is the gross writeoff minus the transfers
+func (grantList *GrantList) TotalNetWriteOff(fiscalYear a.FYIndicator) dec.Decimal {
+	var totalWriteOffs = grantList.TotalTransAmount(fiscalYear, WriteOff)
+	var totalTransfers = grantList.TotalTransAmount(fiscalYear, Transfer)
+	var totalNetWriteOff = totalWriteOffs.Sub(totalTransfers)
+	return totalNetWriteOff
+}
