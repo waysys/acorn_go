@@ -90,3 +90,30 @@ func (trans *Transaction) EducationalInstitution() string {
 func (trans *Transaction) Amount() dec.Decimal {
 	return trans.amount
 }
+
+// ----------------------------------------------------------------------------
+// Other Functions
+// ----------------------------------------------------------------------------
+
+// compare compares two transactions and returns true if the first transaction
+// should come before the sedond transaction.
+func compare(trans1 *Transaction, trans2 *Transaction) bool {
+	var result = false
+	var tranDate1 = trans1.TransactionDate()
+	var tranDate2 = trans2.TransactionDate()
+
+	if trans1.Recipient() < trans2.Recipient() {
+		result = true
+	} else if trans1.Recipient() > trans2.Recipient() {
+		result = false
+	} else {
+		if tranDate1.Before(tranDate2) {
+			result = true
+		} else if tranDate1.After(tranDate2) {
+			result = false
+		} else {
+			result = trans1.TransType().lessTransType(trans2.TransType())
+		}
+	}
+	return result
+}

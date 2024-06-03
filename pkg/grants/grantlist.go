@@ -18,6 +18,7 @@ package grants
 import (
 	a "acorn_go/pkg/accounting"
 	q "acorn_go/pkg/quickbooks"
+	"sort"
 	"strconv"
 
 	dec "github.com/shopspring/decimal"
@@ -41,7 +42,7 @@ type GrantList struct {
 // NewGrantList returns an initialized grant list
 func NewGrantList() GrantList {
 	var grantList = GrantList{
-		trans: make([]*Transaction, 200),
+		trans: make([]*Transaction, 1000),
 		count: 0,
 	}
 
@@ -248,4 +249,19 @@ func (grantList *GrantList) TotalNetWriteOff(fiscalYear a.FYIndicator) dec.Decim
 	var totalTransfers = grantList.TotalTransAmount(fiscalYear, Transfer)
 	var totalNetWriteOff = totalWriteOffs.Sub(totalTransfers)
 	return totalNetWriteOff
+}
+
+// SortGrantList returns the grant list sorted in this order:
+//
+//	Recipient
+//	Educational Institution
+//	Transaction Date
+func (grantList *GrantList) Sort() {
+	var less = func(i int, j int) bool {
+		var trans1 = grantList.Get(i)
+		var trans2 = grantList.Get(j)
+		var result = compare(trans1, trans2)
+		return result
+	}
+	sort.Slice(grantList.trans[:grantList.count], less)
 }

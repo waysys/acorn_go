@@ -26,6 +26,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/waysys/assert/assert"
+	d "github.com/waysys/waydate/pkg/date"
+
 	dec "github.com/shopspring/decimal"
 )
 
@@ -80,8 +83,9 @@ func main() {
 	//
 	// Produce recipient tab
 	//
-	// output, err = output.AddSheet("Recipients")
-	// outputRecipientList(&output, &grantList)
+	output, err = output.AddSheet("Recipients")
+	check(err, "Error: ")
+	outputRecipientList(&output, &grantList)
 	//
 	// Save results
 	//
@@ -148,6 +152,64 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 // outputRecipientList produces a list of recipients organized by fiscal year and
 // award group
 func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.GrantList) {
+	var row = 1
+	var numRows = grantList.Size()
+	var lastRecipient string = ""
+	grantList.Sort()
+
+	//
+	// Insert title and headings
+	//
+	writeCell(output, "A", row, "Recipient Actions")
+	row += 2
+	writeCell(output, "A", row, "Transaction Date")
+	writeCell(output, "B", row, "Recipient")
+	writeCell(output, "C", row, "Educational Institution")
+	writeCell(output, "D", row, "Grant")
+	writeCell(output, "E", row, "Payment")
+	writeCell(output, "F", row, "Write-Off")
+	writeCell(output, "G", row, "Transfer")
+	row++
+	//
+	// Loop through the transactions in the grant list
+	//
+	for index := 0; index < numRows; index++ {
+		//
+		// Extract data from transaction
+		//
+		var tran = grantList.Get(index)
+		var transactionDate = tran.TransactionDate()
+		var recipient = tran.Recipient()
+		var edInst = tran.EducationalInstitution()
+		var amount = tran.Amount()
+		var transType = tran.TransType()
+		//
+		// Check if recipient has changed
+		//
+		if recipient != lastRecipient {
+			row++
+			lastRecipient = recipient
+		}
+		//
+		// Write data to spreadsheet
+		//
+		writeCellDate(output, "A", row, transactionDate)
+		writeCell(output, "B", row, recipient)
+		writeCell(output, "C", row, edInst)
+		if transType == g.Grant {
+			writeCellDecimal(output, "D", row, amount)
+		} else if transType == g.GrantPayment {
+			writeCellDecimal(output, "E", row, amount)
+		} else if transType == g.WriteOff {
+			writeCellDecimal(output, "F", row, amount)
+		} else if transType == g.Transfer {
+			writeCellDecimal(output, "G", row, amount)
+		} else {
+			assert.Assert(false, "invalid value for transType: "+strconv.Itoa(int(transType)))
+		}
+
+		row++
+	}
 
 }
 
@@ -210,4 +272,14 @@ func writeCellDecimal(
 	var amount = value.String()
 	var err = outputPtr.SetCell(cell, amount)
 	check(err, "Error writing cell "+cell+": ")
+}
+
+// writeDate outputs a date value to the specified cell.
+func writeCellDate(
+	outputPtr *spreadsheet.SpreadsheetFile,
+	column string,
+	row int,
+	date d.Date) {
+	var value = date.String()
+	writeCell(outputPtr, column, row, value)
 }
