@@ -18,7 +18,10 @@ package spreadsheet
 
 import (
 	"errors"
+	"strconv"
 
+	dec "github.com/shopspring/decimal"
+	d "github.com/waysys/waydate/pkg/date"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -40,7 +43,9 @@ type FormatIndex int
 
 const (
 	FormatPerCent FormatIndex = 9
-	FormatDate    FormatIndex = 14
+	FormatDate    FormatIndex = 15
+	FormatMoney   FormatIndex = 2
+	FormatInt     FormatIndex = 1
 )
 
 // ----------------------------------------------------------------------------
@@ -200,6 +205,57 @@ func (spFilePtr *SpreadsheetFile) SetCellInt(cell string, value int) error {
 	// Set value
 	//
 	err = file.SetCellInt(sheetname, cell, value)
+	if err == nil {
+		err = spFilePtr.SetNumFmt(cell, FormatInt)
+	}
+	return err
+}
+
+// SetCellInt sets the value of a cell to a decimal number
+func (spFilePtr *SpreadsheetFile) SetCellDecimal(cell string, amount dec.Decimal, index FormatIndex) error {
+	var err error = nil
+	var sheetname = spFilePtr.sheetname
+	var file = spFilePtr.filePtr
+	var value string = ""
+	//
+	// Preconditions
+	//
+	if cell == "" {
+		err = errors.New("cell name must not be empty")
+		return err
+	}
+	//
+	// Set value
+	//
+	value = amount.String()
+	err = spFilePtr.SetNumFmt(cell, index)
+	if err == nil {
+		err = file.SetCellValue(sheetname, cell, value)
+	}
+	return err
+}
+
+// SetCellDate sets the value of a cell to the specified date
+func (spFilePtr *SpreadsheetFile) SetCellDate(cell string, date d.Date) error {
+	var err error = nil
+	var sheetname = spFilePtr.sheetname
+	var file = spFilePtr.filePtr
+	var value string = ""
+	//
+	// Preconditions
+	//
+	if cell == "" {
+		err = errors.New("cell name must not be empty")
+		return err
+	}
+	//
+	// Set value
+	//
+	value = date.String()
+	err = spFilePtr.SetNumFmt(cell, FormatDate)
+	if err == nil {
+		err = file.SetCellValue(sheetname, cell, value)
+	}
 	return err
 }
 
@@ -209,10 +265,19 @@ func (spFilePtr *SpreadsheetFile) SetNumFmt(cell string, index FormatIndex) erro
 	var style = excelize.Style{
 		NumFmt: int(index),
 	}
-	var st, err = spFilePtr.filePtr.NewStyle(&style)
+	var err error = nil
+	var st int
+	//
+	// Precondition
+	//
+	if index < 0 || index > 49 {
+		err = errors.New("Invalid value for format index: " + strconv.Itoa(int(index)))
+		return err
+	}
+	st, err = spFilePtr.filePtr.NewStyle(&style)
 	if err != nil {
 		return err
 	}
-	spFilePtr.filePtr.SetCellStyle(spFilePtr.sheetname, cell, cell, st)
-	return nil
+	err = spFilePtr.filePtr.SetCellStyle(spFilePtr.sheetname, cell, cell, st)
+	return err
 }

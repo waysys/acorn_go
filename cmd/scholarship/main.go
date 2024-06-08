@@ -155,6 +155,12 @@ func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.Grant
 	var row = 1
 	var numRows = grantList.Size()
 	var lastRecipient string = ""
+	var balance = dec.Zero
+	var totalGrants = dec.Zero
+	var totalPayments = dec.Zero
+	var totalWriteOffs = dec.Zero
+	var totalTransfers = dec.Zero
+	var totalBalance = dec.Zero
 	grantList.Sort()
 
 	//
@@ -169,6 +175,7 @@ func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.Grant
 	writeCell(output, "E", row, "Payment")
 	writeCell(output, "F", row, "Write-Off")
 	writeCell(output, "G", row, "Transfer")
+	writeCell(output, "H", row, "Net Balance")
 	row++
 	//
 	// Loop through the transactions in the grant list
@@ -187,8 +194,11 @@ func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.Grant
 		// Check if recipient has changed
 		//
 		if recipient != lastRecipient {
+			writeCellDecimal(output, "H", row, balance)
+			totalBalance = totalBalance.Add(balance)
 			row++
 			lastRecipient = recipient
+			balance = dec.Zero
 		}
 		//
 		// Write data to spreadsheet
@@ -197,20 +207,38 @@ func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.Grant
 		writeCell(output, "B", row, recipient)
 		writeCell(output, "C", row, edInst)
 		if transType == g.Grant {
+			totalGrants = totalGrants.Add(amount)
 			writeCellDecimal(output, "D", row, amount)
+			balance = balance.Add(amount)
 		} else if transType == g.GrantPayment {
+			totalPayments = totalPayments.Add(amount)
 			writeCellDecimal(output, "E", row, amount)
+			balance = balance.Sub(amount)
 		} else if transType == g.WriteOff {
+			totalWriteOffs = totalWriteOffs.Add(amount)
 			writeCellDecimal(output, "F", row, amount)
+			balance = balance.Sub(amount)
 		} else if transType == g.Transfer {
+			totalTransfers = totalTransfers.Add(amount)
 			writeCellDecimal(output, "G", row, amount)
+			balance = balance.Add(amount)
 		} else {
 			assert.Assert(false, "invalid value for transType: "+strconv.Itoa(int(transType)))
 		}
-
 		row++
 	}
-
+	totalBalance = totalBalance.Add(balance)
+	writeCellDecimal(output, "H", row, balance)
+	//
+	// Write totals to spreadsheet
+	//
+	row += 2
+	writeCell(output, "C", row, "Totals")
+	writeCellDecimal(output, "D", row, totalGrants)
+	writeCellDecimal(output, "E", row, totalPayments)
+	writeCellDecimal(output, "F", row, totalWriteOffs)
+	writeCellDecimal(output, "G", row, totalTransfers)
+	writeCellDecimal(output, "H", row, totalBalance)
 }
 
 // ----------------------------------------------------------------------------
@@ -269,8 +297,7 @@ func writeCellDecimal(
 	value dec.Decimal) {
 
 	var cell = cellName(column, row)
-	var amount = value.String()
-	var err = outputPtr.SetCell(cell, amount)
+	var err = outputPtr.SetCellDecimal(cell, value, spreadsheet.FormatMoney)
 	check(err, "Error writing cell "+cell+": ")
 }
 
@@ -280,6 +307,7 @@ func writeCellDate(
 	column string,
 	row int,
 	date d.Date) {
-	var value = date.String()
-	writeCell(outputPtr, column, row, value)
+	var cell = cellName(column, row)
+	var err = outputPtr.SetCellDate(cell, date)
+	check(err, "Error writing cell "+cell+":")
 }
