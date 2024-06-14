@@ -12,7 +12,7 @@
 package main
 
 // This program produces a spreadsheet of donor names and addresses.
-// It is currently programmed to create the list for donors in FY2024.
+// It is currently programmed to create the list for donors in FY2023 and FY2024.
 
 // ----------------------------------------------------------------------------
 // Imports
@@ -163,7 +163,7 @@ func outputAddresses(donorList *donorinfo.DonorList, addressList *donors.DonorLi
 
 // select determines if the donor should be inserted into the mailing list
 func selectDonor(donor donorinfo.Donor) bool {
-	var result = donor.IsFY23AndFY24Donor() || donor.IsFY24DonorOnly()
+	var result = donor.IsFY23AndFY24Donor() || donor.IsFY24DonorOnly() || donor.IsFY23DonorOnly()
 	return result
 }
 
