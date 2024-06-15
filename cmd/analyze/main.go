@@ -26,6 +26,8 @@ import (
 	a "acorn_go/pkg/accounting"
 	"acorn_go/pkg/donorinfo"
 	"acorn_go/pkg/spreadsheet"
+
+	dec "github.com/shopspring/decimal"
 )
 
 // ----------------------------------------------------------------------------
@@ -102,6 +104,12 @@ func main() {
 	output, err = output.AddSheet("Major Donor")
 	check(err, "Error adding major donor sheet")
 	outputMajorDonor(majorDonor, &output)
+	//
+	// Output list of major donors overall
+	//
+	output, err = output.AddSheet("Major List")
+	check(err, "Error adding major list")
+	outputMajorList(&donorList, &output)
 	//
 	// Finish up
 	//
@@ -225,6 +233,18 @@ func writeCellFloat(
 
 	var cell = cellName(column, row)
 	var err = outputPtr.SetCellFloat(cell, value)
+	check(err, "Error writing cell "+cell+": ")
+}
+
+// writeDecimal outputs a decimal value to the specified cell
+func writeCellDecimal(
+	outputPtr *spreadsheet.SpreadsheetFile,
+	column string,
+	row int,
+	value dec.Decimal) {
+
+	var cell = cellName(column, row)
+	var err = outputPtr.SetCellDecimal(cell, value, spreadsheet.FormatMoney)
 	check(err, "Error writing cell "+cell+": ")
 }
 
@@ -359,4 +379,29 @@ func outputMajorDonor(
 	row += 2
 	writeCell(outputPtr, "A", row, "Percent change in average donations")
 	writeCellFloat(outputPtr, "B", row, md.PercentChange())
+}
+
+// outputMajorList output the list of donors whose combined FY2023 and FY2024
+// donations equal or exceed $2000.
+func outputMajorList(donorList *donorinfo.DonorList, outputPtr *spreadsheet.SpreadsheetFile) {
+	var row = 1
+	//
+	// Place Headings
+	//
+	writeCell(outputPtr, "A", row, "Donor")
+	writeCell(outputPtr, "B", row, "Total Donations")
+	row++
+	//
+	// Output data
+	//
+	var names = donorList.DonorKeys()
+	for _, name := range names {
+		var donor = donorList.Get(name)
+		if donor.IsMajorDonorOverall() {
+			writeCell(outputPtr, "A", row, name)
+			writeCellDecimal(outputPtr, "B", row, donor.TotalDonation())
+			row++
+		}
+	}
+
 }
