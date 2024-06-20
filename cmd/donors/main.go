@@ -41,6 +41,8 @@ const addressListTab = "Sheet1"
 const outputFile = "/home/bozo/Downloads/mailing_list.xlsx"
 const outputTab = "Donors"
 
+const paperInviteFile = "/home/bozo/Downloads/paper_invite.xlsx"
+
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
@@ -63,6 +65,7 @@ func main() {
 	// Output data to spreadsheet
 	//
 	outputAddresses(&donorList, &addressList)
+	outputPaperInviteList(&donorList, &addressList)
 }
 
 // generateDonorList creates the donor list
@@ -106,9 +109,17 @@ func generateAddresses() donors.DonorList {
 // ----------------------------------------------------------------------------
 
 // outputAddresses outputs the addresses to a spreadsheet
+// This is the full list of donors
 func outputAddresses(donorList *donorinfo.DonorList, addressList *donors.DonorList) {
 	var err error
 	var output spreadsheet.SpreadsheetFile
+	//
+	// selectDonor determines if the donor should be inserted into the mailing list
+	//
+	var selectDonor = func(donor donorinfo.Donor) bool {
+		var result = donor.IsFY23AndFY24Donor() || donor.IsFY24DonorOnly() || donor.IsFY23DonorOnly()
+		return result
+	}
 	//
 	// Create output spreadsheet
 	//
@@ -161,11 +172,67 @@ func outputAddresses(donorList *donorinfo.DonorList, addressList *donors.DonorLi
 	check(err, "Error closing output file")
 }
 
-// select determines if the donor should be inserted into the mailing list
-func selectDonor(donor donorinfo.Donor) bool {
-	var result = donor.IsFY23AndFY24Donor() || donor.IsFY24DonorOnly() || donor.IsFY23DonorOnly()
-	return result
+// outputPaperInviteList outputs the names and address of donors without email addresses.
+// This list is for FY2023 and FY2024 donors who are not deceased.
+func outputPaperInviteList(donorList *donorinfo.DonorList, addressList *donors.DonorList) {
+	var err error
+	var output spreadsheet.SpreadsheetFile
+	//
+	// selectDonor determines if the donor should be inserted into the list
+	//
+	var selectDonor = func(donor donorinfo.Donor, address donors.Donor) bool {
+		var result = donor.IsFY23AndFY24Donor() || donor.IsFY24DonorOnly() || donor.IsFY23DonorOnly()
+		result = result && !address.HasEmail()
+		return result
+	}
+	//
+	// Create output spreadsheet
+	//
+	output, err = spreadsheet.New(paperInviteFile, outputTab)
+	check(err, "Error opening output file: ")
+	//
+	// Insert Heading
+	//
+	var row = 1
+	writeCell(&output, "A", row, "Donor Name")
+	writeCell(&output, "B", row, "")
+	writeCell(&output, "C", row, "Street")
+	writeCell(&output, "D", row, "City")
+	writeCell(&output, "E", row, "State")
+	writeCell(&output, "F", row, "Zip")
+	writeCell(&output, "G", row, "Count")
+	row++
+	//
+	// Process donors
+	//
+	var keys = donorList.DonorKeys()
+	for _, key := range keys {
+		var donor = donorList.Get(key)
+		if addressList.Contains(key) {
+			var address = addressList.Get(key)
+			if selectDonor(*donor, *address) {
+				writeCell(&output, "A", row, address.Name())
+				writeCell(&output, "C", row, address.Street())
+				writeCell(&output, "D", row, address.City())
+				writeCell(&output, "E", row, address.State())
+				writeCell(&output, "F", row, address.Zip())
+				writeCellInt(&output, "G", row, address.NumberInHousehold())
+				row++
+			}
+		}
+	}
+	//
+	// Finish
+	//
+	err = output.Save()
+	check(err, "Error saving output file")
+	err = output.Close()
+	check(err, "Error closing output file")
 }
+
+// ----------------------------------------------------------------------------
+// Print Functions
+// ----------------------------------------------------------------------------
 
 // printHeader places the header information at the top of the page
 func printHeader() {
