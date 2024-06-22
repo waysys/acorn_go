@@ -3,7 +3,7 @@
 // Email Validation Program
 //
 // Author: William Shaffer
-// Version: 20-Jun-2024
+// Version: 22-Jun-2024
 //
 // Copyright (c) 2024 William Shaffer All Rights Reserved
 //
@@ -19,40 +19,87 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/zerobounce/zerobouncego"
+	"acorn_go/pkg/donors"
+	v "acorn_go/pkg/email"
+	"acorn_go/pkg/spreadsheet"
 )
 
 // ----------------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------------
 
-const email = "wshaffer@waysysweb.com"
+const addressListFile = "/home/bozo/golang/acorn_go/data/donors.xlsx"
+const addressListTab = "Sheet1"
 
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
 
 func main() {
+	var addressList donors.DonorList
 
-	// For Querying a single E-Mail and IP
-	// IP can also be an empty string
-	response, error_ := zerobouncego.Validate(email, "")
-
-	if error_ != nil {
-		fmt.Println("error occurred: ", error_.Error())
-	} else {
-		// Now you can check status
-		if response.Status == zerobouncego.S_VALID {
-			fmt.Println("This email is valid")
+	printHeader()
+	//
+	// Fetch email addresses
+	//
+	addressList = generateAddresses()
+	//
+	// Validate each emil
+	//
+	var keys = addressList.Keys()
+	for _, key := range keys {
+		var address = addressList.Get(key)
+		var email = address.Email()
+		var result, err = v.Validate(email)
+		if err != nil {
+			fmt.Println("Error validating email: " + err.Error())
 		}
-
-		if response.Status == zerobouncego.S_INVALID {
-			fmt.Println("This email is invalid")
-			if response.SubStatus == zerobouncego.SS_POSSIBLE_TYPO {
-				fmt.Println("This email might have a typo")
-			}
+		if !result {
+			fmt.Println("invalid email: " + key)
 		}
+	}
+}
 
+// generateAddresses creates the collection of addresses
+func generateAddresses() donors.DonorList {
+	var sprdsht spreadsheet.Spreadsheet
+	var addressList donors.DonorList
+	var err error
+	//
+	// Obtain spreadsheet data
+	//
+	sprdsht, err = spreadsheet.ProcessData(addressListFile, addressListTab)
+	check(err, "Error generating address list: ")
+	//
+	// Generate address list
+	//
+	addressList, err = donors.NewDonorList(&sprdsht)
+	check(err, "Error generating address list: ")
+	return addressList
+}
+
+// ----------------------------------------------------------------------------
+// Print Functions
+// ----------------------------------------------------------------------------
+
+// printHeader places the header information at the top of the page
+func printHeader() {
+	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("Acorn Scholarship Fund Email Validation")
+	fmt.Println("-----------------------------------------------------------")
+}
+
+// ----------------------------------------------------------------------------
+// Support Functions
+// ----------------------------------------------------------------------------
+
+// check tests an error to see if it is null.  If not, it prints an
+// error message and exits the program.
+func check(err error, message string) {
+	if err != nil {
+		fmt.Println(message + err.Error())
+		os.Exit(1)
 	}
 }

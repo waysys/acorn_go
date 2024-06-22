@@ -19,7 +19,6 @@ package donors
 
 import (
 	a "acorn_go/pkg/address"
-	"strings"
 	s "strings"
 )
 
@@ -102,7 +101,7 @@ func (donor Donor) Email() string {
 func (donor Donor) HasEmail() bool {
 	var result = true
 	var email = donor.Email()
-	if strings.TrimSpace(email) == "--" {
+	if s.TrimSpace(email) == "--" {
 		result = false
 	}
 	return result

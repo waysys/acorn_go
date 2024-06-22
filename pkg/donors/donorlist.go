@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //
-// Donor series program
+// Donor address program
 //
 // Author: William Shaffer
 // Version: 20-May-2024
@@ -18,13 +18,14 @@ package donors
 import (
 	a "acorn_go/pkg/address"
 	"acorn_go/pkg/spreadsheet"
+	"sort"
 	"strconv"
 
 	"github.com/waysys/assert/assert"
 )
 
-// This file contains functions that manage a map of donors with their donation
-// information.
+// This file contains functions that manage a map of donors with their names,
+// addresses, and emails.
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -167,4 +168,16 @@ func (donorList *DonorList) Get(key string) *Donor {
 // Count returns the number of entries in the donor list.
 func (donorList *DonorList) Count() int {
 	return len(*donorList)
+}
+
+// DonorKeys returns a alphabetically sorted slice of donor list keys
+func (donorList *DonorList) Keys() []string {
+	keys := make([]string, 0, len(*donorList))
+	for k := range *donorList {
+		keys = append(keys, k)
+	}
+
+	//sort the slice of keys alphabetically
+	sort.Strings(keys)
+	return keys
 }
