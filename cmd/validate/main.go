@@ -51,14 +51,17 @@ func main() {
 	var keys = addressList.Keys()
 	for _, key := range keys {
 		var address = addressList.Get(key)
-		var email = address.Email()
-		var result, err = v.Validate(email)
-		if err != nil {
-			fmt.Println("Error validating email: " + err.Error())
+		if address.HasEmail() {
+			var email = address.Email()
+			var result, err = v.Validate(email)
+			check(err, "Error validating email belonging to: "+address.Name())
+			if !result {
+				fmt.Println("invalid email for " + key + ": " + email)
+			}
+		} else {
+			fmt.Println("no email for: " + address.Name())
 		}
-		if !result {
-			fmt.Println("invalid email: " + key)
-		}
+
 	}
 }
 
