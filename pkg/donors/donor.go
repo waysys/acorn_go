@@ -92,6 +92,12 @@ func (donor Donor) Zip() string {
 	return donor.address.Zip
 }
 
+// Address returns the address structure associated with this
+// donor
+func (donor Donor) Address() a.Address {
+	return donor.address
+}
+
 // Email returns the email address of the donor
 func (donor Donor) Email() string {
 	return donor.email

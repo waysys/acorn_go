@@ -18,6 +18,7 @@ package donors
 import (
 	a "acorn_go/pkg/address"
 	"acorn_go/pkg/spreadsheet"
+	"errors"
 	"sort"
 	"strconv"
 
@@ -180,4 +181,21 @@ func (donorList *DonorList) Keys() []string {
 	//sort the slice of keys alphabetically
 	sort.Strings(keys)
 	return keys
+}
+
+// GetByEmail returns the donor with the specified email.
+// If no donor has the specified email, an error is returned.
+func (donorList *DonorList) GetByEmail(email string) (*Donor, error) {
+	var donor *Donor = nil
+	var err error = errors.New("unable to find donor with this email: " + email)
+	var keys = donorList.Keys()
+
+	for _, key := range keys {
+		donor = donorList.Get(key)
+		if donor.Email() == email {
+			err = nil
+			break
+		}
+	}
+	return donor, err
 }
