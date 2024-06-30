@@ -20,6 +20,7 @@ package guestlist
 // ----------------------------------------------------------------------------
 
 import (
+	"acorn_go/pkg/address"
 	"acorn_go/pkg/donors"
 	"acorn_go/pkg/spreadsheet"
 
@@ -51,17 +52,22 @@ func NewGuestlist(sprdsht *spreadsheet.Spreadsheet, donorList *donors.DonorList)
 	var guestlist = make(Guestlist)
 	var numRows = sprdsht.Size()
 	var err error = nil
-	var guest Guest
 
 	//
 	// Loop through all the rows in the spreadsheet
 	//
 	for row := 1; row < numRows; row++ {
-		guest, err = processRow(donorList, sprdsht, row)
-		if err != nil {
+		var guest, err1 = processRow(donorList, sprdsht, row)
+		if err1 != nil {
+			err = err1
 			break
 		}
-		guestlist.Add(&guest)
+		if guest.Email() != "" {
+			guestlist.Add(&guest)
+		} else {
+			continue
+		}
+
 	}
 	return guestlist, err
 }
@@ -78,6 +84,7 @@ func processRow(
 	var email string
 	var status string
 	var guest Guest
+	var blankAddress = address.BlankAddress()
 	//
 	// Extract data from spreadsheet
 	//
@@ -90,6 +97,11 @@ func processRow(
 	}
 	if err == nil {
 		donor, err = donorList.GetByEmail(email)
+		if err != nil {
+			var dn = donors.New(name, name, blankAddress, email, 0)
+			donor = &dn
+			err = nil
+		}
 	}
 	if err == nil {
 		guest = New(name, donor.Address(), email, status)
@@ -120,7 +132,8 @@ func (guestlist *Guestlist) Add(guest *Guest) {
 func (guestlist *Guestlist) Get(email string) *Guest {
 	assert.Assert(guestlist.Contains(email),
 		"Guest with this email is not in list: "+email)
-	return (*guestlist)[email]
+	var guest, _ = (*guestlist)[email]
+	return guest
 }
 
 // Count returns the number of guests in the guestlist.

@@ -46,3 +46,9 @@ func New(street string, unit string, city string, state string, zip string) Addr
 	}
 	return address
 }
+
+// Blank address returns a blank address
+func BlankAddress() Address {
+	address := Address{}
+	return address
+}

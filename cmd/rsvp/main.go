@@ -111,7 +111,7 @@ func outputAddresses(guestlist *g.Guestlist) {
 	//
 	// selectGuest determines if the guest should be inserted into the spreadsheet
 	//
-	var selectGuest = func(guest g.Guest) bool {
+	var selectGuest = func(guest *g.Guest) bool {
 		var result = guest.NoResponse()
 		return result
 	}
@@ -136,18 +136,16 @@ func outputAddresses(guestlist *g.Guestlist) {
 	//
 	var keys = guestlist.Keys()
 	for _, key := range keys {
-		var donor = guestlist.Get(key)
-		if guestlist.Contains(key) {
-			if selectGuest(*donor) {
-				var address = guestlist.Get(key)
-				writeCell(&output, "A", row, address.Name())
-				writeCell(&output, "B", row, address.Email())
-				writeCell(&output, "C", row, address.Street())
-				writeCell(&output, "D", row, address.City())
-				writeCell(&output, "E", row, address.State())
-				writeCell(&output, "F", row, address.Zip())
-				row++
-			}
+		var guest = guestlist.Get(key)
+		if selectGuest(guest) {
+			var address = guestlist.Get(key)
+			writeCell(&output, "A", row, address.Name())
+			writeCell(&output, "B", row, address.Email())
+			writeCell(&output, "C", row, address.Street())
+			writeCell(&output, "D", row, address.City())
+			writeCell(&output, "E", row, address.State())
+			writeCell(&output, "F", row, address.Zip())
+			row++
 		}
 	}
 	//
@@ -166,7 +164,7 @@ func outputAddresses(guestlist *g.Guestlist) {
 // printHeader places the header information at the top of the page
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
-	fmt.Println("Acorn Scholarship Fund Mailing List")
+	fmt.Println("Acorn Scholarship Fund Guests Who Have Not Responded")
 	fmt.Println("-----------------------------------------------------------")
 }
 
