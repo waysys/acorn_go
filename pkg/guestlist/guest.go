@@ -30,7 +30,8 @@ import (
 
 type Guest struct {
 	d.Donor
-	status Status
+	status   Status
+	isMember bool
 }
 
 // ----------------------------------------------------------------------------
@@ -40,8 +41,9 @@ type Guest struct {
 // New returns a guest based on the specified inputs.
 func New(nm string, adr a.Address, eml string, sts string) Guest {
 	guest := Guest{
-		Donor:  d.New(nm, nm, adr, eml, 0),
-		status: NewStatus(sts),
+		Donor:    d.New(nm, nm, adr, eml, 0),
+		status:   NewStatus(sts),
+		isMember: false,
 	}
 	return guest
 }
@@ -60,4 +62,14 @@ func (guest Guest) NoResponse() bool {
 	var status = guest.Status()
 	var result = (status != Attending) && (status != Regrets) && (status != Unsubscribed)
 	return result
+}
+
+// SetMember sets the isMember field to true.
+func (guest *Guest) SetMember() {
+	guest.isMember = true
+}
+
+// IsMember returns true if the guest is a member as opposed to management.
+func (guest Guest) IsMember() bool {
+	return guest.isMember
 }

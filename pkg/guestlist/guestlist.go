@@ -62,7 +62,7 @@ func NewGuestlist(sprdsht *spreadsheet.Spreadsheet, donorList *donors.DonorList)
 			err = err1
 			break
 		}
-		if guest.Email() != "" {
+		if guest.Email() != "" && guest.IsMember() {
 			guestlist.Add(&guest)
 		} else {
 			continue
@@ -101,10 +101,11 @@ func processRow(
 			var dn = donors.New(name, name, blankAddress, email, 0)
 			donor = &dn
 			err = nil
+			guest = New(name, donor.Address(), email, status)
+		} else {
+			guest = New(name, donor.Address(), email, status)
+			(&guest).SetMember()
 		}
-	}
-	if err == nil {
-		guest = New(name, donor.Address(), email, status)
 	}
 	return guest, err
 }
