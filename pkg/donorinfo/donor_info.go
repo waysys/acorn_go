@@ -160,8 +160,15 @@ func (donor Donor) IsMajorDonorFY24() bool {
 // total of $2000 or more combining both FY2023 and FY2024
 // donations
 func (donor Donor) IsMajorDonorOverall() bool {
-	var totalDonations = donor.TotalDonation()
-	var result = totalDonations.GreaterThanOrEqual(MajorDonorLimit)
+	// var totalDonations = donor.TotalDonation()
+	// var result = totalDonations.GreaterThanOrEqual(MajorDonorLimit)
+	var result = false
+	if donor.IsMajorDonorFY23() {
+		result = true
+	}
+	if donor.IsMajorDonorFY24() {
+		result = true
+	}
 	return result
 }
 

@@ -389,7 +389,9 @@ func outputMajorList(donorList *donorinfo.DonorList, outputPtr *spreadsheet.Spre
 	// Place Headings
 	//
 	writeCell(outputPtr, "A", row, "Donor")
-	writeCell(outputPtr, "B", row, "Total Donations")
+	writeCell(outputPtr, "B", row, "Donation FY23")
+	writeCell(outputPtr, "C", row, "Donation FY24")
+	writeCell(outputPtr, "D", row, "Count")
 	row++
 	//
 	// Output data
@@ -399,7 +401,9 @@ func outputMajorList(donorList *donorinfo.DonorList, outputPtr *spreadsheet.Spre
 		var donor = donorList.Get(name)
 		if donor.IsMajorDonorOverall() {
 			writeCell(outputPtr, "A", row, name)
-			writeCellDecimal(outputPtr, "B", row, donor.TotalDonation())
+			writeCellDecimal(outputPtr, "B", row, donor.DonationFY23())
+			writeCellDecimal(outputPtr, "C", row, donor.DonationFY24())
+			writeCellInt(outputPtr, "D", row, 1)
 			row++
 		}
 	}
