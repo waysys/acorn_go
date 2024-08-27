@@ -28,8 +28,8 @@ import (
 // Types
 // ----------------------------------------------------------------------------
 
-// The transaction ties together the recipient, the educational institution,
-// the award group, fiscal year, and type of transaction.
+// The transaction ties together the transaction date, recipient, the educational institution,
+// and type of transaction.
 type Transaction struct {
 	transactionDate d.Date
 	transType       TransType
