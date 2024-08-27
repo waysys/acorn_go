@@ -66,7 +66,7 @@ func (sum RecipientSum) PaymentTotal(fy a.FYIndicator) dec.Decimal {
 }
 
 // ----------------------------------------------------------------------------
-// Properties
+// Methods
 // ----------------------------------------------------------------------------
 
 // AddPayment adds the amount of a payment to the total payments for the fiscal year.
