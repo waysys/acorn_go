@@ -16,6 +16,7 @@ package grants
 // ----------------------------------------------------------------------------
 
 import (
+	a "acorn_go/pkg/accounting"
 	q "acorn_go/pkg/quickbooks"
 	"strconv"
 
@@ -68,6 +69,12 @@ func NewTransaction(
 // TransactionDate returns the date of the transaction
 func (trans *Transaction) TransactionDate() d.Date {
 	return trans.transactionDate
+}
+
+// FiscalYear returns the fiscal year in which the transaction takes place.
+func (trans *Transaction) FiscalYear() a.FYIndicator {
+	var transactionDate = trans.TransactionDate()
+	return a.FiscalYearIndicator(transactionDate)
 }
 
 // TransType returns the transaction type

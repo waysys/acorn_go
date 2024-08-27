@@ -3,7 +3,7 @@
 // Recipients
 //
 // Author: William Shaffer
-// Version: 30-May-2024
+// Version: 26-Sep-2024
 //
 // Copyright (c) 2024 William Shaffer All Rights Reserved
 //
@@ -47,6 +47,10 @@ func NewRecipientSum(name string) RecipientSum {
 		payments:  values,
 	}
 	return recipientSum
+	// Post:
+	//   recipientSum.recipient.Name() == name and
+	//   recipientSum.payments[0] == dec.Zero and
+	//   recipientSum.payments[1] == dec.Zero
 }
 
 // ----------------------------------------------------------------------------
@@ -54,15 +58,23 @@ func NewRecipientSum(name string) RecipientSum {
 // ----------------------------------------------------------------------------
 
 // RecipientName returns the name of the recipient
-func (sum RecipientSum) RecipientName() string {
+func (sum *RecipientSum) RecipientName() string {
 	var name = sum.recipient.Name()
 	return name
 }
 
 // Payments returns the total payment made to a recipient in a fiscal year.
-func (sum RecipientSum) PaymentTotal(fy a.FYIndicator) dec.Decimal {
+func (sum *RecipientSum) PaymentTotal(fy a.FYIndicator) dec.Decimal {
 	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
 	return sum.payments[fy]
+}
+
+// IsRecipient returns true if the recipient benefited from a payment for
+// a scholarship in the specified fiscal year.
+func (sum *RecipientSum) IsRecipient(fy a.FYIndicator) bool {
+	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
+	var result = sum.payments[fy].GreaterThan(dec.Zero)
+	return result
 }
 
 // ----------------------------------------------------------------------------
@@ -70,8 +82,10 @@ func (sum RecipientSum) PaymentTotal(fy a.FYIndicator) dec.Decimal {
 // ----------------------------------------------------------------------------
 
 // AddPayment adds the amount of a payment to the total payments for the fiscal year.
-func (sum RecipientSum) AddPayment(fy a.FYIndicator, amount dec.Decimal) {
+func (sum *RecipientSum) AddPayment(fy a.FYIndicator, amount dec.Decimal) {
 	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
 	assert.Assert(amount.GreaterThan(dec.Zero), "payment must be greater than zero: "+amount.String())
+	var originalPayment = sum.PaymentTotal(fy)
 	sum.payments[fy] = sum.payments[fy].Add(amount)
+	assert.Assert(sum.PaymentTotal(fy).Equal(originalPayment), "Payment total is not correct: "+sum.payments[fy].String())
 }
