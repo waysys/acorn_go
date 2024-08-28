@@ -87,6 +87,12 @@ func main() {
 	check(err, "Error: ")
 	outputRecipientList(&output, &grantList)
 	//
+	// Produce recipient summary tab
+	//
+	output, err = output.AddSheet("RecipSum")
+	check(err, "Error: ")
+	outputRecipientSummary(&output, &grantList)
+	//
 	// Save results
 	//
 	output.Save()
@@ -241,6 +247,58 @@ func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.Grant
 	writeCellDecimal(output, "H", row, totalBalance)
 }
 
+// outputRecipientSummary creates the RecipSum tab with the recipient summary.
+func outputRecipientSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantList) {
+	//
+	// Create the recipient summary list
+	//
+	var row = 1
+	var list, err = g.AssembleRecipientSumList(grantList)
+	check(err, "Error: ")
+	// var totalPayments = []dec.Decimal{dec.Zero, dec.Zero}
+	//
+	// Create Headings
+	//
+	writeCell(output, "A", row, "Recipient Summary")
+	row += 2
+	writeCell(output, "A", row, "Recipient Name")
+	writeCell(output, "B", row, "FY2023 Count")
+	writeCell(output, "C", row, "FY2023 Payments")
+	writeCell(output, "D", row, "FY2024 Count")
+	writeCell(output, "E", row, "FY2024 Payments")
+	row++
+	//
+	// Loop through the recipient summaries
+	//
+	var names = list.Names()
+	for _, name := range names {
+		var recipientSum, err = list.Get(name)
+		check(err, "Error: ")
+		writeCell(output, "A", row, name)
+		outputSumData(output, a.FY2023, row, "B", "C", recipientSum)
+		outputSumData(output, a.FY2024, row, "D", "E", recipientSum)
+		row++
+	}
+
+}
+
+// outputSumData inserts the recipient summary data into spreadsheet.
+func outputSumData(
+	output *spreadsheet.SpreadsheetFile,
+	fiscalYear a.FYIndicator,
+	row int,
+	columnCount string,
+	columnAmount string,
+	recipientSum *g.RecipientSum) {
+	var count = 0
+	if recipientSum.IsRecipient(fiscalYear) {
+		count = 1
+	}
+	var amount = recipientSum.PaymentTotal(fiscalYear)
+	writeCellInt(output, columnCount, row, count)
+	writeCellDecimal(output, columnAmount, row, amount)
+}
+
 // ----------------------------------------------------------------------------
 // Print Functions
 // ----------------------------------------------------------------------------
@@ -310,4 +368,16 @@ func writeCellDate(
 	var cell = cellName(column, row)
 	var err = outputPtr.SetCellDate(cell, date)
 	check(err, "Error writing cell "+cell+":")
+}
+
+// writeCellInt outputs an integer value to the specified cell
+func writeCellInt(
+	outputPtr *spreadsheet.SpreadsheetFile,
+	column string,
+	row int,
+	value int) {
+
+	var cell = cellName(column, row)
+	var err = outputPtr.SetCellInt(cell, value)
+	check(err, "Error writing cell "+cell+": ")
 }

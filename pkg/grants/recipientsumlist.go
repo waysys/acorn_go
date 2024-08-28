@@ -17,6 +17,9 @@ package grants
 
 import (
 	"errors"
+	"maps"
+	"slices"
+	"sort"
 
 	dec "github.com/shopspring/decimal"
 	"github.com/waysys/assert/assert"
@@ -52,6 +55,9 @@ func AssembleRecipientSumList(grantList *GrantList) (RecipientSumList, error) {
 		var transaction = grantList.Get(index)
 		if transaction.transType == GrantPayment && transaction.Amount().GreaterThanOrEqual(dec.Zero) {
 			err = processTransactionForSum(&list, transaction)
+			if err != nil {
+				break
+			}
 		}
 	}
 	return list, err
@@ -73,11 +79,11 @@ func processTransactionForSum(list *RecipientSumList, transaction *Transaction) 
 	} else {
 		recipientSum, err = list.Get(name)
 	}
-	assert.Assert(list.Contains(name), "recipient summary is not present: "+name)
 	//
 	// Add payment amount to the total for the fiscal year
 	//
 	if err == nil {
+		assert.Assert(list.Contains(name), "recipient summary is not present: "+name)
 		var fiscalYear = transaction.FiscalYear()
 		var amount = transaction.Amount()
 		recipientSum.AddPayment(fiscalYear, amount)
@@ -113,4 +119,12 @@ func (sumList *RecipientSumList) Get(name string) (*RecipientSum, error) {
 		err = errors.New("Recipient summary for recipient does not exist: " + name)
 	}
 	return recipientSum, err
+}
+
+// Names returns an alphabetized list of recipient names
+func (sumList *RecipientSumList) Names() []string {
+	var names = slices.Collect(maps.Keys(sumList.sums))
+	sort.Strings(names)
+	assert.Assert(sort.StringsAreSorted(names), "names are not sorted")
+	return names
 }
