@@ -299,6 +299,7 @@ func outputRecipientSummary(output *spreadsheet.SpreadsheetFile, grantList *g.Gr
 	//
 	// Create totals
 	//
+	row++
 	writeCell(output, "A", row, "Totals")
 	writeCellInt(output, "B", row, totalCount[a.FY2023])
 	writeCellDecimal(output, "C", row, totalPayments[a.FY2023])
