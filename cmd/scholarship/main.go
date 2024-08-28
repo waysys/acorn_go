@@ -255,7 +255,8 @@ func outputRecipientSummary(output *spreadsheet.SpreadsheetFile, grantList *g.Gr
 	var row = 1
 	var list, err = g.AssembleRecipientSumList(grantList)
 	check(err, "Error: ")
-	// var totalPayments = []dec.Decimal{dec.Zero, dec.Zero}
+	var totalPayments = []dec.Decimal{dec.Zero, dec.Zero}
+	var totalCount = []int{0, 0}
 	//
 	// Create Headings
 	//
@@ -275,11 +276,34 @@ func outputRecipientSummary(output *spreadsheet.SpreadsheetFile, grantList *g.Gr
 		var recipientSum, err = list.Get(name)
 		check(err, "Error: ")
 		writeCell(output, "A", row, name)
+		//
+		// Compute FY2023 values
+		//
 		outputSumData(output, a.FY2023, row, "B", "C", recipientSum)
+		if recipientSum.IsRecipient(a.FY2023) {
+			totalCount[a.FY2023] += 1
+		}
+		var amount = recipientSum.PaymentTotal(a.FY2023)
+		totalPayments[a.FY2023] = totalPayments[a.FY2023].Add(amount)
+		//
+		// Compute FY2024 values
+		//
 		outputSumData(output, a.FY2024, row, "D", "E", recipientSum)
+		if recipientSum.IsRecipient(a.FY2024) {
+			totalCount[a.FY2024] += 1
+		}
+		amount = recipientSum.PaymentTotal(a.FY2024)
+		totalPayments[a.FY2024] = totalPayments[a.FY2024].Add(amount)
 		row++
 	}
-
+	//
+	// Create totals
+	//
+	writeCell(output, "A", row, "Totals")
+	writeCellInt(output, "B", row, totalCount[a.FY2023])
+	writeCellDecimal(output, "C", row, totalPayments[a.FY2023])
+	writeCellInt(output, "D", row, totalCount[a.FY2024])
+	writeCellDecimal(output, "E", row, totalPayments[a.FY2024])
 }
 
 // outputSumData inserts the recipient summary data into spreadsheet.
