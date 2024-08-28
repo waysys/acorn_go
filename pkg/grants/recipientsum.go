@@ -87,5 +87,7 @@ func (sum *RecipientSum) AddPayment(fy a.FYIndicator, amount dec.Decimal) {
 	assert.Assert(amount.GreaterThan(dec.Zero), "payment must be greater than zero: "+amount.String())
 	var originalPayment = sum.PaymentTotal(fy)
 	sum.payments[fy] = sum.payments[fy].Add(amount)
-	assert.Assert(sum.PaymentTotal(fy).Equal(originalPayment), "Payment total is not correct: "+sum.payments[fy].String())
+	var finalPayment = originalPayment.Add(amount)
+	assert.Assert(sum.PaymentTotal(fy).Equal(finalPayment),
+		"Payment total is not correct: "+sum.payments[fy].String())
 }
