@@ -10,7 +10,7 @@
 // ----------------------------------------------------------------------------
 
 // The donors package manages the names, addresses, and email addresses of
-// donors
+// donors.  It also manages the donations made by the donors.
 package donors
 
 // ----------------------------------------------------------------------------
@@ -18,8 +18,13 @@ package donors
 // ----------------------------------------------------------------------------
 
 import (
+	ac "acorn_go/pkg/accounting"
 	a "acorn_go/pkg/address"
+	"strconv"
 	s "strings"
+
+	dec "github.com/shopspring/decimal"
+	"github.com/waysys/assert/assert"
 )
 
 // ----------------------------------------------------------------------------
@@ -32,11 +37,15 @@ type Donor struct {
 	address         a.Address
 	email           string
 	numberHousehold int
+	donations       []dec.Decimal
 }
 
 // ----------------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------------
+
+var ZERO = dec.Zero
+var MajorDonorLimit = dec.NewFromInt(2000)
 
 // ----------------------------------------------------------------------------
 // Factory Functions
@@ -50,7 +59,15 @@ func New(ky string, nm string, adr a.Address, eml string, count int) Donor {
 		address:         adr,
 		email:           eml,
 		numberHousehold: count,
+		donations:       []dec.Decimal{ZERO, ZERO, ZERO},
 	}
+	return donor
+}
+
+// NewDonorWithDonation creates a new donor.
+func NewDonorWithDonation(name string) Donor {
+	var blankAddress = a.BlankAddress()
+	var donor = New(name, name, blankAddress, "", 0)
 	return donor
 }
 
@@ -117,4 +134,63 @@ func (donor Donor) HasEmail() bool {
 // donor household
 func (donor Donor) NumberInHousehold() int {
 	return donor.numberHousehold
+}
+
+// ----------------------------------------------------------------------------
+// Donation Properties
+// ----------------------------------------------------------------------------
+
+// Donation returns the donation for the specified fiscal year
+func (donor Donor) Donation(fy ac.FYIndicator) dec.Decimal {
+	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+strconv.Itoa(int(fy)))
+	var amount = donor.donations[fy]
+	return amount
+}
+
+// AddDonation adds the amount to the donations for the specified fical year.
+func (donor Donor) AddDonation(amount dec.Decimal, fy ac.FYIndicator) {
+	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+strconv.Itoa(int(fy)))
+	donor.donations[fy] = donor.donations[fy].Add(amount)
+}
+
+// TotalDonation returns the total donations for this donor.
+func (donor Donor) TotalDonation() dec.Decimal {
+	var amount = ZERO
+	for _, fy := range ac.FYIndicators {
+		var donation = donor.Donation(fy)
+		amount = amount.Add(donation)
+	}
+	return amount
+}
+
+// IsDonor returns true if the donor donated an amount greater than zero
+// for the specified fiscal year.
+func (donor Donor) IsDonor(fy ac.FYIndicator) bool {
+	var donation = donor.Donation(fy)
+	var result = donation.GreaterThan(ZERO)
+	return result
+}
+
+// IsMajorDonor returns true if the donor donated the major donor limit
+func (donor Donor) IsMajorDonor(fy ac.FYIndicator) bool {
+	var donation = donor.Donation(fy)
+	var result = donation.GreaterThanOrEqual(MajorDonorLimit)
+	return result
+}
+
+// IsNonRepeatDonor returns true if the donor donated in the prior year to the specified
+// fiscal year, but did not donate in the current fiscal year.
+func (donor Donor) IsNonRepeatDonor(fy ac.FYIndicator) bool {
+	var result = false
+	switch fy {
+	case ac.FY2023:
+		result = true
+	case ac.FY2024:
+		result = donor.IsDonor(ac.FY2023) && !donor.IsDonor(fy)
+	case ac.FY2025:
+		result = donor.IsDonor(ac.FY2024) && !donor.IsDonor(fy)
+	default:
+		assert.Assert(false, "Invalid fiscal year")
+	}
+	return result
 }

@@ -24,7 +24,6 @@ import (
 	"strconv"
 
 	a "acorn_go/pkg/accounting"
-	"acorn_go/pkg/donorinfo"
 	"acorn_go/pkg/spreadsheet"
 
 	dec "github.com/shopspring/decimal"

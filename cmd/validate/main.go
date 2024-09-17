@@ -11,7 +11,7 @@
 
 package main
 
-// This program validates emails
+// This program validates emails from the donors.xlsx spreadsheet.
 
 // ----------------------------------------------------------------------------
 // Imports
@@ -78,7 +78,7 @@ func generateAddresses() donors.DonorList {
 	//
 	// Generate address list
 	//
-	addressList, err = donors.NewDonorList(&sprdsht)
+	addressList, err = donors.NewDonorAddressList(&sprdsht)
 	check(err, "Error generating address list: ")
 	return addressList
 }

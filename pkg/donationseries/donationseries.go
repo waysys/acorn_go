@@ -9,9 +9,8 @@
 //
 // ----------------------------------------------------------------------------
 
-package donorinfo
-
-// This file composes a time series of total donations by year and month.
+// The donationseries creates a time series of donations by month.
+package donationseries
 
 // ----------------------------------------------------------------------------
 // Imports
@@ -33,10 +32,21 @@ import (
 type DonationSeries map[d.YearMonth]*DonationInfo
 
 // ----------------------------------------------------------------------------
+// Constants
+// ----------------------------------------------------------------------------
+
+const (
+	columnNameDonor       = "Payee"
+	columnTransactionType = "Type"
+	columnDate            = "Date"
+	columnPayment         = "Payment"
+)
+
+// ----------------------------------------------------------------------------
 // Factory Functions
 // ----------------------------------------------------------------------------
 
-// NewDonationSeries creates a donation series from the spreadsheet
+// NewDonationSeries creates a donation series from the donation spreadsheet
 func NewDonationSeries(sprdsht *spreadsheet.Spreadsheet) (DonationSeries, error) {
 	var donationSeries = make(DonationSeries)
 	var err error = nil
@@ -52,7 +62,7 @@ func NewDonationSeries(sprdsht *spreadsheet.Spreadsheet) (DonationSeries, error)
 			return donationSeries, err
 		}
 
-		if value == payment {
+		if value == columnPayment {
 			err = processSeries(&donationSeries, sprdsht, row)
 			if err != nil {
 				return donationSeries, err

@@ -58,7 +58,7 @@ func Test_NewDonorList(t *testing.T) {
 	//
 	// Build the donor list
 	//
-	donorList, err = NewDonorList(&sprdsht)
+	donorList, err = NewDonorAddressList(&sprdsht)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -69,7 +69,7 @@ func Test_NewDonorList(t *testing.T) {
 		var apple = "Apple, Julietta"
 
 		var count = (&donorList).Count()
-		if count != 169 {
+		if count != 177 {
 			t.Error("donor count is not 169: " + strconv.Itoa(count))
 		}
 		if !(&donorList).Contains(apple) {

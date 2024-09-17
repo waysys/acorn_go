@@ -26,7 +26,7 @@ import (
 )
 
 // This file contains functions that manage a map of donors with their names,
-// addresses, and emails.
+// addresses, and emails.  Deceased donors are excluded.
 
 // ----------------------------------------------------------------------------
 // Constants
@@ -56,7 +56,7 @@ type DonorList map[string]*Donor
 // ----------------------------------------------------------------------------
 
 // NewDonorList creates a donor list from the information in a spreadsheet.
-func NewDonorList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
+func NewDonorAddressList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
 	var donorList = make(DonorList)
 	var numRows = sprdsht.Size()
 	var err error
@@ -69,6 +69,9 @@ func NewDonorList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
 		if err != nil {
 			return donorList, err
 		}
+		//
+		// Deceased donors are not included
+		//
 		if value != "Yes" {
 			err = processDonor(&donorList, sprdsht, row)
 			if err != nil {
@@ -105,9 +108,6 @@ func processDonor(donorList *DonorList, sprdsht *spreadsheet.Spreadsheet, row in
 	if err == nil {
 		value, err = sprdsht.Cell(row, columnNumberHousehold)
 	}
-	//
-	// Create donor
-	//
 	if err == nil {
 		count, err = strconv.Atoi(value)
 		if err != nil {
@@ -115,6 +115,9 @@ func processDonor(donorList *DonorList, sprdsht *spreadsheet.Spreadsheet, row in
 			err = nil
 		}
 	}
+	//
+	// Create donor
+	//
 	if err == nil {
 		donor = New(key, name, address, email, count)
 		donorList.Add(&donor)

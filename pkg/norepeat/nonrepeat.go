@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donorinfo
+package norepeat
 
 // This file contains code to generate the retention analysis.
 
@@ -34,6 +34,12 @@ type NonRepeat struct {
 	date      d.Date
 	amount    dec.Decimal
 }
+
+// ----------------------------------------------------------------------------
+// Constants
+// ----------------------------------------------------------------------------
+
+var ZERO = dec.Zero
 
 // ----------------------------------------------------------------------------
 // Factory Method

@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donorinfo
+package majordonor
 
 // This file computes the output values for major donors
 
@@ -19,6 +19,7 @@ package donorinfo
 
 import (
 	a "acorn_go/pkg/accounting"
+	dn "acorn_go/pkg/donations"
 	"math"
 )
 
@@ -27,9 +28,9 @@ import (
 // ----------------------------------------------------------------------------
 
 type MajorDonor struct {
-	donorCount     [2]int
-	donations      [2]float64
-	donationsTotal [2]float64
+	donorCount     [3]int
+	donations      [3]float64
+	donationsTotal [3]float64
 }
 
 // ----------------------------------------------------------------------------
@@ -39,9 +40,9 @@ type MajorDonor struct {
 // NewMajorDonor creates a MajorDonor structure initialized to zero for each element.
 func NewMajorDonor() MajorDonor {
 	majorDonor := MajorDonor{
-		donorCount:     [2]int{0, 0},
-		donations:      [2]float64{0.0, 0.0},
-		donationsTotal: [2]float64{0.0, 0.0},
+		donorCount:     [3]int{0, 0, 0},
+		donations:      [3]float64{0.0, 0.0, 0.0},
+		donationsTotal: [3]float64{0.0, 0.0, 0.0},
 	}
 	return majorDonor
 }
@@ -51,25 +52,24 @@ func NewMajorDonor() MajorDonor {
 // ----------------------------------------------------------------------------
 
 // ComputeMajorDonors computes the values for the MajorDonor structure
-func ComputeMajorDonors(donorListPtr *DonorList) MajorDonor {
+func ComputeMajorDonors(donationListPtr *dn.DonationList) MajorDonor {
 	var majorDonor = NewMajorDonor()
-	var donationFY2023 float64
-	var donationFY2024 float64
-
-	for _, donor := range *donorListPtr {
-		donationFY2023 = donor.DonationFY23().InexactFloat64()
-		donationFY2024 = donor.DonationFY24().InexactFloat64()
-
-		if donor.IsMajorDonorFY23() {
-			majorDonor.donorCount[a.FY2023]++
-			majorDonor.donations[a.FY2023] += donationFY2023
+	var donations [3]float64
+	//
+	// Loop through donors with annual donation information.
+	//
+	for _, donor := range *donationListPtr {
+		//
+		// Loop through fiscal years
+		//
+		for _, fy := range a.FYIndicators {
+			donations[fy] = donor.Donation(fy).InexactFloat64()
+			if donor.IsMajorDonor(fy) {
+				majorDonor.donorCount[fy]++
+				majorDonor.donations[fy] += donations[fy]
+			}
+			majorDonor.donationsTotal[fy] += donations[fy]
 		}
-		if donor.IsMajorDonorFY24() {
-			majorDonor.donorCount[a.FY2024]++
-			majorDonor.donations[a.FY2024] += donationFY2024
-		}
-		majorDonor.donationsTotal[a.FY2023] += donationFY2023
-		majorDonor.donationsTotal[a.FY2024] += donationFY2024
 	}
 	return majorDonor
 }

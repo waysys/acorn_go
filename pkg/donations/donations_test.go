@@ -10,7 +10,7 @@
 // ----------------------------------------------------------------------------
 
 // Package donorinfo performs the manipulaton of data for a single donor.
-package donorinfo
+package donations
 
 // ----------------------------------------------------------------------------
 // Imports
@@ -21,6 +21,8 @@ import (
 	"testing"
 
 	a "acorn_go/pkg/accounting"
+
+	dn "acorn_go/pkg/donors"
 
 	d "github.com/waysys/waydate/pkg/date"
 
@@ -43,17 +45,17 @@ func TestMain(m *testing.M) {
 // Test_New checks that the New function sets the values of the Donor structure
 // properly.
 func Test_New(t *testing.T) {
-	var donor = New("donor")
+	var donor = dn.NewDonorWithDonation("donor")
 
 	var testFunction = func(t *testing.T) {
-		if donor.NameDonor() != "donor" {
-			t.Error("Donor name should be 'donor' not: " + donor.NameDonor())
+		if donor.Name() != "donor" {
+			t.Error("Donor name should be 'donor' not: " + donor.Name())
 		}
-		if !donor.DonationFY23().Equal(ZERO) {
-			t.Error("FY23 donation was not set to zero: " + donor.DonationFY23().String())
+		if !donor.Donation(a.FY2023).Equal(dec.Zero) {
+			t.Error("FY23 donation was not set to zero: " + donor.Donation(a.FY2023).String())
 		}
-		if !donor.DonationFY23().Equal(ZERO) {
-			t.Error("FY24 donation was not set to zero: " + donor.DonationFY24().String())
+		if !donor.Donation(a.FY2023).Equal(dec.Zero) {
+			t.Error("FY24 donation was not set to zero: " + donor.Donation(a.FY2023).String())
 		}
 	}
 
@@ -62,12 +64,12 @@ func Test_New(t *testing.T) {
 
 // Test_Total checks that the total of donations is calculated correctly.
 func Test_Total(t *testing.T) {
-	var donor = New("donor")
+	var donor = dn.NewDonorWithDonation("donor")
 	var ten = dec.NewFromInt(10)
 	var twenty = dec.NewFromInt(20)
 	var thirty = twenty.Add(ten)
-	(&donor).AddFY23(ten)
-	(&donor).AddFY24(twenty)
+	(&donor).AddDonation(ten, a.FY2023)
+	(&donor).AddDonation(twenty, a.FY2024)
 
 	var testFunction = func(t *testing.T) {
 		if !donor.TotalDonation().Equal(thirty) {
@@ -80,22 +82,22 @@ func Test_Total(t *testing.T) {
 
 // Test_Add checks that donations are added properly to the donor structure.
 func Test_Add(t *testing.T) {
-	var donor = New("donor")
+	var donor = dn.NewDonorWithDonation("donor")
 	var ten = dec.NewFromInt(10)
 	var twenty = dec.NewFromInt(20)
 	var thirty = twenty.Add(ten)
 	var forty = twenty.Add(twenty)
-	(&donor).AddFY23(ten)
-	(&donor).AddFY23(twenty)
-	(&donor).AddFY24(twenty)
-	(&donor).AddFY24(twenty)
+	(&donor).AddDonation(ten, a.FY2023)
+	(&donor).AddDonation(twenty, a.FY2023)
+	(&donor).AddDonation(twenty, a.FY2024)
+	(&donor).AddDonation(twenty, a.FY2024)
 
 	var testFunction = func(t *testing.T) {
-		if !donor.DonationFY23().Equal(thirty) {
-			t.Error("FY2023 donation does not equal 30: " + donor.DonationFY23().String())
+		if !donor.Donation(a.FY2023).Equal(thirty) {
+			t.Error("FY2023 donation does not equal 30: " + donor.Donation(a.FY2023).String())
 		}
-		if !donor.DonationFY24().Equal(forty) {
-			t.Error("FY2024 donation does not equal 40: " + donor.DonationFY24().String())
+		if !donor.Donation(a.FY2024).Equal(forty) {
+			t.Error("FY2024 donation does not equal 40: " + donor.Donation(a.FY2024).String())
 		}
 	}
 
@@ -105,50 +107,50 @@ func Test_Add(t *testing.T) {
 // Test_DonorStatus checks that donors are identified properly by the fiscal year
 // they donated.
 func Test_DonorStatus(t *testing.T) {
-	var donorFY23 = New("donorFY23")
-	(&donorFY23).AddFY23(dec.NewFromInt(100))
-	var donorFY24 = New("donorFY24")
-	(&donorFY24).AddFY24(dec.NewFromInt(100))
-	var donorBoth = New("donorBoth")
-	(&donorBoth).AddFY23(dec.NewFromInt(90))
-	(&donorBoth).AddFY24(dec.NewFromInt(80))
+	var donorFY23 = dn.NewDonorWithDonation("donorFY23")
+	(&donorFY23).AddDonation(dec.NewFromInt(100), a.FY2023)
+	var donorFY24 = dn.NewDonorWithDonation("donorFY24")
+	(&donorFY24).AddDonation(dec.NewFromInt(100), a.FY2024)
+	var donorBoth = dn.NewDonorWithDonation("donorBoth")
+	(&donorBoth).AddDonation(dec.NewFromInt(90), a.FY2023)
+	(&donorBoth).AddDonation(dec.NewFromInt(80), a.FY2024)
 
 	var testFunction = func(t *testing.T) {
 		//
 		// FY2023 donor
 		//
-		if !donorFY23.IsFY23DonorOnly() {
+		if !donorFY23.IsDonor(a.FY2023) {
 			t.Error("donorFY23 not recognized as a FY2023 donor.")
 		}
-		if donorFY23.IsFY24DonorOnly() {
+		if donorFY23.IsDonor(a.FY2024) {
 			t.Error("donorFY23 incorrectly identified as FY2024 donor.")
 		}
-		if donorFY23.IsFY23AndFY24Donor() {
-			t.Error("donorFY23 incorrectly identified as both FY2023 and FY2024 donor.")
+		if donorFY23.IsDonor(a.FY2025) {
+			t.Error("donorFY23 incorrectly identified as FY2025 donor.")
 		}
 		//
 		// FY2024 donor
 		//
-		if donorFY24.IsFY23DonorOnly() {
+		if donorFY24.IsDonor(a.FY2023) {
 			t.Error("donorFY24 incorrectly identified as a FY2023 donor.")
 		}
-		if !donorFY24.IsFY24DonorOnly() {
+		if !donorFY24.IsDonor(a.FY2024) {
 			t.Error("donorFY24 failed to be identified as FY2024 donor.")
 		}
-		if donorFY24.IsFY23AndFY24Donor() {
-			t.Error("donorFY24 incorrectly identified as both FY2023 and FY2024 donor.")
+		if donorFY24.IsDonor(a.FY2025) {
+			t.Error("donorFY24 incorrectly identified as FY2025 donor.")
 		}
 		//
 		// FY2023 and FY2024 donor
 		//
-		if donorBoth.IsFY23DonorOnly() {
-			t.Error("donorBoth incorrectly identified as a FY2023 donor.")
+		if !donorBoth.IsDonor(a.FY2023) {
+			t.Error("donorBoth incorrectly identified as not a FY2023 donor.")
 		}
-		if donorBoth.IsFY24DonorOnly() {
-			t.Error("donorBoth incorrectly identified as FY2024 donor.")
+		if !donorBoth.IsDonor(a.FY2024) {
+			t.Error("donorBoth incorrectly identified as not a FY2024 donor.")
 		}
-		if !donorBoth.IsFY23AndFY24Donor() {
-			t.Error("donorBoth failed to be identified as both FY2023 and FY2024 donor.")
+		if donorBoth.IsDonor(a.FY2025) {
+			t.Error("donorBoth incorrectly identified as FY2025 donor.")
 		}
 	}
 

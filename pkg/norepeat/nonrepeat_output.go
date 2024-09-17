@@ -9,15 +9,17 @@
 //
 // ----------------------------------------------------------------------------
 
-package donorinfo
+package norepeat
 
-// This file builds a slice of donation data.
+// This file builds a slice of donation data for nonrepeat donor.
 
 // ----------------------------------------------------------------------------
 // Imports
 // ----------------------------------------------------------------------------
 
 import (
+	ac "acorn_go/pkg/accounting"
+	dn "acorn_go/pkg/donations"
 	"acorn_go/pkg/spreadsheet"
 	"sort"
 	"strings"
@@ -35,11 +37,18 @@ import (
 
 type namelist map[string]bool
 
+const (
+	columnNameDonor       = "Payee"
+	columnTransactionType = "Type"
+	columnDate            = "Date"
+	columnPayment         = "Payment"
+)
+
 // ----------------------------------------------------------------------------
 // Factory Functions
 // ----------------------------------------------------------------------------
 
-func ComputeNonRepeatDonors(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet) []NonRepeat {
+func ComputeNonRepeatDonors(donationListPtr *dn.DonationList, sprdsht *spreadsheet.Spreadsheet) []NonRepeat {
 	var nonRepeats []NonRepeat
 	var numRows = sprdsht.Size()
 	var err error
@@ -49,7 +58,7 @@ func ComputeNonRepeatDonors(donorListPtr *DonorList, sprdsht *spreadsheet.Spread
 	//
 	// Generate a map of names of non-repeat donors
 	//
-	var donorNames = buildNonRepeatNames(donorListPtr)
+	var donorNames = buildNonRepeatNames(donationListPtr)
 	//
 	// Generate a slice of non-repeat donations by looping through
 	// the spreadsheet rows.
@@ -102,10 +111,10 @@ func ComputeNonRepeatDonors(donorListPtr *DonorList, sprdsht *spreadsheet.Spread
 
 // buildNonRepeatNames generates a map with the names of non-repeat
 // donors as the key
-func buildNonRepeatNames(donorListPtr *DonorList) namelist {
+func buildNonRepeatNames(donationListPtr *dn.DonationList) namelist {
 	var names = make(namelist)
-	for name, donorPtr := range *donorListPtr {
-		if donorPtr.IsFY23DonorOnly() {
+	for name, donorPtr := range *donationListPtr {
+		if donorPtr.IsNonRepeatDonor(ac.FY2025) {
 			names[name] = true
 		}
 	}

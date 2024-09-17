@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-package donorinfo
+package donations
 
 // ----------------------------------------------------------------------------
 // Imports
@@ -17,6 +17,7 @@ package donorinfo
 
 import (
 	a "acorn_go/pkg/accounting"
+	dn "acorn_go/pkg/donors"
 	"acorn_go/pkg/spreadsheet"
 	"errors"
 	"sort"
@@ -51,16 +52,16 @@ const (
 // Types
 // ----------------------------------------------------------------------------
 
-// DonorList maps the donors name to the donor information structure
-type DonorList map[string]*Donor
+// DonationList maps the donors name to the donor information structure
+type DonationList map[string]*dn.Donor
 
 // ----------------------------------------------------------------------------
 // Factory Methods
 // ----------------------------------------------------------------------------
 
-// NewDonorList creates a donor list from the information in a spreadsheet.
-func NewDonorList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
-	var donorList = make(DonorList)
+// NewDonorationList creates a donor list from the information in a spreadsheet.
+func NewDonationList(sprdsht *spreadsheet.Spreadsheet) (DonationList, error) {
+	var donationList = make(DonationList)
 	var numRows = sprdsht.Size()
 	var err error
 	var value string
@@ -70,21 +71,21 @@ func NewDonorList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
 	for row := 1; row < numRows; row++ {
 		value, err = sprdsht.Cell(row, columnTransactionType)
 		if err != nil {
-			return donorList, err
+			return donationList, err
 		}
 		value = strings.TrimSpace(value)
 		if value == payment {
-			err = processPayment(&donorList, sprdsht, row)
+			err = processPayment(&donationList, sprdsht, row)
 			if err != nil {
-				return donorList, err
+				return donationList, err
 			}
 		}
 	}
-	return donorList, err
+	return donationList, err
 }
 
 // processPayment creates a Donor structure
-func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, row int) error {
+func processPayment(donationListPtr *DonationList, sprdsht *spreadsheet.Spreadsheet, row int) error {
 	var value string
 	var err error = nil
 	var amountDonation dec.Decimal
@@ -119,14 +120,14 @@ func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, r
 	// Create an entry in the donor list if there is not already one
 	// for this donor.
 	//
-	if !donorListPtr.Contains(nameDonor) {
-		var donor = New(nameDonor)
-		(*donorListPtr)[nameDonor] = &donor
+	if !donationListPtr.Contains(nameDonor) {
+		var donor = dn.NewDonorWithDonation(nameDonor)
+		(*donationListPtr)[nameDonor] = &donor
 	}
 	//
 	// Update the donor information
 	//
-	err = (*donorListPtr).AddDonation(nameDonor, amountDonation, dateDonation)
+	err = donationListPtr.AddDonation(nameDonor, amountDonation, dateDonation)
 	return err
 }
 
@@ -137,9 +138,9 @@ func processPayment(donorListPtr *DonorList, sprdsht *spreadsheet.Spreadsheet, r
 // AddDonation adds a donation to the list.  If the donor is not already
 // in the list, a new donation structure is created.  If the donor is in the list,
 // the donation is added to the donors values, based on the donation date.
-func (donorListPtr *DonorList) AddDonation(nameDonor string, amountDonation dec.Decimal, dateDonation d.Date) error {
+func (donationListPtr *DonationList) AddDonation(nameDonor string, amountDonation dec.Decimal, dateDonation d.Date) error {
 	var err error = nil
-	var donorPtr *Donor
+	var donorPtr *dn.Donor
 	//
 	// Validate inputs
 	//
@@ -154,49 +155,42 @@ func (donorListPtr *DonorList) AddDonation(nameDonor string, amountDonation dec.
 	//
 	// Retrieve donor structure for the named donor
 	//
-	if !donorListPtr.Contains(nameDonor) {
+	if !donationListPtr.Contains(nameDonor) {
 		err = errors.New("donor name not found in donation list: " + nameDonor)
 		return err
 	}
-	donorPtr = donorListPtr.Get(nameDonor)
+	donorPtr = donationListPtr.Get(nameDonor)
 	//
 	// Update donation amounts based on donation date.
 	//
-	var fiscalYearIndicator = a.FiscalYearIndicator(dateDonation)
-	switch fiscalYearIndicator {
-	case a.FY2023:
-		donorPtr.AddFY23(amountDonation)
-	case a.FY2024:
-		donorPtr.AddFY24(amountDonation)
-	default:
-		err = errors.New("date of donation is not in either fiscal year: " + dateDonation.String())
-	}
+	var fy = a.FiscalYearIndicator(dateDonation)
+	donorPtr.AddDonation(amountDonation, fy)
 	return err
 }
 
 // hasDonor returns true if the donor's name is in the list.  Otherwise, it
 // returns false.
-func (donorListPtr *DonorList) Contains(nameDonor string) bool {
-	var _, found = (*donorListPtr)[nameDonor]
+func (donationListPtr *DonationList) Contains(nameDonor string) bool {
+	var _, found = (*donationListPtr)[nameDonor]
 	return found
 }
 
 // Get returns a pointer to the donor structure for the named donor.
-func (donorListPtr *DonorList) Get(nameDonor string) *Donor {
-	var donorPtr, found = (*donorListPtr)[nameDonor]
+func (donationListPtr *DonationList) Get(nameDonor string) *dn.Donor {
+	var donorPtr, found = (*donationListPtr)[nameDonor]
 	assert.Assert(found, "donor name not found in donation list: "+nameDonor)
 	return donorPtr
 }
 
 // DonorCount returns the number of donors in the list.
-func (donorListPtr *DonorList) DonorCount() int {
-	return len(*donorListPtr)
+func (donationListPtr *DonationList) DonorCount() int {
+	return len(*donationListPtr)
 }
 
 // DonorKeys returns a alphabetically sorted slice of donor list keys
-func (donorListPtr *DonorList) DonorKeys() []string {
-	keys := make([]string, 0, len(*donorListPtr))
-	for k := range *donorListPtr {
+func (donationListPtr *DonationList) DonorKeys() []string {
+	keys := make([]string, 0, len(*donationListPtr))
+	for k := range *donationListPtr {
 		keys = append(keys, k)
 	}
 
