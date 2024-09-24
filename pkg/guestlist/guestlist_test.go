@@ -114,7 +114,7 @@ func generateDonorList() (donors.DonorList, error) {
 	// Generate donor list
 	//
 	if err == nil {
-		donorList, err = donors.NewDonorList(&sprdsht)
+		donorList, err = donors.NewDonorAddressList(&sprdsht)
 	}
 
 	return donorList, err
