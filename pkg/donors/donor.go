@@ -157,8 +157,10 @@ func (donor Donor) AddDonation(amount dec.Decimal, fy ac.FYIndicator) {
 func (donor Donor) TotalDonation() dec.Decimal {
 	var amount = ZERO
 	for _, fy := range ac.FYIndicators {
-		var donation = donor.Donation(fy)
-		amount = amount.Add(donation)
+		if fy != ac.OutOfRange {
+			var donation = donor.Donation(fy)
+			amount = amount.Add(donation)
+		}
 	}
 	return amount
 }

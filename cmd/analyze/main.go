@@ -10,8 +10,8 @@
 // ----------------------------------------------------------------------------
 
 // This package processes donation information based on the payment transactons
-// from a spreadsheet obtain from QuickBooks.  The package will then output
-// the results in another spreadsheet.
+// from the donations.xlsx spreadsheet obtained from QuickBooks.  The package will then output
+// the results in another spreadsheet.  These are the tabs in the spreadsheet:
 package main
 
 // ----------------------------------------------------------------------------
@@ -21,12 +21,10 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 
-	a "acorn_go/pkg/accounting"
+	dn "acorn_go/pkg/donations"
 	"acorn_go/pkg/spreadsheet"
-
-	dec "github.com/shopspring/decimal"
+	s "acorn_go/pkg/support"
 )
 
 // ----------------------------------------------------------------------------
@@ -41,12 +39,6 @@ const inputFile = "/home/bozo/golang/acorn_go/data/donations.xlsx"
 const tab = "Worksheet"
 const outputFile = "/home/bozo/Downloads/analysis.xlsx"
 
-var donorTypes = []string{
-	"FY2023 Only Donors",
-	"FY2024 Only Donors",
-	"FY2023 and FY2024 Donors",
-}
-
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
@@ -54,7 +46,7 @@ var donorTypes = []string{
 // main supervises the processing of the donation data.
 func main() {
 	var sprdsht spreadsheet.Spreadsheet
-	var donorList donorinfo.DonorList
+	var donationList dn.DonationList
 	var err error
 	var output spreadsheet.SpreadsheetFile
 
@@ -63,60 +55,30 @@ func main() {
 	// Obtain spreadsheet data
 	//
 	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
-	check(err, "Error processing spreadsheet: ")
+	s.Check(err, "Error processing spreadsheet: ")
 	//
-	// Generate donor list
+	// Obtain donation list
 	//
-	donorList, err = donorinfo.NewDonorList(&sprdsht)
-	check(err, "Error generating donor list: ")
+	donationList, err = dn.NewDonationList(&sprdsht)
+	s.Check(err, "Error generating donor list: ")
 	//
-	// Calculate donor counts
+	// Obtain donation analysis
 	//
-	var donorCount = donorinfo.ComputeDonorCount(&donorList)
+	var donationAnalysis = dn.ComputeDonations(&donationList)
 	//
-	// Create output spreadsheet
+	// Output donation analysis
 	//
 	output, err = spreadsheet.New(outputFile, "Donor Count")
-	check(err, "Error opening output file: ")
-	//
-	// Output results from donor counts
-	//
-	printDonorCount(donorCount)
-	outputDonorCount(donorCount, &output)
-	//
-	// Calculate donations
-	//
-	var donations = donorinfo.ComputeDonations(&donorList)
-	//
-	// Output results from donations and repeat donors
-	//
-	printAmountAnalysis(donations)
-	printRepeatAnalysis(donations)
-	output, err = output.AddSheet("Donation Analysis")
-	check(err, "Error adding donor analysis sheet: ")
-	outputDonations(donations, &output)
-	//
-	// Calculate major donor statistics
-	//
-	var majorDonor = donorinfo.ComputeMajorDonors(&donorList)
-	printMajorDonorAnalysis(majorDonor)
-	output, err = output.AddSheet("Major Donor")
-	check(err, "Error adding major donor sheet")
-	outputMajorDonor(majorDonor, &output)
-	//
-	// Output list of major donors overall
-	//
-	output, err = output.AddSheet("Major List")
-	check(err, "Error adding major list")
-	outputMajorList(&donorList, &output)
-	//
-	// Finish up
-	//
-	err = output.Save()
-	check(err, "Error saving output file: ")
-	err = output.Close()
-	check(err, "Error closing output file: ")
-	os.Exit(0)
+	s.Check(err, "Error opening output file: ")
+	var finish = func() {
+		err = output.Save()
+		s.Check(err, "Error saving output file: ")
+		err = output.Close()
+		s.Check(err, "Error closing output file: ")
+		os.Exit(0)
+	}
+	defer finish()
+
 }
 
 // ----------------------------------------------------------------------------
@@ -126,285 +88,6 @@ func main() {
 // printHeader places the header information at the top of the page
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
-	fmt.Println("Acorn Scholarship Fund Donor Analysis")
+	fmt.Println("Acorn Scholarship Fund Donation Analysis")
 	fmt.Println("-----------------------------------------------------------")
-}
-
-// printDonorCount will print out the conor account informaiton
-func printDonorCount(donorCount donorinfo.DonorCount) {
-	fmt.Printf("FY2023 donor count:     %d\n", donorCount.TotalDonorsFY2023)
-	fmt.Printf("FY2024 donor count:     %d\n", donorCount.TotalDonorsFY2024)
-	fmt.Printf("Total number of donors: %d\n", donorCount.TotalDonors)
-	fmt.Println("")
-	fmt.Printf("Donors donating in FY2023 only: %d\n", donorCount.DonorsFY2023Only)
-	fmt.Printf("Donors donating in FY2024 only: %d\n", donorCount.DonorsFY2024Only)
-	fmt.Printf("Donors donating in both years:  %d\n", donorCount.DonorsFY2023AndFY2024)
-}
-
-// printAmountAnalysis prints the amounts of donations by fiscal year, by repeat donors
-// versus non-repeat donors, and the comparisons of average donations between the
-// current fiscal year and the prior fiscal year.
-func printAmountAnalysis(donations donorinfo.Donations) {
-	fmt.Printf("\n\n\nDonations\n\n")
-	fmt.Printf("FY2023 donations: $%v\n", donations.FYDonation(a.FY2023))
-	fmt.Printf("FY2024 donations: $%v\n", donations.FYDonation(a.FY2024))
-	fmt.Printf("Total donations:  $%v\n", donations.TotalDonation())
-}
-
-// printRepeatDonations prints the values comparing FY2023 and FY2024 donations
-// from repeat donors.
-func printRepeatAnalysis(donations donorinfo.Donations) {
-	fmt.Printf("\n\nRepeat Donation Analysis\n\n")
-	fmt.Printf("Number of repeat donors: %d\n", donations.DonorCount(donorinfo.DonorFY2023AndFY2024))
-	fmt.Printf("Average FY2023 donations for repeat donors: $%5.0f\n",
-		donations.AvgDonation(donorinfo.DonorFY2023AndFY2024, a.FY2023))
-	fmt.Printf("Average FY2024 donations for repeat donors: $%5.0f\n",
-		donations.AvgDonation(donorinfo.DonorFY2023AndFY2024, a.FY2024))
-	fmt.Printf("Percent change in average donations: %3.0f percent\n",
-		donations.DonationChange(donorinfo.DonorFY2023AndFY2024))
-}
-
-// printMajorDonorAnalysis prints the values for major donors
-func printMajorDonorAnalysis(majorDonor donorinfo.MajorDonor) {
-	fmt.Printf("\n\nMajor Donor Analysis\n\n")
-	fmt.Printf("Number of major donors in FY2023: %d\n", majorDonor.MajorDonorCount(a.FY2023))
-	fmt.Printf("Number of major donors in FY2024: %d\n", majorDonor.MajorDonorCount(a.FY2024))
-	fmt.Printf("Major donations in FY2023: $%6.0f\n", majorDonor.DonationsMajor(a.FY2023))
-	fmt.Printf("Major donations in FY2024: $%6.0f\n", majorDonor.DonationsMajor(a.FY2024))
-	fmt.Printf("Average major donations in FY2023: $%5.0f\n", majorDonor.AvgDonation(a.FY2023))
-	fmt.Printf("Average major donations in FY2024: $%5.0f\n", majorDonor.AvgDonation(a.FY2024))
-	fmt.Printf("Percent change in average major donations: %3.0f percent\n", majorDonor.PercentChange())
-	fmt.Printf("Percent of total donations by major donors FY2023: %3.0f percent\n",
-		majorDonor.PercentDonation(a.FY2023))
-	fmt.Printf("Percent of total donations by major donors FY2024: %3.0f percent\n",
-		majorDonor.PercentDonation(a.FY2024))
-}
-
-// ----------------------------------------------------------------------------
-// Support Functions
-// ----------------------------------------------------------------------------
-
-// check tests an error to see if it is null.  If not, it prints an
-// error message and exits the program.
-func check(err error, message string) {
-	if err != nil {
-		fmt.Println(message + err.Error())
-		os.Exit(1)
-	}
-}
-
-// cellName generates a string representing a cell in the spreadsheet.
-func cellName(column string, row int) string {
-	var cellName = column + strconv.Itoa(row)
-	return cellName
-}
-
-// writeCell outputs a string value to the specified cell
-func writeCell(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value string) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCell(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// writeCellInt outputs an integer value to the specified cell
-func writeCellInt(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value int) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCellInt(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// writeCellFloat outputs a float64 value to the specified cell
-func writeCellFloat(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value float64) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCellFloat(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// writeDecimal outputs a decimal value to the specified cell
-func writeCellDecimal(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value dec.Decimal) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCellDecimal(cell, value, spreadsheet.FormatMoney)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// ----------------------------------------------------------------------------
-// Spreadsheet Functions
-// ----------------------------------------------------------------------------
-
-// outputDonorCount inserts the donor count data into a sheet in the
-// spreadsheet file
-func outputDonorCount(
-	donorCount donorinfo.DonorCount,
-	outputPtr *spreadsheet.SpreadsheetFile) {
-	var row int = 1
-	//
-	// Place Title
-	//
-	writeCell(outputPtr, "A", row, "Donor Count Analysis")
-	//
-	// Place Headings
-	//
-	row += 2
-	writeCell(outputPtr, "A", row, "Donor Type")
-	writeCell(outputPtr, "B", row, "FY2023 Donors")
-	writeCell(outputPtr, "C", row, "FY2024 Donors")
-	//
-	// Place data rows
-	//
-	row++
-	writeCell(outputPtr, "A", row, donorTypes[0])
-	writeCellInt(outputPtr, "B", row, donorCount.DonorsFY2023Only)
-	writeCellInt(outputPtr, "C", row, 0)
-	row++
-	writeCell(outputPtr, "A", row, donorTypes[1])
-	writeCellInt(outputPtr, "B", row, 0)
-	writeCellInt(outputPtr, "C", row, donorCount.DonorsFY2024Only)
-	row++
-	writeCell(outputPtr, "A", row, donorTypes[2])
-	writeCellInt(outputPtr, "B", row, donorCount.DonorsFY2023AndFY2024)
-	writeCellInt(outputPtr, "C", row, donorCount.DonorsFY2023AndFY2024)
-	row++
-	writeCell(outputPtr, "A", row, "Total Donors")
-	writeCellInt(outputPtr, "B", row, donorCount.TotalDonorsFY2023)
-	writeCellInt(outputPtr, "C", row, donorCount.TotalDonorsFY2024)
-	row += 2
-	writeCell(outputPtr, "A", row, "Total donors")
-	writeCellInt(outputPtr, "B", row, donorCount.TotalDonors)
-	row++
-	writeCell(outputPtr, "A", row, "Retention Rate")
-	writeCellFloat(outputPtr, "B", row, donorCount.RetentionRate())
-	row++
-	writeCell(outputPtr, "A", row, "Acquisition Rate")
-	writeCellFloat(outputPtr, "B", row, donorCount.AcquisitionRate())
-}
-
-// outputDonations inserts the donation data into the spreadsheet.
-func outputDonations(
-	donations donorinfo.Donations,
-	outputPtr *spreadsheet.SpreadsheetFile) {
-
-	var row = 1
-	//
-	// Place Title
-	//
-	writeCell(outputPtr, "A", row, "Donation analysis")
-	//
-	// Place Headings
-	//
-	row += 2
-	writeCell(outputPtr, "A", row, "Donor Type")
-	writeCell(outputPtr, "B", row, "FY2023 Donations")
-	writeCell(outputPtr, "C", row, "FY2024 Donations")
-	writeCell(outputPtr, "E", row, "FY2023 Average Donations")
-	writeCell(outputPtr, "F", row, "FY2023 Average Donations")
-	//
-	// Ouput Data
-	//
-	var donorType donorinfo.DonorType
-	for donorType = donorinfo.DonorFY2023Only; donorType <= donorinfo.DonorFY2023AndFY2024; donorType++ {
-		row++
-		writeCell(outputPtr, "A", row, donorTypes[donorType])
-		writeCellFloat(outputPtr, "B", row, donations.Donation(donorType, a.FY2023))
-		writeCellFloat(outputPtr, "C", row, donations.Donation(donorType, a.FY2024))
-		writeCellFloat(outputPtr, "E", row, donations.AvgDonation(donorType, a.FY2023))
-		writeCellFloat(outputPtr, "F", row, donations.AvgDonation(donorType, a.FY2024))
-	}
-	row++
-	writeCell(outputPtr, "A", row, "Total Donations")
-	writeCellFloat(outputPtr, "B", row, donations.FYDonation(a.FY2023))
-	writeCellFloat(outputPtr, "C", row, donations.FYDonation(a.FY2024))
-	writeCellFloat(outputPtr, "E", row, donations.FYAvgDonation(a.FY2023))
-	writeCellFloat(outputPtr, "F", row, donations.FYAvgDonation(a.FY2024))
-	row += 2
-	writeCell(outputPtr, "A", row, "Total Donations for Both Years")
-	writeCellFloat(outputPtr, "B", row, donations.TotalDonation())
-}
-
-// outputMajorDonor inserts the major donor data into the spreadsheet.
-func outputMajorDonor(
-	md donorinfo.MajorDonor,
-	outputPtr *spreadsheet.SpreadsheetFile) {
-	var row = 1
-	//
-	// Place Title
-	//
-	writeCell(outputPtr, "A", row, "Major Donor Analysis")
-	//
-	// Place Headings
-	//
-	row += 2
-	writeCell(outputPtr, "A", row, "")
-	writeCell(outputPtr, "B", row, "FY2023")
-	writeCell(outputPtr, "C", row, "FY2024")
-	//
-	// Ouput Data
-	//
-	row += 2
-	writeCell(outputPtr, "A", row, "Major donors")
-	writeCellInt(outputPtr, "B", row, md.MajorDonorCount(a.FY2023))
-	writeCellInt(outputPtr, "C", row, int(md.MajorDonorCount(a.FY2024)))
-	row++
-	writeCell(outputPtr, "A", row, "Major donor donations")
-	writeCellFloat(outputPtr, "B", row, md.DonationsMajor(a.FY2023))
-	writeCellFloat(outputPtr, "C", row, md.DonationsMajor(a.FY2024))
-	row++
-	writeCell(outputPtr, "A", row, "Average major donor donation")
-	writeCellFloat(outputPtr, "B", row, md.AvgDonation(a.FY2023))
-	writeCellFloat(outputPtr, "C", row, md.AvgDonation(a.FY2024))
-	row++
-	writeCell(outputPtr, "A", row, "Percent of total donations by major donors")
-	writeCellFloat(outputPtr, "B", row, md.PercentDonation(a.FY2023))
-	writeCellFloat(outputPtr, "C", row, md.PercentDonation(a.FY2024))
-	row += 2
-	writeCell(outputPtr, "A", row, "Percent change in average donations")
-	writeCellFloat(outputPtr, "B", row, md.PercentChange())
-}
-
-// outputMajorList output the list of donors whose combined FY2023 and FY2024
-// donations equal or exceed $2000.
-func outputMajorList(donorList *donorinfo.DonorList, outputPtr *spreadsheet.SpreadsheetFile) {
-	var row = 1
-	//
-	// Place Headings
-	//
-	writeCell(outputPtr, "A", row, "Donor")
-	writeCell(outputPtr, "B", row, "Donation FY23")
-	writeCell(outputPtr, "C", row, "Donation FY24")
-	writeCell(outputPtr, "D", row, "Count")
-	row++
-	//
-	// Output data
-	//
-	var names = donorList.DonorKeys()
-	for _, name := range names {
-		var donor = donorList.Get(name)
-		if donor.IsMajorDonorOverall() {
-			writeCell(outputPtr, "A", row, name)
-			writeCellDecimal(outputPtr, "B", row, donor.DonationFY23())
-			writeCellDecimal(outputPtr, "C", row, donor.DonationFY24())
-			writeCellInt(outputPtr, "D", row, 1)
-			row++
-		}
-	}
-
 }
