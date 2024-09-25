@@ -18,6 +18,7 @@ package donations
 
 import (
 	"os"
+	"strconv"
 	"testing"
 
 	a "acorn_go/pkg/accounting"
@@ -27,7 +28,16 @@ import (
 	d "github.com/waysys/waydate/pkg/date"
 
 	dec "github.com/shopspring/decimal"
+
+	"acorn_go/pkg/spreadsheet"
 )
+
+// ----------------------------------------------------------------------------
+// Imports
+// ----------------------------------------------------------------------------
+
+const inputFile = "/home/bozo/golang/acorn_go/data/donations.xlsx"
+const tab = "Worksheet"
 
 // ----------------------------------------------------------------------------
 // Test Main
@@ -230,4 +240,51 @@ func Test_FiscalYearFromYearMonth(t *testing.T) {
 		t.Error("indicator is not correct value: " + indicator.String())
 	}
 
+}
+
+// Test_DonorCountAnalysis tests the create of the donor count analysis.
+func Test_DonorCountAnalysis(t *testing.T) {
+	var err error = nil
+	var sprdsht spreadsheet.Spreadsheet
+	var donationList DonationList
+	//
+	// Obtain spreadsheet data
+	//
+	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
+	if err != nil {
+		t.Error("Error reading spreadsheet: " + err.Error())
+	}
+	//
+	// Obtain donation list
+	//
+	donationList, err = NewDonationList(&sprdsht)
+	if err != nil {
+		t.Error("Error creating donation list")
+	}
+	//
+	// Create donor count analysis
+	//
+	var dca = ComputeDonorCount(&donationList)
+	//
+	// Test Function
+	//
+	var testFunction = func(t *testing.T) {
+		var dcfy2023 = dca[a.FY2023]
+		var count = dcfy2023.TotalDonorCount()
+		if count != 125 {
+			t.Error("Incorrect total FY2023 donor count: " + strconv.Itoa(count))
+		}
+		var dcfy2024 = dca[a.FY2024]
+		count = dcfy2024.TotalDonorCount()
+		if count != 156 {
+			t.Error("Incorrect total FY2024 donor count: " + strconv.Itoa(count))
+		}
+		var dcfy2025 = dca[a.FY2025]
+		count = dcfy2025.TotalDonorCount()
+		if count != 0 {
+			t.Error("Incorrect total FY2025 donor count: " + strconv.Itoa(count))
+		}
+	}
+
+	t.Run("Test_DonorCountAnalysis", testFunction)
 }

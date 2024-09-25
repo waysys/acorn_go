@@ -1,17 +1,17 @@
 // ----------------------------------------------------------------------------
 //
-// Donor analysis program
+// # Donor analysis program
+//
+// This program produces the analysis spreadsheet.  The tabs in the spreadsheet are:
+// -- Donor Count
+// -- Donation Analysis
 //
 // Author: William Shaffer
-// Version: 12-Apr-2024
+// Version: 24-Sep-2024
 //
-// Copyright (c) 2024 William Shaffer All Rights Reserved
+// # Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
-
-// This package processes donation information based on the payment transactons
-// from the donations.xlsx spreadsheet obtained from QuickBooks.  The package will then output
-// the results in another spreadsheet.  These are the tabs in the spreadsheet:
 package main
 
 // ----------------------------------------------------------------------------
@@ -23,8 +23,8 @@ import (
 	"os"
 
 	dn "acorn_go/pkg/donations"
-	"acorn_go/pkg/spreadsheet"
-	s "acorn_go/pkg/support"
+	s "acorn_go/pkg/spreadsheet"
+	sp "acorn_go/pkg/support"
 )
 
 // ----------------------------------------------------------------------------
@@ -45,40 +45,41 @@ const outputFile = "/home/bozo/Downloads/analysis.xlsx"
 
 // main supervises the processing of the donation data.
 func main() {
-	var sprdsht spreadsheet.Spreadsheet
+	var sprdsht s.Spreadsheet
 	var donationList dn.DonationList
 	var err error
-	var output spreadsheet.SpreadsheetFile
+	var output s.SpreadsheetFile
 
 	printHeader()
 	//
 	// Obtain spreadsheet data
 	//
-	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
-	s.Check(err, "Error processing spreadsheet: ")
+	sprdsht, err = s.ProcessData(inputFile, tab)
+	sp.Check(err, "Error processing spreadsheet: ")
 	//
 	// Obtain donation list
 	//
 	donationList, err = dn.NewDonationList(&sprdsht)
-	s.Check(err, "Error generating donor list: ")
+	sp.Check(err, "Error generating donor list: ")
 	//
 	// Obtain donation analysis
 	//
-	var donationAnalysis = dn.ComputeDonations(&donationList)
+	// var donationAnalysis = dn.ComputeDonations(&donationList)
 	//
-	// Output donation analysis
+	// Output donor count
 	//
-	output, err = spreadsheet.New(outputFile, "Donor Count")
-	s.Check(err, "Error opening output file: ")
+	output, err = s.New(outputFile, "Donor Count")
+	sp.Check(err, "Error opening output file: ")
 	var finish = func() {
 		err = output.Save()
-		s.Check(err, "Error saving output file: ")
+		sp.Check(err, "Error saving output file: ")
 		err = output.Close()
-		s.Check(err, "Error closing output file: ")
+		sp.Check(err, "Error closing output file: ")
 		os.Exit(0)
 	}
 	defer finish()
-
+	var donorCountAnalysis = dn.ComputeDonorCount(&donationList)
+	outputDonorCount(&donorCountAnalysis, &output)
 }
 
 // ----------------------------------------------------------------------------
@@ -90,4 +91,41 @@ func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 	fmt.Println("Acorn Scholarship Fund Donation Analysis")
 	fmt.Println("-----------------------------------------------------------")
+}
+
+// ----------------------------------------------------------------------------
+// Output Functions
+// ----------------------------------------------------------------------------
+
+// outputDonorCount produces the donor count tab.
+func outputDonorCount(
+	donorCountAnalysis *dn.DonorCountAnalysis,
+	output *s.SpreadsheetFile) {
+	var row int = 1
+	//
+	// Place Title
+	//
+	s.WriteCell(output, "A", row, "Donor Count Analysis")
+	//
+	// Place Headings
+	//
+	row += 2
+	s.WriteCell(output, "A", row, "Prior Years")
+	s.WriteCell(output, "B", row, "Prior Prior Year")
+	s.WriteCell(output, "C", row, "Prior Year")
+	s.WriteCell(output, "D", row, "Current Year")
+	s.WriteCell(output, "E", row, "Total Count for Year")
+	row++
+	s.WriteCell(output, "A", row, "Year of Donation")
+	row++
+	for _, dc := range *donorCountAnalysis {
+		s.WriteCell(output, "A", row, dc.FiscalYear())
+		s.WriteCellInt(output, "B", row, dc.Count(dn.PriorPriorYear))
+		s.WriteCellInt(output, "C", row, dc.Count(dn.PriorYear))
+		s.WriteCellInt(output, "D", row, dc.Count(dn.CurrentYear))
+		s.WriteCellInt(output, "E", row, dc.TotalDonorCount())
+		row++
+	}
+	row += 2
+	s.WriteCell(output, "A", row, "Total Donors")
 }

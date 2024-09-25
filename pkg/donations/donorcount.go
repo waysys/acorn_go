@@ -49,23 +49,28 @@ func NewDonorCount(fy a.FYIndicator) DonorCount {
 // ----------------------------------------------------------------------------
 
 // Return the number of donors for the specified year type
-func (dc DonorCount) Count(yearType YearType) int {
+func (dc *DonorCount) Count(yearType YearType) int {
 	assert.Assert(IsYearType(yearType), "Invalid year type: "+strconv.Itoa(int(yearType)))
 	return dc.donorCount[yearType]
 }
 
 // Add adds the specified number of donors to the count.
-func (dc DonorCount) Add(yearType YearType, count int) {
+func (dc *DonorCount) Add(yearType YearType, count int) {
 	assert.Assert(IsYearType(yearType), "Invalid year type: "+strconv.Itoa(int(yearType)))
-	assert.Assert(count <= 0, "Add: count must be zero or greater, not: "+strconv.Itoa(int(yearType)))
+	assert.Assert(count >= 0, "Add: count must be zero or greater, not: "+strconv.Itoa(int(yearType)))
 	dc.donorCount[yearType] += count
 }
 
-// Acquisition rate returns the percent of the total donors in the prior year
-// that are new donors in the current year
-func (dc DonorCount) NewDonorCount() int {
-	var totalDonorCount = dc.Count(CurrentYear)
-	var repeatDonorCount = dc.Count(PriorYear) + dc.Count(PriorPriorYear)
-	var newDonorsCount = totalDonorCount - repeatDonorCount
-	return newDonorsCount
+// TotalDonorCount returns the total number of donors for the fiscal year.
+func (dc *DonorCount) TotalDonorCount() int {
+	var total = 0
+	for _, count := range dc.donorCount {
+		total += count
+	}
+	return total
+}
+
+// FiscalYear returns the fiscal year as a string
+func (dc *DonorCount) FiscalYear() string {
+	return dc.fy.String()
 }
