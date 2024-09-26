@@ -19,12 +19,11 @@ package main
 // ----------------------------------------------------------------------------
 
 import (
-	"fmt"
-	"os"
-
 	dn "acorn_go/pkg/donations"
 	s "acorn_go/pkg/spreadsheet"
 	sp "acorn_go/pkg/support"
+	"fmt"
+	"os"
 )
 
 // ----------------------------------------------------------------------------
@@ -62,11 +61,7 @@ func main() {
 	donationList, err = dn.NewDonationList(&sprdsht)
 	sp.Check(err, "Error generating donor list: ")
 	//
-	// Obtain donation analysis
-	//
-	// var donationAnalysis = dn.ComputeDonations(&donationList)
-	//
-	// Output donor count
+	// Open the output spreadsheet
 	//
 	output, err = s.New(outputFile, "Donor Count")
 	sp.Check(err, "Error opening output file: ")
@@ -78,8 +73,17 @@ func main() {
 		os.Exit(0)
 	}
 	defer finish()
+	//
+	// Output the donor count
+	//
 	var donorCountAnalysis = dn.ComputeDonorCount(&donationList)
 	outputDonorCount(&donorCountAnalysis, &output)
+	//
+	// Output the donations
+	//
+	output.AddSheet("Donation Analysis")
+	var donationAnalysis = dn.ComputeDonations(&donationList)
+	outputDonations(&donationAnalysis, &output)
 }
 
 // ----------------------------------------------------------------------------
@@ -115,6 +119,8 @@ func outputDonorCount(
 	s.WriteCell(output, "C", row, "Prior Year")
 	s.WriteCell(output, "D", row, "Current Year")
 	s.WriteCell(output, "E", row, "Total Count for Year")
+	s.WriteCell(output, "F", row, "Retention Percent")
+	s.WriteCell(output, "G", row, "Acquisition Percent")
 	row++
 	s.WriteCell(output, "A", row, "Year of Donation")
 	row++
@@ -124,8 +130,36 @@ func outputDonorCount(
 		s.WriteCellInt(output, "C", row, dc.Count(dn.PriorYear))
 		s.WriteCellInt(output, "D", row, dc.Count(dn.CurrentYear))
 		s.WriteCellInt(output, "E", row, dc.TotalDonorCount())
+		s.WriteCellFloat(output, "F", row, donorCountAnalysis.Retention(dc.FY()))
+		s.WriteCellFloat(output, "G", row, donorCountAnalysis.Acquisition(dc.FY()))
 		row++
 	}
 	row += 2
 	s.WriteCell(output, "A", row, "Total Donors")
+	s.WriteCellInt(output, "B", row, donorCountAnalysis.TotalDonors())
+}
+
+// outputDonations produces the donation analysis tab
+func outputDonations(
+	donationAnalysis *dn.DonationAnalysis,
+	output *s.SpreadsheetFile) {
+	var row int = 1
+	//
+	// Place Title
+	//
+	s.WriteCell(output, "A", row, "Donor Count Analysis")
+	//
+	// Place Headings
+	//
+	row += 2
+	s.WriteCell(output, "A", row, "Prior Years")
+	s.WriteCell(output, "B", row, "Prior Prior Year")
+	s.WriteCell(output, "C", row, "Prior Year")
+	s.WriteCell(output, "D", row, "Current Year")
+	s.WriteCell(output, "E", row, "Total Count for Year")
+	s.WriteCell(output, "F", row, "Retention Percent")
+	s.WriteCell(output, "G", row, "Acquisition Percent")
+	row++
+	s.WriteCell(output, "A", row, "Year of Donation")
+	row++
 }

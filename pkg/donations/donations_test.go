@@ -242,7 +242,7 @@ func Test_FiscalYearFromYearMonth(t *testing.T) {
 
 }
 
-// Test_DonorCountAnalysis tests the create of the donor count analysis.
+// Test_DonorCountAnalysis tests the creation of the donor count analysis.
 func Test_DonorCountAnalysis(t *testing.T) {
 	var err error = nil
 	var sprdsht spreadsheet.Spreadsheet
@@ -287,4 +287,61 @@ func Test_DonorCountAnalysis(t *testing.T) {
 	}
 
 	t.Run("Test_DonorCountAnalysis", testFunction)
+}
+
+// Test_DonationAnalysis tests the creation of the donation analysis.
+func Test_DonationAnalysis(t *testing.T) {
+	var err error = nil
+	var sprdsht spreadsheet.Spreadsheet
+	var donationList DonationList
+	//
+	// Obtain spreadsheet data
+	//
+	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
+	if err != nil {
+		t.Error("Error reading spreadsheet: " + err.Error())
+	}
+	//
+	// Obtain donation list
+	//
+	donationList, err = NewDonationList(&sprdsht)
+	if err != nil {
+		t.Error("Error creating donation list")
+	}
+	//
+	// Create donor count analysis
+	//
+	var dna = ComputeDonations(&donationList)
+	//
+	// Test Function
+	//
+	var testFunction = func(t *testing.T) {
+		var dcfy2023 = dna[a.FY2023]
+		var amount = dcfy2023.TotalDonations()
+		if amount != 147217.00 {
+			t.Error("Incorrect total FY2023 donations: " + conv(amount))
+		}
+		var dcfy2024 = dna[a.FY2024]
+		amount = dcfy2024.TotalDonations()
+		if amount != 194708.00 {
+			t.Error("Incorrect total FY2024 donations: " + conv(amount))
+		}
+		var dcfy2025 = dna[a.FY2025]
+		amount = dcfy2025.TotalDonations()
+		if amount != 0.00 {
+			t.Error("Incorrect total FY2025 donations: " + conv(amount))
+		}
+	}
+
+	t.Run("Test_DonorCountAnalysis", testFunction)
+}
+
+// ----------------------------------------------------------------------------
+// Support Functions
+// ----------------------------------------------------------------------------
+
+// conv converts a float64 to a string.
+func conv(value float64) string {
+	str := strconv.FormatFloat(value, 'f', -1, 64)
+	return str
 }

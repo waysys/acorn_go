@@ -22,6 +22,10 @@ package donations
 import (
 	a "acorn_go/pkg/accounting"
 	dn "acorn_go/pkg/donors"
+	"math"
+	"strconv"
+
+	"github.com/waysys/assert/assert"
 )
 
 // ----------------------------------------------------------------------------
@@ -96,7 +100,14 @@ func applyDonorCount(donorCount *DonorCount, donor *dn.Donor) {
 // Methods
 // ----------------------------------------------------------------------------
 
-// TotalDonations
+// TotalDonations returns the count of all donors.
+func (dca *DonorCountAnalysis) TotalDonors() int {
+	var total = 0
+	for _, dc := range *dca {
+		total += dc.TotalDonorCount()
+	}
+	return total
+}
 
 // Retention returns the percent of donors from the prior year that donate
 // in the current year.
@@ -104,7 +115,38 @@ func (dca *DonorCountAnalysis) Retention(fy a.FYIndicator) float64 {
 	var retention float64 = 0.00
 	switch fy {
 	case a.FY2023:
-
+		retention = 0.00
+	case a.FY2024:
+		var repeatDonors = float64((*dca)[a.FY2024].Count(PriorYear))
+		var totalDonors = float64((*dca)[a.FY2023].TotalDonorCount())
+		retention = math.Round(repeatDonors * 100 / totalDonors)
+	case a.FY2025:
+		var repeatDonors = float64((*dca)[a.FY2025].Count(PriorYear))
+		var totalDonors = float64((*dca)[a.FY2024].TotalDonorCount())
+		retention = math.Round(repeatDonors * 100 / totalDonors)
+	default:
+		assert.Assert(false, "Invalid fiscal year indicator: "+strconv.Itoa(int(fy)))
 	}
 	return retention
+}
+
+// Acquisition returns the percent of the new donors in the current year
+// compared to the total number of donors from the prior year.
+func (dca *DonorCountAnalysis) Acquisition(fy a.FYIndicator) float64 {
+	var acquisition float64 = 0.0
+	switch fy {
+	case a.FY2023:
+		acquisition = 0.0
+	case a.FY2024:
+		var newDonors = float64((*dca)[a.FY2024].Count(CurrentYear))
+		var totalDonors = float64((*dca)[a.FY2023].TotalDonorCount())
+		acquisition = math.Round(newDonors * 100 / totalDonors)
+	case a.FY2025:
+		var newDonors = float64((*dca)[a.FY2025].Count(CurrentYear))
+		var totalDonors = float64((*dca)[a.FY2024].TotalDonorCount())
+		acquisition = math.Round(newDonors * 100 / totalDonors)
+	default:
+		assert.Assert(false, "Invalid fiscal year indicator: "+strconv.Itoa(int(fy)))
+	}
+	return acquisition
 }

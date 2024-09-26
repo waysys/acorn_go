@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //
-// Donations
+// Donor Count
 //
 // Author: William Shaffer
 // Version: 15-Sep-2024
@@ -73,4 +73,9 @@ func (dc *DonorCount) TotalDonorCount() int {
 // FiscalYear returns the fiscal year as a string
 func (dc *DonorCount) FiscalYear() string {
 	return dc.fy.String()
+}
+
+// FY returns the fiscal year
+func (dc *DonorCount) FY() a.FYIndicator {
+	return dc.fy
 }

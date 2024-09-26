@@ -76,22 +76,26 @@ func ComputeDonations(donationListPtr *DonationList) DonationAnalysis {
 // ----------------------------------------------------------------------------
 
 // applyAmount applies the amount to the proper elements
-func (da *DonationAnalysis) applyAmount(fy a.FYIndicator, donor *dn.Donor, amount dec.Decimal) {
+func (da *DonationAnalysis) applyAmount(
+	fy a.FYIndicator,
+	donor *dn.Donor,
+	amount dec.Decimal) {
 	switch fy {
 	case a.FY2023:
 		da.add(fy, CurrentYear, amount)
 	case a.FY2024:
-		da.add(fy, CurrentYear, amount)
 		if donor.IsDonor(a.FY2023) {
 			da.add(fy, PriorYear, amount)
+		} else {
+			da.add(fy, CurrentYear, amount)
 		}
 	case a.FY2025:
-		da.add(fy, CurrentYear, amount)
-		if donor.IsDonor(a.FY2023) {
-			da.add(fy, PriorYear, amount)
-		}
 		if donor.IsDonor(a.FY2024) {
+			da.add(fy, PriorYear, amount)
+		} else if donor.IsDonor(a.FY2023) {
 			da.add(fy, PriorPriorYear, amount)
+		} else {
+			da.add(fy, CurrentYear, amount)
 		}
 	default:
 		assert.Assert(false, "Invalid fiscal year")
@@ -103,4 +107,5 @@ func (da *DonationAnalysis) add(fy a.FYIndicator, yearType YearType, amount dec.
 	var donations = (*da)[fy]
 	assert.Assert(donations.FY() == fy, "Incorrect fiscal year indicator")
 	donations.Add(yearType, amount)
+	(*da)[fy] = donations
 }

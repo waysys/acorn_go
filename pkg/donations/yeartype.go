@@ -29,3 +29,12 @@ const (
 	PriorYear      = YearType(1)
 	PriorPriorYear = YearType(2)
 )
+
+// ----------------------------------------------------------------------------
+// Validation Functions
+// ----------------------------------------------------------------------------
+
+func IsYearType(yearType YearType) bool {
+	var result = CurrentYear <= yearType && yearType <= PriorPriorYear
+	return result
+}

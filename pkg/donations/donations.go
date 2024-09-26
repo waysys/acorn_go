@@ -47,28 +47,19 @@ func NewDonations(fy a.FYIndicator) Donations {
 }
 
 // ----------------------------------------------------------------------------
-// Validation Functions
-// ----------------------------------------------------------------------------
-
-func IsYearType(yearType YearType) bool {
-	var result = CurrentYear <= yearType && yearType <= PriorPriorYear
-	return result
-}
-
-// ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------
 
 // Donation returns the donation for a particular type of donor and a
 // particular fiscal year
-func (donations Donations) Donation(yearType YearType) float64 {
+func (donations *Donations) Donation(yearType YearType) float64 {
 	var value = donations.donations[yearType]
 	var donation = value.InexactFloat64()
 	return math.Round(donation)
 }
 
 // FYDonation returns the total donation for the fiscal year
-func (donations Donations) FYDonation() float64 {
+func (donations *Donations) TotalDonations() float64 {
 	var donation float64 = 0
 
 	for yearType := CurrentYear; yearType <= PriorPriorYear; yearType++ {
@@ -78,16 +69,18 @@ func (donations Donations) FYDonation() float64 {
 }
 
 // Add adds the donation for the specified year type
-func (donations Donations) Add(yearType YearType, amount dec.Decimal) {
-	donations.donations[yearType].Add(amount)
+func (donations *Donations) Add(yearType YearType, amount dec.Decimal) {
+	var value = donations.donations[yearType]
+	value = value.Add(amount)
+	donations.donations[yearType] = value
 }
 
 // Return the string for the associated fiscal year indicator.
-func (donations Donations) FiscalYear() string {
+func (donations *Donations) FiscalYear() string {
 	return donations.fy.String()
 }
 
 // Return the associated fiscal year indicator
-func (donations Donations) FY() a.FYIndicator {
+func (donations *Donations) FY() a.FYIndicator {
 	return donations.fy
 }
