@@ -100,6 +100,13 @@ func applyDonorCount(donorCount *DonorCount, donor *dn.Donor) {
 // Methods
 // ----------------------------------------------------------------------------
 
+// DonorCount returns the number of donors for the specified fiscal year
+// and year type.
+func (dca *DonorCountAnalysis) DonorCount(fy a.FYIndicator, yearType YearType) int {
+	var dc = (*dca)[fy]
+	return dc.Count(yearType)
+}
+
 // TotalDonations returns the count of all donors.
 func (dca *DonorCountAnalysis) TotalDonors() int {
 	var total = 0

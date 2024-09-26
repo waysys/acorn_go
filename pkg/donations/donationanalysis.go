@@ -104,8 +104,27 @@ func (da *DonationAnalysis) applyAmount(
 
 // Add adds a donation amount to the donations for the fiscal year
 func (da *DonationAnalysis) add(fy a.FYIndicator, yearType YearType, amount dec.Decimal) {
+	assert.Assert(a.IsFYIndicator(fy), "Invalid fiscal year indicator: "+fy.String())
+	assert.Assert(IsYearType(yearType), "Invalid year type: "+yearType.String())
 	var donations = (*da)[fy]
-	assert.Assert(donations.FY() == fy, "Incorrect fiscal year indicator")
+	assert.Assert(donations.FY() == fy, "Incorrect fiscal year indicator: "+fy.String())
 	donations.Add(yearType, amount)
 	(*da)[fy] = donations
+}
+
+// Donation returns the donations for a specified fiscal year and year type.
+func (da *DonationAnalysis) Donation(fy a.FYIndicator, yearType YearType) float64 {
+	assert.Assert(a.IsFYIndicator(fy), "Invalid fiscal year indicator: "+fy.String())
+	assert.Assert(IsYearType(yearType), "Invalid year type: "+yearType.String())
+	var don = (*da)[fy]
+	return don.Donation(yearType)
+}
+
+// TotalDonations returns the total of donations for all specified years.
+func (da *DonationAnalysis) TotalDonations() float64 {
+	var total = 0.00
+	for _, don := range *da {
+		total += don.TotalDonations()
+	}
+	return total
 }

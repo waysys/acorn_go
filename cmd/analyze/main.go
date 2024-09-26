@@ -81,7 +81,8 @@ func main() {
 	//
 	// Output the donations
 	//
-	output.AddSheet("Donation Analysis")
+	output, err = output.AddSheet("Donation Analysis")
+	sp.Check(err, "Error adding sheet: ")
 	var donationAnalysis = dn.ComputeDonations(&donationList)
 	outputDonations(&donationAnalysis, &output)
 }
@@ -147,7 +148,7 @@ func outputDonations(
 	//
 	// Place Title
 	//
-	s.WriteCell(output, "A", row, "Donor Count Analysis")
+	s.WriteCell(output, "A", row, "Donation Analysis")
 	//
 	// Place Headings
 	//
@@ -156,10 +157,19 @@ func outputDonations(
 	s.WriteCell(output, "B", row, "Prior Prior Year")
 	s.WriteCell(output, "C", row, "Prior Year")
 	s.WriteCell(output, "D", row, "Current Year")
-	s.WriteCell(output, "E", row, "Total Count for Year")
-	s.WriteCell(output, "F", row, "Retention Percent")
-	s.WriteCell(output, "G", row, "Acquisition Percent")
+	s.WriteCell(output, "E", row, "Total Donation for Year")
 	row++
 	s.WriteCell(output, "A", row, "Year of Donation")
 	row++
+	for _, don := range *donationAnalysis {
+		s.WriteCell(output, "A", row, don.FiscalYear())
+		s.WriteCellFloat(output, "B", row, don.Donation(dn.PriorPriorYear))
+		s.WriteCellFloat(output, "C", row, don.Donation(dn.PriorYear))
+		s.WriteCellFloat(output, "D", row, don.Donation(dn.CurrentYear))
+		s.WriteCellFloat(output, "E", row, don.TotalDonations())
+		row++
+	}
+	row += 2
+	s.WriteCell(output, "A", row, "Total Donations")
+	s.WriteCellFloat(output, "B", row, donationAnalysis.TotalDonations())
 }

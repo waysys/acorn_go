@@ -1,9 +1,9 @@
 // ----------------------------------------------------------------------------
 //
-// Year Types
+// Average Donations
 //
 // Author: William Shaffer
-// Version: 24-Sep-2024
+// Version: 26-Sep-2024
 //
 // Copyright (c) 2024 William Shaffer All Rights Reserved
 //
@@ -11,47 +11,51 @@
 
 package donations
 
-// Year Types identify the current donation year, the prior donation year, and the
-// donation year 2 years before the current year.
-
 // ----------------------------------------------------------------------------
 // Imports
 // ----------------------------------------------------------------------------
 
 import (
-	"strconv"
+	a "acorn_go/pkg/accounting"
+
+	"math"
+
+	"github.com/waysys/assert/assert"
 )
 
 // ----------------------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------------------
 
-type YearType int
+type DonationsAndCounts struct {
+	da *DonationAnalysis
+	ca *DonorCountAnalysis
+}
 
 // ----------------------------------------------------------------------------
-// Constants
+// Factory Functions
 // ----------------------------------------------------------------------------
 
-const (
-	CurrentYear    = YearType(0)
-	PriorYear      = YearType(1)
-	PriorPriorYear = YearType(2)
-)
-
-// ----------------------------------------------------------------------------
-// Validation Functions
-// ----------------------------------------------------------------------------
-
-func IsYearType(yearType YearType) bool {
-	var result = CurrentYear <= yearType && yearType <= PriorPriorYear
-	return result
+// NewDonationsAndCounts
+func NewDonationsAndCounts(da *DonationAnalysis, ca *DonorCountAnalysis) DonationsAndCounts {
+	var dac = DonationsAndCounts{
+		da: da,
+		ca: ca,
+	}
+	return dac
 }
 
 // ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------
 
-// Return the year type as a string.
-func (yearType YearType) String() string {
-	return strconv.Itoa(int(yearType))
+// AvgDonation returns the average donation for a specified fiscal year and
+// year type.
+func (dac *DonationsAndCounts) AvgDonation(fy a.FYIndicator, yearType YearType) float64 {
+	assert.Assert(IsYearType(yearType), "Invalid year type: "+yearType.String())
+	assert.Assert(a.IsFYIndicator(fy), "Invalid fiscal year indicator: "+fy.String())
+	var donation = dac.da.Donation(fy, yearType)
+	var count = float64(dac.ca.DonorCount(fy, yearType))
+	var average = math.Round(donation / count)
+	return average
 }

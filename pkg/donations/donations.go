@@ -20,8 +20,10 @@ package donations
 import (
 	a "acorn_go/pkg/accounting"
 	"math"
+	"strconv"
 
 	dec "github.com/shopspring/decimal"
+	"github.com/waysys/assert/assert"
 )
 
 // ----------------------------------------------------------------------------
@@ -53,6 +55,7 @@ func NewDonations(fy a.FYIndicator) Donations {
 // Donation returns the donation for a particular type of donor and a
 // particular fiscal year
 func (donations *Donations) Donation(yearType YearType) float64 {
+	assert.Assert(IsYearType(yearType), "Invalid year type: "+strconv.Itoa(int(yearType)))
 	var value = donations.donations[yearType]
 	var donation = value.InexactFloat64()
 	return math.Round(donation)
@@ -70,6 +73,7 @@ func (donations *Donations) TotalDonations() float64 {
 
 // Add adds the donation for the specified year type
 func (donations *Donations) Add(yearType YearType, amount dec.Decimal) {
+	assert.Assert(IsYearType(yearType), "Invalid year type: "+strconv.Itoa(int(yearType)))
 	var value = donations.donations[yearType]
 	value = value.Add(amount)
 	donations.donations[yearType] = value
