@@ -284,6 +284,10 @@ func Test_DonorCountAnalysis(t *testing.T) {
 		if count != 0 {
 			t.Error("Incorrect total FY2025 donor count: " + strconv.Itoa(count))
 		}
+		var totalDonors = dca.TotalDonors()
+		if totalDonors != 178 {
+			t.Error("Incorrect total donor count: " + strconv.Itoa(count))
+		}
 	}
 
 	t.Run("Test_DonorCountAnalysis", testFunction)

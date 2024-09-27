@@ -107,11 +107,18 @@ func (dca *DonorCountAnalysis) DonorCount(fy a.FYIndicator, yearType YearType) i
 	return dc.Count(yearType)
 }
 
+// DonorCountFiscalYear returns the number of donors for the specified fiscal year.
+func (dca *DonorCountAnalysis) DonorCountFiscalYear(fy a.FYIndicator) int {
+	assert.Assert(a.IsFYIndicator(fy), "Invalid fiscal year indicator: "+fy.String())
+	var dc = (*dca)[fy]
+	return dc.TotalDonorCount()
+}
+
 // TotalDonations returns the count of all donors.
 func (dca *DonorCountAnalysis) TotalDonors() int {
 	var total = 0
 	for _, dc := range *dca {
-		total += dc.TotalDonorCount()
+		total += dc.Count(CurrentYear)
 	}
 	return total
 }

@@ -19,6 +19,7 @@ package main
 // ----------------------------------------------------------------------------
 
 import (
+	a "acorn_go/pkg/accounting"
 	dn "acorn_go/pkg/donations"
 	s "acorn_go/pkg/spreadsheet"
 	sp "acorn_go/pkg/support"
@@ -85,6 +86,13 @@ func main() {
 	sp.Check(err, "Error adding sheet: ")
 	var donationAnalysis = dn.ComputeDonations(&donationList)
 	outputDonations(&donationAnalysis, &output)
+	//
+	// Output average donations
+	//
+	output, err = output.AddSheet("Average Donations")
+	sp.Check(err, "Error adding sheet: ")
+	var dac = dn.NewDonationsAndCounts(&donationAnalysis, &donorCountAnalysis)
+	outputAvgDonations(&dac, &output)
 }
 
 // ----------------------------------------------------------------------------
@@ -172,4 +180,38 @@ func outputDonations(
 	row += 2
 	s.WriteCell(output, "A", row, "Total Donations")
 	s.WriteCellFloat(output, "B", row, donationAnalysis.TotalDonations())
+}
+
+// outputAvgDonations produces the average donation tab.
+func outputAvgDonations(
+	dac *dn.DonationsAndCounts,
+	output *s.SpreadsheetFile) {
+	var row int = 1
+	//
+	// Place Title
+	//
+	s.WriteCell(output, "A", row, "Average Donation Analysis")
+	//
+	// Place Headings
+	//
+	row += 2
+	s.WriteCell(output, "A", row, "Prior Years")
+	s.WriteCell(output, "B", row, "Prior Prior Year")
+	s.WriteCell(output, "C", row, "Prior Year")
+	s.WriteCell(output, "D", row, "Current Year")
+	s.WriteCell(output, "E", row, "Total Average for Year")
+	row++
+	s.WriteCell(output, "A", row, "Year of Donation")
+	row++
+	for fy := a.FY2023; fy <= a.FY2025; fy++ {
+		s.WriteCell(output, "A", row, fy.String())
+		s.WriteCellFloat(output, "B", row, dac.AvgDonation(fy, dn.PriorPriorYear))
+		s.WriteCellFloat(output, "C", row, dac.AvgDonation(fy, dn.PriorYear))
+		s.WriteCellFloat(output, "D", row, dac.AvgDonation(fy, dn.CurrentYear))
+		s.WriteCellFloat(output, "E", row, dac.AvgTotalDonationFiscalYear(fy))
+		row++
+	}
+	row += 2
+	s.WriteCell(output, "A", row, "Total Average Donations")
+	s.WriteCellFloat(output, "B", row, dac.TotalAvgDonation())
 }

@@ -120,6 +120,13 @@ func (da *DonationAnalysis) Donation(fy a.FYIndicator, yearType YearType) float6
 	return don.Donation(yearType)
 }
 
+// DonationFiscalYear returns the total donations for the fiscal year.
+func (da *DonationAnalysis) DonationFiscalYear(fy a.FYIndicator) float64 {
+	assert.Assert(a.IsFYIndicator(fy), "Invalid fiscal year indicator: "+fy.String())
+	var don = (*da)[fy]
+	return don.TotalDonations()
+}
+
 // TotalDonations returns the total of donations for all specified years.
 func (da *DonationAnalysis) TotalDonations() float64 {
 	var total = 0.00
