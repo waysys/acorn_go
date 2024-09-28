@@ -52,13 +52,13 @@ func NewMajorDonor() MajorDonor {
 // ----------------------------------------------------------------------------
 
 // ComputeMajorDonors computes the values for the MajorDonor structure
-func ComputeMajorDonors(donationListPtr *dn.DonationList) MajorDonor {
+func ComputeMajorDonors(donationList *dn.DonationList) MajorDonor {
 	var majorDonor = NewMajorDonor()
 	var donations [3]float64
 	//
 	// Loop through donors with annual donation information.
 	//
-	for _, donor := range *donationListPtr {
+	for _, donor := range *donationList {
 		//
 		// Loop through fiscal years
 		//
@@ -93,7 +93,10 @@ func (majorDonor MajorDonor) DonationsMajor(fy a.FYIndicator) float64 {
 func (majorDonor MajorDonor) AvgDonation(fy a.FYIndicator) float64 {
 	var count = float64(majorDonor.MajorDonorCount(fy))
 	var donation = majorDonor.donations[fy]
-	var avg = math.Round(donation / count)
+	var avg = 0.00
+	if count > 0.00 {
+		avg = math.Round(donation / count)
+	}
 	return avg
 }
 
@@ -102,15 +105,32 @@ func (majorDonor MajorDonor) AvgDonation(fy a.FYIndicator) float64 {
 func (majorDonor MajorDonor) PercentDonation(fy a.FYIndicator) float64 {
 	var donation = majorDonor.donations[fy]
 	var donationsTotal = majorDonor.donationsTotal[fy]
-	var percent = math.Round(100.0 * donation / donationsTotal)
+	var percent = 0.00
+	if donationsTotal > 0.00 {
+		percent = math.Round(100.0 * donation / donationsTotal)
+	}
 	return percent
 }
 
 // PercentChange returns the percent change in average donations from
 // the current fiscal year compared to the prior fiscal year.
-func (majorDonor MajorDonor) PercentChange() float64 {
-	var avgDonationFY2023 = majorDonor.AvgDonation(a.FY2023)
-	var avgDonationFY2024 = majorDonor.AvgDonation(a.FY2024)
-	var percentChange = 100 * (avgDonationFY2024 - avgDonationFY2023) / avgDonationFY2023
+func (majorDonor MajorDonor) PercentChange(fy a.FYIndicator) float64 {
+	var percentChange = 0.00
+	switch fy {
+	case a.FY2023:
+		percentChange = 0.00
+	case a.FY2024:
+		var avgDonationFY2023 = majorDonor.AvgDonation(a.FY2023)
+		var avgDonationFY2024 = majorDonor.AvgDonation(a.FY2024)
+		if avgDonationFY2023 > 0.00 {
+			percentChange = 100.00 * (avgDonationFY2024 - avgDonationFY2023) / avgDonationFY2023
+		}
+	case a.FY2025:
+		var avgDonationFY2024 = majorDonor.AvgDonation(a.FY2024)
+		var avgDonationFY2025 = majorDonor.AvgDonation(a.FY2025)
+		if avgDonationFY2024 > 0.00 {
+			percentChange = 100 * (avgDonationFY2025 - avgDonationFY2024) / avgDonationFY2024
+		}
+	}
 	return math.Round(percentChange)
 }

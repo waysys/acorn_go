@@ -4,8 +4,8 @@
 | --- | --- | --- | --- | --- |
 | analysis.xls | Donor Count | Count of donors by year and repeat donors | analyze | donations.xlsx |
 |              | Donation Analysis | Amounts of donations by year and repeat donor | analyze | donations.xlsx |
-|              | Major Donor | Count and donations for major donors by year | analyze | donations.xlsx |
-|              | Major List  | List of major donors by year | analyze | donations.xlsx |
+| majordonor.xlsx | Major Donor Count | Count and donations of major donors | majordonors | donations.xlsx |
+|              | Major Donor List  | List of major donors by year | majordonors | donations.xlsx |
 | donations_series.xlsx | Donations | Count of donors and donations by month | series | donations.xlsx |
 | mailing_list.xlsx | Donors | Mailing list of donors | donors | donations.xlsx |
 |                   |        |                        |        | donors.xlsx |

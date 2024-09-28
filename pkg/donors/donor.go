@@ -20,7 +20,6 @@ package donors
 import (
 	ac "acorn_go/pkg/accounting"
 	a "acorn_go/pkg/address"
-	"strconv"
 	s "strings"
 
 	dec "github.com/shopspring/decimal"
@@ -142,14 +141,14 @@ func (donor Donor) NumberInHousehold() int {
 
 // Donation returns the donation for the specified fiscal year
 func (donor Donor) Donation(fy ac.FYIndicator) dec.Decimal {
-	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+strconv.Itoa(int(fy)))
+	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+fy.String())
 	var amount = donor.donations[fy]
 	return amount
 }
 
 // AddDonation adds the amount to the donations for the specified fical year.
 func (donor Donor) AddDonation(amount dec.Decimal, fy ac.FYIndicator) {
-	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+strconv.Itoa(int(fy)))
+	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+fy.String())
 	donor.donations[fy] = donor.donations[fy].Add(amount)
 }
 
@@ -177,6 +176,19 @@ func (donor Donor) IsDonor(fy ac.FYIndicator) bool {
 func (donor Donor) IsMajorDonor(fy ac.FYIndicator) bool {
 	var donation = donor.Donation(fy)
 	var result = donation.GreaterThanOrEqual(MajorDonorLimit)
+	return result
+}
+
+// IsMajorDonorOverall returns true if the donor has been a major donor
+// in any of the fiscal years.
+func (donor Donor) IsMajorDonorOverall() bool {
+	var result = false
+	for _, fy := range ac.FYIndicators {
+		if donor.IsMajorDonor(fy) {
+			result = true
+			break
+		}
+	}
 	return result
 }
 

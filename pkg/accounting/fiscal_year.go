@@ -38,11 +38,10 @@ const (
 	OutOfRange = FYIndicator(3)
 )
 
-var FYIndicators = [4]FYIndicator{
+var FYIndicators = [3]FYIndicator{
 	FY2023,
 	FY2024,
 	FY2025,
-	OutOfRange,
 }
 
 var IndNames = [4]string{"FY2023", "FY2024", "FY2025", "OutOfRange"}
