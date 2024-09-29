@@ -20,6 +20,7 @@ import (
 	"strconv"
 
 	dec "github.com/shopspring/decimal"
+	d "github.com/waysys/waydate/pkg/date"
 )
 
 // ----------------------------------------------------------------------------
@@ -81,5 +82,16 @@ func WriteCellDecimal(
 
 	var cell = CellName(column, row)
 	var err = outputPtr.SetCellDecimal(cell, value, FormatMoney)
+	s.Check(err, "Error writing cell "+cell+": ")
+}
+
+// WriteCellDate outputs a WayDate to the specified cell.
+func WriteCellDate(
+	outputPtr *SpreadsheetFile,
+	column string,
+	row int,
+	date d.Date) {
+	var cell = CellName(column, row)
+	var err = outputPtr.SetCellDate(cell, date)
 	s.Check(err, "Error writing cell "+cell+": ")
 }

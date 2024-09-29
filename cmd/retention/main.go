@@ -19,15 +19,12 @@ package main
 // ----------------------------------------------------------------------------
 
 import (
-	"acorn_go/pkg/donorinfo"
-	"acorn_go/pkg/spreadsheet"
+	a "acorn_go/pkg/accounting"
+	dn "acorn_go/pkg/donations"
+	s "acorn_go/pkg/spreadsheet"
+	sp "acorn_go/pkg/support"
 	"fmt"
 	"os"
-	"strconv"
-
-	d "github.com/waysys/waydate/pkg/date"
-
-	dec "github.com/shopspring/decimal"
 )
 
 // ----------------------------------------------------------------------------
@@ -43,63 +40,9 @@ const (
 	tab            = "Worksheet"
 	outputFileName = "/home/bozo/Downloads/nonrepeat.xlsx"
 	sheetName      = "Non-Repeat Donors"
+
+	fy = a.FY2024
 )
-
-// ----------------------------------------------------------------------------
-// Support Functions
-// ----------------------------------------------------------------------------
-
-// check tests an error to see if it is null.  If not, it prints an
-// error message and exits the program.
-func check(err error, message string) {
-	if err != nil {
-		fmt.Println(message + err.Error())
-		os.Exit(1)
-	}
-}
-
-// cellName generates a string representing a cell in the spreadsheet.
-func cellName(column string, row int) string {
-	var cellName = column + strconv.Itoa(row)
-	return cellName
-}
-
-// writeCell outputs a string value to the specified cell
-func writeCell(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value string) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCell(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// writeCellDate outputs a date value to the specified cell
-func writeCellDate(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	date d.Date) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCell(cell, date.String())
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// writeCellDecimal outputs a float64 value to the specified cell
-func writeCellDecimal(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	num dec.Decimal) {
-
-	var cell = cellName(column, row)
-	var value = num.String()
-	var err = outputPtr.SetCell(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
 
 // ----------------------------------------------------------------------------
 // Functions
@@ -108,34 +51,31 @@ func writeCellDecimal(
 // main supervises the execution of this program.  It produces a spreadsheet
 // with the list of non-repeat donors
 func main() {
-	var sprdsht spreadsheet.Spreadsheet
-	var donorList donorinfo.DonorList
-	var nonrepeats []donorinfo.NonRepeat
+	var sprdsht s.Spreadsheet
+	var donorList dn.DonationList
 	var err error
 
 	printHeader()
 	//
 	// Obtain spreadsheet data
 	//
-	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
-	check(err, "Error processing spreadsheet")
+	sprdsht, err = s.ProcessData(inputFile, tab)
+	sp.Check(err, "Error processing spreadsheet")
 	//
 	// Generate donor list
 	//
-	donorList, err = donorinfo.NewDonorList(&sprdsht)
-	check(err, "Error generating donor list: ")
+	donorList, err = dn.NewDonationList(&sprdsht)
+	sp.Check(err, "Error generating donor list: ")
 	//
-	// Generate donor list
+	// Output non-repeat donor
 	//
-	nonrepeats = donorinfo.ComputeNonRepeatDonors(&donorList, &sprdsht)
-	check(err, "Error generating donor list")
-	//
-	// Output donation series to spreadsheet
-	//
-	err = outputRetention(nonrepeats)
-	check(err, "Error writing output")
+	outputRetention(&donorList)
 	os.Exit(0)
 }
+
+// ----------------------------------------------------------------------------
+// Print Functions
+// ----------------------------------------------------------------------------
 
 // printHeader places the header information at the top of the page
 func printHeader() {
@@ -144,44 +84,47 @@ func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 }
 
+// ----------------------------------------------------------------------------
+// Output Functions
+// ----------------------------------------------------------------------------
+
 // outputRetention produces a spreadsheet with the non-repeat donors names
 // and donation dates and amounts listed.
-func outputRetention(nonrepeats []donorinfo.NonRepeat) error {
+func outputRetention(donorList *dn.DonationList) {
 	var err error
-	var output spreadsheet.SpreadsheetFile
+	var output s.SpreadsheetFile
 	//
 	// Create output spreadsheet
 	//
-	output, err = spreadsheet.New(outputFileName, sheetName)
-	check(err, "Error opening output file: ")
+	output, err = s.New(outputFileName, sheetName)
+	sp.Check(err, "Error opening output file: ")
+	var finish = func() {
+		err = output.Save()
+		sp.Check(err, "Error saving output file")
+		err = output.Close()
+		sp.Check(err, "Error closing output file")
+	}
+	defer finish()
 	//
 	// Insert Heading
 	//
 	var row = 1
-	writeCell(&output, "A", row, "List of non-repeat donors")
+	s.WriteCell(&output, "A", row, "List of non-repeat donors: "+fy.String())
 	row += 2
-	writeCell(&output, "A", row, "Donor Name")
-	writeCell(&output, "B", row, "Date of Donation")
-	writeCell(&output, "C", row, "Amount of Donation")
+	s.WriteCell(&output, "A", row, "Donor Name")
+	s.WriteCell(&output, "B", row, "Amount of Donation")
 	row++
 	//
 	// Insert donor information
 	//
-	for i := 0; i < len(nonrepeats); i++ {
-		var name = nonrepeats[i].NameDonor()
-		var date = nonrepeats[i].DateDonation()
-		var amount = nonrepeats[i].AmountDonation()
-		writeCell(&output, "A", row, name)
-		writeCellDate(&output, "B", row, date)
-		writeCellDecimal(&output, "C", row, amount)
-		row++
+	var names = donorList.DonorKeys()
+	for _, name := range names {
+		var donor = donorList.Get(name)
+		if donor.IsNonRepeatDonor(a.FY2024) {
+			var amount = donor.Donation(fy.Prior())
+			s.WriteCell(&output, "A", row, name)
+			s.WriteCellDecimal(&output, "B", row, amount)
+			row++
+		}
 	}
-	//
-	// Finish
-	//
-	err = output.Save()
-	check(err, "Error saving output file")
-	err = output.Close()
-	check(err, "Error closing output file")
-	return err
 }

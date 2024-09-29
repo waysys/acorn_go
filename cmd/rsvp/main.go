@@ -22,11 +22,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 
-	"acorn_go/pkg/donors"
+	dn "acorn_go/pkg/donors"
 	g "acorn_go/pkg/guestlist"
-	"acorn_go/pkg/spreadsheet"
+	s "acorn_go/pkg/spreadsheet"
+	sp "acorn_go/pkg/support"
 )
 
 // ----------------------------------------------------------------------------
@@ -61,41 +61,42 @@ func main() {
 	// Output name and address information.
 	//
 	outputAddresses(&guestlist)
+	os.Exit(0)
 }
 
 // generateDonorList creates the collection of donors
-func generateDonorList() donors.DonorList {
-	var sprdsht spreadsheet.Spreadsheet
-	var donorList donors.DonorList
+func generateDonorList() dn.DonorList {
+	var sprdsht s.Spreadsheet
+	var donorList dn.DonorList
 	var err error
 	//
 	// Obtain spreadsheet data
 	//
-	sprdsht, err = spreadsheet.ProcessData(donorListFile, donorListTab)
-	check(err, "Error generating address list: ")
+	sprdsht, err = s.ProcessData(donorListFile, donorListTab)
+	sp.Check(err, "Error generating address list: ")
 	//
 	// Generate donor list
 	//
-	donorList, err = donors.NewDonorList(&sprdsht)
-	check(err, "Error generating donor list: ")
+	donorList, err = dn.NewDonorAddressList(&sprdsht)
+	sp.Check(err, "Error generating donor list: ")
 	return donorList
 }
 
 // generateGuestlist creates the list of guests
-func generateGuestlist(donorList *donors.DonorList) g.Guestlist {
-	var sprdsht spreadsheet.Spreadsheet
+func generateGuestlist(donorList *dn.DonorList) g.Guestlist {
+	var sprdsht s.Spreadsheet
 	var guestlist g.Guestlist
 	var err error
 	//
 	// Obtain spreadsheet
 	//
-	sprdsht, err = spreadsheet.ProcessData(guestlistFile, guestlistTab)
-	check(err, "Error processing guestlist spreadsheet: ")
+	sprdsht, err = s.ProcessData(guestlistFile, guestlistTab)
+	sp.Check(err, "Error processing guestlist spreadsheet: ")
 	//
 	// Generate guest list
 	//
 	guestlist, err = g.NewGuestlist(&sprdsht, donorList)
-	check(err, "Error generating guestlist: ")
+	sp.Check(err, "Error generating guestlist: ")
 	return guestlist
 }
 
@@ -107,7 +108,7 @@ func generateGuestlist(donorList *donors.DonorList) g.Guestlist {
 // This is a list of guest who have not responeded to the email invitation.
 func outputAddresses(guestlist *g.Guestlist) {
 	var err error
-	var output spreadsheet.SpreadsheetFile
+	var output s.SpreadsheetFile
 	//
 	// selectGuest determines if the guest should be inserted into the spreadsheet
 	//
@@ -118,18 +119,24 @@ func outputAddresses(guestlist *g.Guestlist) {
 	//
 	// Create output spreadsheet
 	//
-	output, err = spreadsheet.New(outputFile, outputTab)
-	check(err, "Error opening output file: ")
+	output, err = s.New(outputFile, outputTab)
+	sp.Check(err, "Error opening output file: ")
+	defer func() {
+		err = output.Save()
+		sp.Check(err, "Error saving output file")
+		err = output.Close()
+		sp.Check(err, "Error closing output file")
+	}()
 	//
 	// Insert Heading
 	//
 	var row = 1
-	writeCell(&output, "A", row, "Name")
-	writeCell(&output, "B", row, "Email")
-	writeCell(&output, "C", row, "Street")
-	writeCell(&output, "D", row, "City")
-	writeCell(&output, "E", row, "State")
-	writeCell(&output, "F", row, "Zip")
+	s.WriteCell(&output, "A", row, "Name")
+	s.WriteCell(&output, "B", row, "Email")
+	s.WriteCell(&output, "C", row, "Street")
+	s.WriteCell(&output, "D", row, "City")
+	s.WriteCell(&output, "E", row, "State")
+	s.WriteCell(&output, "F", row, "Zip")
 	row++
 	//
 	// Process donors
@@ -139,22 +146,15 @@ func outputAddresses(guestlist *g.Guestlist) {
 		var guest = guestlist.Get(key)
 		if selectGuest(guest) {
 			var address = guestlist.Get(key)
-			writeCell(&output, "A", row, address.Name())
-			writeCell(&output, "B", row, address.Email())
-			writeCell(&output, "C", row, address.Street())
-			writeCell(&output, "D", row, address.City())
-			writeCell(&output, "E", row, address.State())
-			writeCell(&output, "F", row, address.Zip())
+			s.WriteCell(&output, "A", row, address.Name())
+			s.WriteCell(&output, "B", row, address.Email())
+			s.WriteCell(&output, "C", row, address.Street())
+			s.WriteCell(&output, "D", row, address.City())
+			s.WriteCell(&output, "E", row, address.State())
+			s.WriteCell(&output, "F", row, address.Zip())
 			row++
 		}
 	}
-	//
-	// Finish
-	//
-	err = output.Save()
-	check(err, "Error saving output file")
-	err = output.Close()
-	check(err, "Error closing output file")
 }
 
 // ----------------------------------------------------------------------------
@@ -166,35 +166,4 @@ func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 	fmt.Println("Acorn Scholarship Fund Guests Who Have Not Responded")
 	fmt.Println("-----------------------------------------------------------")
-}
-
-// ----------------------------------------------------------------------------
-// Support Functions
-// ----------------------------------------------------------------------------
-
-// check tests an error to see if it is null.  If not, it prints an
-// error message and exits the program.
-func check(err error, message string) {
-	if err != nil {
-		fmt.Println(message + err.Error())
-		os.Exit(1)
-	}
-}
-
-// cellName generates a string representing a cell in the spreadsheet.
-func cellName(column string, row int) string {
-	var cellName = column + strconv.Itoa(row)
-	return cellName
-}
-
-// writeCell outputs a string value to the specified cell
-func writeCell(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value string) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCell(cell, value)
-	check(err, "Error writing cell "+cell+": ")
 }

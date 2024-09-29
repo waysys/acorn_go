@@ -116,3 +116,19 @@ func IsFYIndicator(fy FYIndicator) bool {
 func (ind FYIndicator) String() string {
 	return IndNames[int(ind)]
 }
+
+// Prior returns the fiscal year indicator before the specified fiscal year.
+func (ind FYIndicator) Prior() FYIndicator {
+	var result = OutOfRange
+	switch ind {
+	case FY2023:
+		result = OutOfRange
+	case FY2024:
+		result = FY2023
+	case FY2025:
+		result = FY2024
+	default:
+		result = OutOfRange
+	}
+	return result
+}
