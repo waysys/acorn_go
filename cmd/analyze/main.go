@@ -161,7 +161,7 @@ func outputDonations(
 	// Place Headings
 	//
 	row += 2
-	s.WriteCell(output, "A", row, "Prior Years")
+	s.WriteCell(output, "A", row, "Fiscal Year")
 	s.WriteCell(output, "B", row, "Prior Prior Year")
 	s.WriteCell(output, "C", row, "Prior Year")
 	s.WriteCell(output, "D", row, "Current Year")

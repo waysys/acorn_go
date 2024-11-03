@@ -45,7 +45,8 @@ const (
 )
 
 const (
-	payment = "Payment"
+	payment       = "Payment"
+	excludedDonor = "Nadine L. Tolman Trust"
 )
 
 // ----------------------------------------------------------------------------
@@ -64,24 +65,56 @@ func NewDonationList(sprdsht *spreadsheet.Spreadsheet) (DonationList, error) {
 	var donationList = make(DonationList)
 	var numRows = sprdsht.Size()
 	var err error
-	var value string
+	var okToSelect bool
 	//
 	// Loop through all the rows in the spreadsheet
 	//
 	for row := 1; row < numRows; row++ {
-		value, err = sprdsht.Cell(row, columnTransactionType)
+		okToSelect, err = selectRow(sprdsht, row)
 		if err != nil {
 			return donationList, err
 		}
-		value = strings.TrimSpace(value)
-		if value == payment {
+		if okToSelect {
 			err = processPayment(&donationList, sprdsht, row)
-			if err != nil {
-				return donationList, err
-			}
+		}
+		if err != nil {
+			return donationList, err
 		}
 	}
 	return donationList, err
+}
+
+// selectRow decides whether a row should be included in the analysis.
+func selectRow(sprdsht *spreadsheet.Spreadsheet, row int) (bool, error) {
+	var err error = nil
+	var tranType string
+	var nameDonor string
+	var result bool
+	//
+	// Fetch transaction type
+	//
+	tranType, err = sprdsht.Cell(row, columnTransactionType)
+	if err != nil {
+		return false, err
+	}
+	tranType = strings.TrimSpace(tranType)
+	//
+	// Fetch donor name
+	//
+	nameDonor, err = sprdsht.Cell(row, columnNameDonor)
+	if err != nil {
+		return false, err
+	}
+	nameDonor = strings.TrimSpace(nameDonor)
+	//
+	// Include row if value == Payment and nameDonor != Nadine L. Tolman Trust
+	//
+	if (tranType == payment) && (nameDonor != excludedDonor) {
+		result = true
+	} else {
+		result = false
+	}
+	return result, err
 }
 
 // processPayment creates a Donor structure
