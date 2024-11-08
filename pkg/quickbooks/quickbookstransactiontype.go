@@ -36,6 +36,7 @@ const (
 	Bill         QuickbooksTransactionType = 1
 	BillPayment  QuickbooksTransactionType = 2
 	VendorCredit QuickbooksTransactionType = 3
+	Deposit      QuickbooksTransactionType = 4
 )
 
 const (
@@ -43,13 +44,15 @@ const (
 	strBill         = "Bill"
 	strBillPayment  = "Bill Payment"
 	strVendorCredit = "Vendor Credit"
+	strDeposit      = "Deposit"
 )
 
-var strValues = [4]string{
+var strValues = [5]string{
 	strUnknown,
 	strBill,
 	strBillPayment,
 	strVendorCredit,
+	strDeposit,
 }
 
 // ----------------------------------------------------------------------------
@@ -66,6 +69,8 @@ func NewQuickbooksTransactionType(value string) QuickbooksTransactionType {
 		aType = BillPayment
 	case strVendorCredit:
 		aType = VendorCredit
+	case strDeposit:
+		aType = Deposit
 	default:
 		aType = Unknown
 	}

@@ -41,7 +41,7 @@ type RecipientSum struct {
 func NewRecipientSum(name string) RecipientSum {
 	assert.Assert(len(name) > 0, "name cannot be an empty string")
 	var recipient = q.NewRecipient(name)
-	var values = []dec.Decimal{dec.Zero, dec.Zero}
+	var values = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero}
 	var recipientSum = RecipientSum{
 		recipient: &recipient,
 		payments:  values,

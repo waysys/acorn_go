@@ -37,6 +37,7 @@ const (
 	Transfer     TransType = 1
 	GrantPayment TransType = 2
 	WriteOff     TransType = 3
+	Refund       TransType = 4
 )
 
 // ----------------------------------------------------------------------------
@@ -47,7 +48,7 @@ const (
 // type
 func IsTransType(value TransType) bool {
 	var result = true
-	if value < Grant || value > WriteOff {
+	if value < Grant || value > Refund {
 		result = false
 	}
 	return result
@@ -62,11 +63,12 @@ func (transType TransType) String() string {
 	var values = []string{
 		"Grant",
 		"Transfer",
-		"Write-Off",
 		"Grant Payment",
+		"Write-Off",
+		"Refund",
 	}
 
-	assert.Assert(transType >= 0 && transType <= 3,
+	assert.Assert(transType >= 0 && transType <= 4,
 		"invalid transaction type: "+strconv.Itoa(int(transType)))
 	return values[transType]
 }

@@ -105,19 +105,11 @@ func processTransactions(
 // the transaction list
 func selectTransaction(transaction *APTransaction) bool {
 	var result = false
-	if transaction.GTZero() {
-		if transaction.Recipient().Name() != "" {
-			switch {
-			case transaction.IsBill():
-				result = transaction.IsScholarshipAccount()
-			case transaction.IsPayment():
-				result = true
-			case transaction.IsVendorCredit():
-				result = transaction.IsScholarshipAccount()
-			default:
-				result = false
-			}
-		}
+	if transaction.Recipient().Name() != "" {
+		result = transaction.IsBill()
+		result = result || transaction.IsPayment()
+		result = result || transaction.IsDeposit()
+		result = result || transaction.IsVendorCredit()
 	}
 	return result
 }

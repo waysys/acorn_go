@@ -174,6 +174,8 @@ func convertTransType(apTrans *q.APTransaction) TransType {
 		transType = WriteOff
 	case apTrans.IsPayment():
 		transType = GrantPayment
+	case apTrans.IsDeposit():
+		transType = Refund
 	default:
 		assert.Assert(false, "unrecognized grant transaction type")
 	}
@@ -216,7 +218,7 @@ func (grantList *GrantList) Get(index int) *Transaction {
 	return grantList.trans[index]
 }
 
-// TotalTransAmount returns the total amount of amounts for a fisca year
+// TotalTransAmount returns the total amount of amounts for a fiscal year
 // and transaction type
 func (grantList *GrantList) TotalTransAmount(fiscalYear a.FYIndicator, transType TransType) dec.Decimal {
 	var total dec.Decimal = dec.Zero
