@@ -31,6 +31,7 @@ import (
 type RecipientSum struct {
 	recipient *q.Recipient
 	payments  []dec.Decimal
+	refunds   []dec.Decimal
 }
 
 // ----------------------------------------------------------------------------
@@ -41,16 +42,12 @@ type RecipientSum struct {
 func NewRecipientSum(name string) RecipientSum {
 	assert.Assert(len(name) > 0, "name cannot be an empty string")
 	var recipient = q.NewRecipient(name)
-	var values = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero}
 	var recipientSum = RecipientSum{
 		recipient: &recipient,
-		payments:  values,
+		payments:  []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
+		refunds:   []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
 	}
 	return recipientSum
-	// Post:
-	//   recipientSum.recipient.Name() == name and
-	//   recipientSum.payments[0] == dec.Zero and
-	//   recipientSum.payments[1] == dec.Zero
 }
 
 // ----------------------------------------------------------------------------
@@ -63,10 +60,16 @@ func (sum *RecipientSum) RecipientName() string {
 	return name
 }
 
-// Payments returns the total payment made to a recipient in a fiscal year.
+// PaymentTotal returns the total payment made to a recipient in a fiscal year.
 func (sum *RecipientSum) PaymentTotal(fy a.FYIndicator) dec.Decimal {
 	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
 	return sum.payments[fy]
+}
+
+// RefundTotal returns the total refunds made to a recipient in a fiscal year.
+func (sum *RecipientSum) RefundTotal(fy a.FYIndicator) dec.Decimal {
+	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
+	return sum.refunds[fy]
 }
 
 // IsRecipient returns true if the recipient benefited from a payment for
@@ -85,9 +88,12 @@ func (sum *RecipientSum) IsRecipient(fy a.FYIndicator) bool {
 func (sum *RecipientSum) AddPayment(fy a.FYIndicator, amount dec.Decimal) {
 	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
 	assert.Assert(amount.GreaterThan(dec.Zero), "payment must be greater than zero: "+amount.String())
-	var originalPayment = sum.PaymentTotal(fy)
 	sum.payments[fy] = sum.payments[fy].Add(amount)
-	var finalPayment = originalPayment.Add(amount)
-	assert.Assert(sum.PaymentTotal(fy).Equal(finalPayment),
-		"Payment total is not correct: "+sum.payments[fy].String())
+}
+
+// AddRefund adds the amount of a refund to the total refunds for the fiscal year.
+func (sum *RecipientSum) AddRefund(fy a.FYIndicator, amount dec.Decimal) {
+	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
+	assert.Assert(amount.GreaterThan(dec.Zero), "payment must be greater than zero: "+amount.String())
+	sum.refunds[fy] = sum.refunds[fy].Add(amount)
 }

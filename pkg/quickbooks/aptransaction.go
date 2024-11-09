@@ -159,11 +159,7 @@ func (trans *APTransaction) IsVendorCredit() bool {
 // IsDeposit returns true if the transaction is a deposit.
 func (trans *APTransaction) IsDeposit() bool {
 	var result = trans.TransactionType() == Deposit
-	result = result && trans.IsScholarshipAccount()
+	result = result && trans.IsBankAccount()
 	result = result && trans.GTZero()
 	return result
 }
-
-// ----------------------------------------------------------------------------
-// Methods
-// ----------------------------------------------------------------------------

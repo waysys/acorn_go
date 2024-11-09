@@ -40,6 +40,8 @@ const (
 	Refund       TransType = 4
 )
 
+var TransTypes = []TransType{Grant, Transfer, GrantPayment, WriteOff, Refund}
+
 // ----------------------------------------------------------------------------
 // Validation
 // ----------------------------------------------------------------------------

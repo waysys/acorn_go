@@ -126,17 +126,10 @@ func processOtherTransactions(transList *q.TransList, grantList *GrantList) {
 }
 
 // selectTransaction returns true if the transaction should be included in the
-// grant list
+// grant list.  Bills and transfers are already included, This function
+// returns true for transactions that are not bills or transfers.
 func selectTransaction(apTrans *q.APTransaction) bool {
-	var result = false
-	switch {
-	case apTrans.IsVendorCredit():
-		result = true
-	case apTrans.IsPayment():
-		result = true
-	default:
-		result = false
-	}
+	var result = apTrans.IsVendorCredit() || apTrans.IsPayment() || apTrans.IsDeposit()
 	return result
 }
 

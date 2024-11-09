@@ -21,7 +21,6 @@ import (
 	"slices"
 	"sort"
 
-	dec "github.com/shopspring/decimal"
 	"github.com/waysys/assert/assert"
 )
 
@@ -53,11 +52,14 @@ func AssembleRecipientSumList(grantList *GrantList) (RecipientSumList, error) {
 	var numTrans = grantList.Size()
 	for index := 0; index < numTrans; index++ {
 		var transaction = grantList.Get(index)
-		if transaction.transType == GrantPayment && transaction.Amount().GreaterThanOrEqual(dec.Zero) {
-			err = processTransactionForSum(&list, transaction)
+		if transaction.IsPayment() {
+			err = processPaymentForSum(&list, transaction)
 			if err != nil {
 				break
 			}
+		}
+		if transaction.IsRefund() {
+
 		}
 	}
 	return list, err
@@ -65,29 +67,20 @@ func AssembleRecipientSumList(grantList *GrantList) (RecipientSumList, error) {
 
 // processTransactions creates a recipient summary if one does not already
 // exists.  It then adds the payment to the total payments for the fiscal year.
-func processTransactionForSum(list *RecipientSumList, transaction *Transaction) error {
+func processPaymentForSum(list *RecipientSumList, transaction *Transaction) error {
 	//
 	// Create a new recipient summary if one does not alreaady exist
 	//
 	var err error = nil
-	var recipientSum *RecipientSum
 	var name = transaction.Recipient()
-	if !list.Contains(name) {
-		var summary = NewRecipientSum(name)
-		recipientSum = &summary
-		list.Add(recipientSum)
-	} else {
-		recipientSum, err = list.Get(name)
-	}
+	var recipientSum = list.FetchSummary(name)
 	//
 	// Add payment amount to the total for the fiscal year
 	//
-	if err == nil {
-		assert.Assert(list.Contains(name), "recipient summary is not present: "+name)
-		var fiscalYear = transaction.FiscalYear()
-		var amount = transaction.Amount()
-		recipientSum.AddPayment(fiscalYear, amount)
-	}
+	assert.Assert(list.Contains(name), "recipient summary is not present: "+name)
+	var fiscalYear = transaction.FiscalYear()
+	var amount = transaction.Amount()
+	recipientSum.AddPayment(fiscalYear, amount)
 	return err
 }
 
@@ -127,4 +120,20 @@ func (sumList *RecipientSumList) Names() []string {
 	sort.Strings(names)
 	assert.Assert(sort.StringsAreSorted(names), "names are not sorted")
 	return names
+}
+
+// Return an instance of RecipientSum.  If there is already a recipient summary in the
+// list with the specified name, return that summary.  Otherwise create a new
+// summary and add it to the list.
+func (sumList *RecipientSumList) FetchSummary(name string) *RecipientSum {
+	var recipientSum *RecipientSum
+
+	if !sumList.Contains(name) {
+		var summary = NewRecipientSum(name)
+		recipientSum = &summary
+		sumList.Add(recipientSum)
+	} else {
+		recipientSum, _ = sumList.Get(name)
+	}
+	return recipientSum
 }

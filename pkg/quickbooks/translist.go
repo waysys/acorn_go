@@ -188,6 +188,8 @@ func retrieveAmount(
 		amount, err = sprdshtPtr.CellDecimal(row, columnPaid)
 	case VendorCredit:
 		amount, err = sprdshtPtr.CellDecimal(row, columnPaid)
+	case Deposit:
+		amount, err = sprdshtPtr.CellDecimal(row, columnBilled)
 	case Unknown:
 		amount = dec.Zero
 	}

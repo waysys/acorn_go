@@ -98,6 +98,25 @@ func (trans *Transaction) Amount() dec.Decimal {
 	return trans.amount
 }
 
+// GTZero returns true if the amount is greater than zero.
+func (trans *Transaction) GTZero() bool {
+	return trans.Amount().GreaterThanOrEqual(dec.Zero)
+}
+
+// IsPayment returns true if the transaction type is GrantPayment
+func (trans *Transaction) IsPayment() bool {
+	var result = trans.TransType() == GrantPayment
+	result = result && trans.GTZero()
+	return result
+}
+
+// IsRefund returns true if the transaction type is Refund
+func (trans *Transaction) IsRefund() bool {
+	var result = trans.TransType() == Refund
+	result = result && trans.GTZero()
+	return result
+}
+
 // ----------------------------------------------------------------------------
 // Other Functions
 // ----------------------------------------------------------------------------

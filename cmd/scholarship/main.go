@@ -10,6 +10,10 @@
 // ----------------------------------------------------------------------------
 
 // This program produces a spreadsheet with the anaysis of scholarship payments.
+// Three reports are generated:
+// -- Summary of Scholarship Payments
+// -- Recipient Actions
+// -- Recipient Summary
 
 package main
 
@@ -21,15 +25,12 @@ import (
 	a "acorn_go/pkg/accounting"
 	g "acorn_go/pkg/grants"
 	q "acorn_go/pkg/quickbooks"
-	"acorn_go/pkg/spreadsheet"
 	sp "acorn_go/pkg/spreadsheet"
 	s "acorn_go/pkg/support"
 	"fmt"
-	"strconv"
-
-	"github.com/waysys/assert/assert"
 
 	dec "github.com/shopspring/decimal"
+	"github.com/waysys/assert/assert"
 )
 
 // ----------------------------------------------------------------------------
@@ -48,7 +49,7 @@ func main() {
 	var apTranlist q.TransList
 	var billList q.BillList
 	var grantList g.GrantList
-	var output spreadsheet.SpreadsheetFile
+	var output sp.SpreadsheetFile
 
 	printHeader()
 	//
@@ -71,7 +72,7 @@ func main() {
 	// Output results
 	//
 	if err == nil {
-		output, err = spreadsheet.New(outputFile, "Summary")
+		output, err = sp.New(outputFile, "Summary")
 	}
 	s.Check(err, "Error: ")
 
@@ -105,7 +106,7 @@ func main() {
 
 // outputGrantSummary populates the Summary tab with the amounts by transaction
 // type
-func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantList) {
+func outputGrantSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	//
 	// Insert title
 	//
@@ -134,7 +135,7 @@ func outputGrantSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantL
 // outputGrantSummaryLine inserts transactions amounts for the specified fiscal year
 // into the spreadsheet.
 func outputGrantSummaryLine(
-	output *spreadsheet.SpreadsheetFile,
+	output *sp.SpreadsheetFile,
 	grantList *g.GrantList,
 	row int,
 	fy a.FYIndicator) {
@@ -151,16 +152,13 @@ func outputGrantSummaryLine(
 
 // outputRecipientList produces a list of recipients organized by fiscal year and
 // award group
-func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.GrantList) {
+func outputRecipientList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	var row = 1
 	var numRows = grantList.Size()
 	var lastRecipient string = ""
 	var balance = dec.Zero
-	var totalGrants = dec.Zero
-	var totalPayments = dec.Zero
-	var totalWriteOffs = dec.Zero
-	var totalTransfers = dec.Zero
-	var totalRefunds = dec.Zero
+	var totals = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero, dec.Zero, dec.Zero}
+	var columns = []string{"D", "E", "F", "G", "H"}
 	var totalBalance = dec.Zero
 	grantList.Sort()
 
@@ -172,11 +170,11 @@ func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.Grant
 	sp.WriteCell(output, "A", row, "Transaction Date")
 	sp.WriteCell(output, "B", row, "Recipient")
 	sp.WriteCell(output, "C", row, "Educational Institution")
-	sp.WriteCell(output, "D", row, "Grant")
-	sp.WriteCell(output, "E", row, "Payment")
-	sp.WriteCell(output, "F", row, "Write-Off")
-	sp.WriteCell(output, "G", row, "Transfer")
-	sp.WriteCell(output, "H", row, "Refunds")
+	sp.WriteCell(output, columns[g.Grant], row, "Grant")
+	sp.WriteCell(output, columns[g.GrantPayment], row, "Payment")
+	sp.WriteCell(output, columns[g.WriteOff], row, "Write-Off")
+	sp.WriteCell(output, columns[g.Transfer], row, "Transfer")
+	sp.WriteCell(output, columns[g.Refund], row, "Refunds")
 	sp.WriteCell(output, "I", row, "Net Balance")
 	row++
 	//
@@ -208,49 +206,45 @@ func outputRecipientList(output *spreadsheet.SpreadsheetFile, grantList *g.Grant
 		sp.WriteCellDate(output, "A", row, transactionDate)
 		sp.WriteCell(output, "B", row, recipient)
 		sp.WriteCell(output, "C", row, edInst)
-		switch transType {
-		case g.Grant:
-			totalGrants = totalGrants.Add(amount)
-			sp.WriteCellDecimal(output, "D", row, amount)
-			balance = balance.Add(amount)
-		case g.GrantPayment:
-			totalPayments = totalPayments.Add(amount)
-			sp.WriteCellDecimal(output, "E", row, amount)
-			balance = balance.Sub(amount)
-		case g.WriteOff:
-			totalWriteOffs = totalWriteOffs.Add(amount)
-			sp.WriteCellDecimal(output, "F", row, amount)
-			balance = balance.Sub(amount)
-		case g.Transfer:
-			totalTransfers = totalTransfers.Add(amount)
-			sp.WriteCellDecimal(output, "G", row, amount)
-			balance = balance.Add(amount)
-		case g.Refund:
-			totalRefunds = totalRefunds.Add(amount)
-			sp.WriteCellDecimal(output, "H", row, amount)
-			balance = balance.Add(amount)
-		default:
-			assert.Assert(false, "invalid value for transType: "+strconv.Itoa(int(transType)))
-		}
+		sp.WriteCellDecimal(output, columns[transType], row, amount)
+		totals[transType] = totals[transType].Add(amount)
+		balance = computeBalance(balance, amount, transType)
 		row++
 	}
 	totalBalance = totalBalance.Add(balance)
-	sp.WriteCellDecimal(output, "H", row, balance)
+	sp.WriteCellDecimal(output, "I", row, balance)
 	//
 	// Write totals to spreadsheet
 	//
 	row += 2
 	sp.WriteCell(output, "C", row, "Totals")
-	sp.WriteCellDecimal(output, "D", row, totalGrants)
-	sp.WriteCellDecimal(output, "E", row, totalPayments)
-	sp.WriteCellDecimal(output, "F", row, totalWriteOffs)
-	sp.WriteCellDecimal(output, "G", row, totalTransfers)
-	sp.WriteCellDecimal(output, "H", row, totalRefunds)
+	for _, transType := range g.TransTypes {
+		sp.WriteCellDecimal(output, columns[transType], row, totals[transType])
+	}
 	sp.WriteCellDecimal(output, "I", row, totalBalance)
 }
 
+// computeBalance calculates the remaning balance based on the type of transaction.
+func computeBalance(balance dec.Decimal, amount dec.Decimal, transType g.TransType) dec.Decimal {
+	switch transType {
+	case g.Grant:
+		balance = balance.Add(amount)
+	case g.GrantPayment:
+		balance = balance.Sub(amount)
+	case g.WriteOff:
+		balance = balance.Sub(amount)
+	case g.Transfer:
+		balance = balance.Add(amount)
+	case g.Refund:
+		balance = balance.Add(amount)
+	default:
+		assert.Assert(false, "Invalid transaction type: "+transType.String())
+	}
+	return balance
+}
+
 // outputRecipientSummary creates the RecipSum tab with the recipient summary.
-func outputRecipientSummary(output *spreadsheet.SpreadsheetFile, grantList *g.GrantList) {
+func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	//
 	// Create the recipient summary list
 	//
@@ -258,7 +252,11 @@ func outputRecipientSummary(output *spreadsheet.SpreadsheetFile, grantList *g.Gr
 	var list, err = g.AssembleRecipientSumList(grantList)
 	s.Check(err, "Error: ")
 	var totalPayments = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero}
+	var totalRefunds = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero}
 	var totalCount = []int{0, 0, 0}
+	var countColumns = []string{"B", "D", "F"}
+	var paymentColumns = []string{"C", "E", "G"}
+	var amount = dec.Zero
 	//
 	// Create Headings
 	//
@@ -281,50 +279,33 @@ func outputRecipientSummary(output *spreadsheet.SpreadsheetFile, grantList *g.Gr
 		s.Check(err, "Error: ")
 		sp.WriteCell(output, "A", row, name)
 		//
-		// Compute FY2023 values
+		// Cycle through fiscal years
 		//
-		outputSumData(output, a.FY2023, row, "B", "C", recipientSum)
-		if recipientSum.IsRecipient(a.FY2023) {
-			totalCount[a.FY2023] += 1
+		for _, fy := range a.FYIndicators {
+			outputSumData(output, fy, row, countColumns[fy], paymentColumns[fy], recipientSum)
+			if recipientSum.IsRecipient(fy) {
+				totalCount[fy] += 1
+			}
+			amount = recipientSum.PaymentTotal(fy)
+			totalPayments[fy] = totalPayments[fy].Add(amount)
+			totalRefunds[fy] = totalRefunds[fy].Add(recipientSum.RefundTotal(fy))
 		}
-		var amount = recipientSum.PaymentTotal(a.FY2023)
-		totalPayments[a.FY2023] = totalPayments[a.FY2023].Add(amount)
-		//
-		// Compute FY2024 values
-		//
-		outputSumData(output, a.FY2024, row, "D", "E", recipientSum)
-		if recipientSum.IsRecipient(a.FY2024) {
-			totalCount[a.FY2024] += 1
-		}
-		amount = recipientSum.PaymentTotal(a.FY2024)
-		totalPayments[a.FY2024] = totalPayments[a.FY2024].Add(amount)
-		//
-		// Compute FY2025 values
-		//
-		outputSumData(output, a.FY2025, row, "F", "G", recipientSum)
-		if recipientSum.IsRecipient(a.FY2025) {
-			totalCount[a.FY2025] += 1
-		}
-		amount = recipientSum.PaymentTotal(a.FY2025)
-		totalPayments[a.FY2025] = totalPayments[a.FY2025].Add(amount)
 		row++
 	}
 	//
-	// Create totals
+	// Create total payments
 	//
 	row++
-	sp.WriteCell(output, "A", row, "Totals")
-	sp.WriteCellInt(output, "B", row, totalCount[a.FY2023])
-	sp.WriteCellDecimal(output, "C", row, totalPayments[a.FY2023])
-	sp.WriteCellInt(output, "D", row, totalCount[a.FY2024])
-	sp.WriteCellDecimal(output, "E", row, totalPayments[a.FY2024])
-	sp.WriteCellInt(output, "F", row, totalCount[a.FY2025])
-	sp.WriteCellDecimal(output, "G", row, totalPayments[a.FY2025])
+	sp.WriteCell(output, "A", row, "Total Payments")
+	for _, fy := range a.FYIndicators {
+		sp.WriteCellInt(output, countColumns[fy], row, totalCount[fy])
+		sp.WriteCellDecimal(output, paymentColumns[fy], row, totalPayments[fy])
+	}
 }
 
 // outputSumData inserts the recipient summary data into spreadsheet.
 func outputSumData(
-	output *spreadsheet.SpreadsheetFile,
+	output *sp.SpreadsheetFile,
 	fiscalYear a.FYIndicator,
 	row int,
 	columnCount string,
