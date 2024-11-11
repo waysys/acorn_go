@@ -121,6 +121,7 @@ func outputGrantSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	sp.WriteCell(output, "C", row, "Total Payments")
 	sp.WriteCell(output, "D", row, "Total Net Write-Offs")
 	sp.WriteCell(output, "E", row, "Total Refunds")
+	sp.WriteCell(output, "F", row, "Net Balance")
 	row++
 	//
 	// Amounts
@@ -130,6 +131,7 @@ func outputGrantSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 		row++
 	}
 	row++
+	outputTotalLine(output, grantList, row)
 }
 
 // outputGrantSummaryLine inserts transactions amounts for the specified fiscal year
@@ -148,6 +150,21 @@ func outputGrantSummaryLine(
 	sp.WriteCellDecimal(output, "D", row, writeOffTotal)
 	var refundTotal = grantList.TotalTransAmount(fy, g.Refund)
 	sp.WriteCellDecimal(output, "E", row, refundTotal)
+	var netBalance = grantList.NetBalance(fy)
+	sp.WriteCellDecimal(output, "F", row, netBalance)
+}
+
+// outputTotalLine inserts the totals for the types of transactions.
+func outputTotalLine(
+	output *sp.SpreadsheetFile,
+	grantList *g.GrantList,
+	row int) {
+	sp.WriteCell(output, "A", row, "Totals")
+	sp.WriteCellDecimal(output, "B", row, grantList.GrandTotalTransactions(g.Grant))
+	sp.WriteCellDecimal(output, "C", row, grantList.GrandTotalTransactions(g.GrantPayment))
+	sp.WriteCellDecimal(output, "D", row, grantList.GrandTTotalNetWriteoff())
+	sp.WriteCellDecimal(output, "E", row, grantList.GrandTotalTransactions(g.Refund))
+	sp.WriteCellDecimal(output, "F", row, grantList.TotalNetBalance())
 }
 
 // outputRecipientList produces a list of recipients organized by fiscal year and

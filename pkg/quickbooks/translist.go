@@ -98,6 +98,13 @@ func processTransactions(
 			transList.Add(&transaction)
 		}
 	}
+	//
+	// Add refund transactions
+	//
+	assert.Assert((&ncDeposit).IsDeposit(), "ncDeposit is not a valid deposit")
+	transList.Add(&ncDeposit)
+	assert.Assert((&ncVendorCredit).IsVendorCredit(), "ncVendorCredit is not a valid vendor credit")
+	transList.Add(&ncVendorCredit)
 	return nil
 }
 

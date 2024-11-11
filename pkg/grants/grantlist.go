@@ -211,7 +211,7 @@ func (grantList *GrantList) Get(index int) *Transaction {
 	return grantList.trans[index]
 }
 
-// TotalTransAmount returns the total amount of amounts for a fiscal year
+// TotalTransAmount returns the total amount of transactions for a fiscal year
 // and transaction type
 func (grantList *GrantList) TotalTransAmount(fiscalYear a.FYIndicator, transType TransType) dec.Decimal {
 	var total dec.Decimal = dec.Zero
@@ -238,12 +238,54 @@ func (grantList *GrantList) TotalTransAmount(fiscalYear a.FYIndicator, transType
 	return total
 }
 
-// TotalNetWriteOff returns the netwriteoff which is the gross writeoff minus the transfers
+// GrandTotalTransactions returns the total amount of transactions of a particular type
+// of transaction for all fiscal years.
+func (grantList *GrantList) GrandTotalTransactions(transType TransType) dec.Decimal {
+	var total = dec.Zero
+	for _, fy := range a.FYIndicators {
+		var amount = grantList.TotalTransAmount(fy, transType)
+		total = total.Add(amount)
+	}
+	return total
+}
+
+// TotalNetWriteOff returns the net writeoff which is the gross writeoff minus the transfers
 func (grantList *GrantList) TotalNetWriteOff(fiscalYear a.FYIndicator) dec.Decimal {
 	var totalWriteOffs = grantList.TotalTransAmount(fiscalYear, WriteOff)
 	var totalTransfers = grantList.TotalTransAmount(fiscalYear, Transfer)
 	var totalNetWriteOff = totalWriteOffs.Sub(totalTransfers)
 	return totalNetWriteOff
+}
+
+// GrandTotalNetWriteoff returns the total net writeoffs.
+func (grantList *GrantList) GrandTTotalNetWriteoff() dec.Decimal {
+	var total = dec.Zero
+	for _, fy := range a.FYIndicators {
+		var amount = grantList.TotalNetWriteOff(fy)
+		total = total.Add(amount)
+	}
+	return total
+}
+
+// NetBlance returns the net balance for the specified fiscal year.  The net balance is:
+//
+//	grants - payments - writeoff + transfers + refunds
+func (grantList *GrantList) NetBalance(fiscalYear a.FYIndicator) dec.Decimal {
+	var net = grantList.TotalTransAmount(fiscalYear, Grant)
+	net = net.Sub(grantList.TotalTransAmount(fiscalYear, GrantPayment))
+	net = net.Sub(grantList.TotalTransAmount(fiscalYear, WriteOff))
+	net = net.Add(grantList.TotalTransAmount(fiscalYear, Transfer))
+	net = net.Add(grantList.TotalTransAmount(fiscalYear, Refund))
+	return net
+}
+
+// TotalNetBalance returns the sum of net balances for all fiscal years.
+func (grantList *GrantList) TotalNetBalance() dec.Decimal {
+	var total = dec.Zero
+	for _, fy := range a.FYIndicators {
+		total = total.Add(grantList.NetBalance(fy))
+	}
+	return total
 }
 
 // SortGrantList returns the grant list sorted in this order:

@@ -13,6 +13,8 @@
 // Quickbooks and convert the data to arrays or maps of structures.
 package quickbooks
 
+// The APTransaction models the transactions in the Accounts Payable register.
+
 // ----------------------------------------------------------------------------
 // Imports
 // ----------------------------------------------------------------------------
@@ -46,6 +48,32 @@ const (
 	accountScholarship = "7040"
 	accountChecking    = "1010"
 )
+
+const (
+	accountCash   = "1010 Cash:Cash in bank - operating"
+	accountGrants = "7040 Grants, contracts, & direct assistance:Awards & grants - individuals"
+	ncState       = "North Carolina State University"
+	mPlazas       = "Matthew Plazas"
+)
+
+var oct31, _ = d.New(10, 31, 2024)
+
+// Refund transactions for Matthew Plazas
+var ncDeposit = NewAPTransaction(
+	oct31,
+	ncState,
+	mPlazas,
+	Deposit,
+	Money(dec.NewFromInt(3000)),
+	accountCash)
+
+var ncVendorCredit = NewAPTransaction(
+	oct31,
+	ncState,
+	mPlazas,
+	VendorCredit,
+	Money(dec.NewFromInt(3000)),
+	accountGrants)
 
 // ----------------------------------------------------------------------------
 // Factory Functions
