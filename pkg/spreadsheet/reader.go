@@ -9,7 +9,7 @@
 //
 // ----------------------------------------------------------------------------
 
-// The spreadsheet package reads and processes Excel spreadsheets.
+// The spreadsheet package reads and writes Excel spreadsheets.
 package spreadsheet
 
 // ----------------------------------------------------------------------------
