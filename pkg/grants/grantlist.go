@@ -23,6 +23,7 @@ import (
 
 	dec "github.com/shopspring/decimal"
 	"github.com/waysys/assert/assert"
+	s "github.com/waysys/set/pkg/stringset"
 	d "github.com/waysys/waydate/pkg/date"
 )
 
@@ -301,4 +302,21 @@ func (grantList *GrantList) Sort() {
 		return result
 	}
 	sort.Slice(grantList.trans[:grantList.count], less)
+}
+
+// Names returns an alphabetized name of recipients.
+func (grantList *GrantList) Names() []string {
+	var names = s.New()
+	var index = 0
+	var numTrans = grantList.Size()
+
+	for index = 0; index < numTrans; index++ {
+		var transaction = grantList.Get(index)
+		var name = transaction.Recipient()
+		names.Add(name)
+	}
+
+	var nameList = names.ToSlice()
+	sort.Strings(nameList)
+	return nameList
 }

@@ -94,6 +94,12 @@ func main() {
 	s.Check(err, "Error: ")
 	outputRecipientSummary(&output, &grantList)
 	//
+	// Produce the name tag list
+	//
+	output, err = output.AddSheet("Name Tags")
+	s.Check(err, "Error: ")
+	outputNameTagList(&output, &grantList)
+	//
 	// Save results
 	//
 	output.Save()
@@ -335,6 +341,21 @@ func outputSumData(
 	var amount = recipientSum.PaymentTotal(fiscalYear)
 	sp.WriteCellInt(output, columnCount, row, count)
 	sp.WriteCellDecimal(output, columnAmount, row, amount)
+}
+
+// outputNameTagList produces a list of recipients that have been given awards,
+// but not necessarily received payments.
+func outputNameTagList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
+	var row = 1
+	var names = grantList.Names()
+	sp.WriteCell(output, "A", row, "Recipient")
+	//
+	// Loop through grant list names
+	//
+	for _, name := range names {
+		sp.WriteCell(output, "A", row, name)
+		row++
+	}
 }
 
 // ----------------------------------------------------------------------------
