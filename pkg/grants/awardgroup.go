@@ -19,8 +19,6 @@ import (
 	a "acorn_go/pkg/accounting"
 	"errors"
 
-	q "acorn_go/pkg/quickbooks"
-
 	r "github.com/waysys/waydate/pkg/daterange"
 
 	d "github.com/waysys/waydate/pkg/date"
@@ -37,7 +35,7 @@ type AwardGroup struct {
 	awardDate  d.Date
 	awardRange r.DateRange
 	groupName  string
-	bills      []*q.EducationBill
+	count      int
 }
 
 // ----------------------------------------------------------------------------
@@ -66,6 +64,7 @@ func NewAwardGroup(name string, date d.Date, rng r.DateRange) (AwardGroup, error
 		awardDate:  date,
 		awardRange: rng,
 		groupName:  name,
+		count:      0,
 	}
 	return group, err
 }
@@ -97,12 +96,12 @@ func (group *AwardGroup) FiscalYear() a.FYIndicator {
 }
 
 // AddBill adds an educaiton bill to the award group
-func (group *AwardGroup) AddBill(bill *q.EducationBill) {
-	group.bills = append(group.bills, bill)
+func (group *AwardGroup) AddBill() {
+	group.count++
 }
 
 // Count returns the number of education bills associated
 // with this award group.
 func (group *AwardGroup) Count() int {
-	return len(group.bills)
+	return group.count
 }
