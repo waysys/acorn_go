@@ -39,10 +39,10 @@ import (
 
 const donationsFile = "/home/bozo/golang/acorn_go/data/donations.xlsx"
 const tabDonations = "Worksheet"
-const donorFile = "/home/bozo/golang/acorn_go/donors.xlsx"
+const donorFile = "/home/bozo/golang/acorn_go/data/donors.xlsx"
 const tabDonors = "Sheet1"
 
-const outputFile = "/home/bozo/Downloads/analysis.xlsx"
+const outputFile = "/home/bozo/Downloads/annualletter.xlsx"
 const outputTab = "donors"
 
 const reportYear = a.Y2024
@@ -164,6 +164,7 @@ func outputDonors(donorList *dns.DonorList, donationList *dna.DonationList) {
 			s.WriteCell(&output, "E", row, donor.State())
 			s.WriteCell(&output, "F", row, donor.Zip())
 			row++
+			personCount++
 		}
 	}
 	//
