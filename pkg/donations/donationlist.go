@@ -34,6 +34,13 @@ import (
 // information.
 
 // ----------------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------------
+
+// DonationList maps the donors name to the donor information structure
+type DonationList map[string]*dn.Donor
+
+// ----------------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------------
 
@@ -48,13 +55,6 @@ const (
 	payment       = "Payment"
 	excludedDonor = "Nadine L. Tolman Trust"
 )
-
-// ----------------------------------------------------------------------------
-// Types
-// ----------------------------------------------------------------------------
-
-// DonationList maps the donors name to the donor information structure
-type DonationList map[string]*dn.Donor
 
 // ----------------------------------------------------------------------------
 // Factory Methods
@@ -161,6 +161,7 @@ func processPayment(donationListPtr *DonationList, sprdsht *spreadsheet.Spreadsh
 	// Update the donor information
 	//
 	err = donationListPtr.AddDonation(nameDonor, amountDonation, dateDonation)
+
 	return err
 }
 
@@ -198,6 +199,8 @@ func (donationListPtr *DonationList) AddDonation(nameDonor string, amountDonatio
 	//
 	var fy = a.FiscalYearIndicator(dateDonation)
 	donorPtr.AddDonation(amountDonation, fy)
+	var year = a.YIndicator(dateDonation)
+	donorPtr.AddCalDonation(amountDonation, year)
 	return err
 }
 

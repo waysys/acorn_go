@@ -69,7 +69,7 @@ func ReadAPTransactions() (TransList, error) {
 	var sprdsht spreadsheet.Spreadsheet
 	var err error
 	var transList = TransList{
-		trans: make([]*APTransaction, 200),
+		trans: make([]*APTransaction, 1000),
 		count: 0,
 	}
 	//

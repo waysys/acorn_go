@@ -31,12 +31,13 @@ import (
 // ----------------------------------------------------------------------------
 
 type Donor struct {
-	key             string
-	name            string
-	address         a.Address
-	email           string
-	numberHousehold int
-	donations       []dec.Decimal
+	key                   string
+	name                  string
+	address               a.Address
+	email                 string
+	numberHousehold       int
+	donations             []dec.Decimal
+	donationsCalendarYear []dec.Decimal
 }
 
 // ----------------------------------------------------------------------------
@@ -53,12 +54,13 @@ var MajorDonorLimit = dec.NewFromInt(2000)
 // New creates a new donor
 func New(ky string, nm string, adr a.Address, eml string, count int) Donor {
 	donor := Donor{
-		key:             ky,
-		name:            nm,
-		address:         adr,
-		email:           eml,
-		numberHousehold: count,
-		donations:       []dec.Decimal{ZERO, ZERO, ZERO},
+		key:                   ky,
+		name:                  nm,
+		address:               adr,
+		email:                 eml,
+		numberHousehold:       count,
+		donations:             []dec.Decimal{ZERO, ZERO, ZERO},
+		donationsCalendarYear: []dec.Decimal{ZERO, ZERO, ZERO, ZERO},
 	}
 	return donor
 }
@@ -136,7 +138,7 @@ func (donor Donor) NumberInHousehold() int {
 }
 
 // ----------------------------------------------------------------------------
-// Donation Properties
+// Donation Properties - Fiscal Year
 // ----------------------------------------------------------------------------
 
 // Donation returns the donation for the specified fiscal year
@@ -206,5 +208,30 @@ func (donor Donor) IsNonRepeatDonor(fy ac.FYIndicator) bool {
 	default:
 		assert.Assert(false, "Invalid fiscal year")
 	}
+	return result
+}
+
+// ----------------------------------------------------------------------------
+// Donation Properties - Fiscal Year
+// ----------------------------------------------------------------------------
+
+// CalDonation returns the donations for a donor for the specified calendar year.
+func (donor Donor) CalDonation(year ac.YearIndicator) dec.Decimal {
+	assert.Assert(ac.IsYearIndicator(year), "Invalid year indicator: "+year.String())
+	var amount = donor.donationsCalendarYear[year]
+	return amount
+}
+
+// AddCalDonation adds an amount to the calendar donations for the specified year.
+func (donor Donor) AddCalDonation(amount dec.Decimal, year ac.YearIndicator) {
+	assert.Assert(ac.IsYearIndicator(year), "Invalid year indicator: "+year.String())
+	donor.donationsCalendarYear[year] = donor.donationsCalendarYear[year].Add(amount)
+}
+
+// IsDonor returns true if the donor donated in the calendar year.
+func (donor Donor) IsCalDonor(year ac.YearIndicator) bool {
+	assert.Assert(ac.IsYearIndicator(year), "Invalid year indicator: "+year.String())
+	var donation = donor.CalDonation(year)
+	var result = donation.GreaterThan(ZERO)
 	return result
 }
