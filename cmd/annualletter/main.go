@@ -175,6 +175,13 @@ func outputDonors(donorList *dns.DonorList, donationList *dna.DonationList) {
 
 // selectDonor returns true if the donor is to be output
 func selectDonor(donor *dns.Donor) bool {
-	var result = donor.IsCalDonor(reportYear)
+	// var result = donor.IsCalDonor(reportYear)
+	var result = false
+	if donor.Key() != "Tolman, Nadine" {
+		var is2023Donor = donor.IsCalDonor(a.Y2023)
+		var isNot2024Donor = !donor.IsCalDonor(a.Y2024)
+		var isNot2025Donor = !donor.IsCalDonor(a.Y2025)
+		result = is2023Donor && isNot2024Donor && isNot2025Donor
+	}
 	return result
 }
