@@ -23,11 +23,11 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"strconv"
 
 	a "acorn_go/pkg/accounting"
 	ds "acorn_go/pkg/donationseries"
-	"acorn_go/pkg/spreadsheet"
+	s "acorn_go/pkg/spreadsheet"
+	sp "acorn_go/pkg/support"
 
 	d "github.com/waysys/waydate/pkg/date"
 
@@ -50,68 +50,13 @@ const (
 )
 
 // ----------------------------------------------------------------------------
-// Support Functions
-// ----------------------------------------------------------------------------
-
-// check tests an error to see if it is null.  If not, it prints an
-// error message and exits the program.
-func check(err error, message string) {
-	if err != nil {
-		fmt.Println(message + err.Error())
-		os.Exit(1)
-	}
-}
-
-// cellName generates a string representing a cell in the spreadsheet.
-func cellName(column string, row int) string {
-	var cellName = column + strconv.Itoa(row)
-	return cellName
-}
-
-// writeCell outputs a string value to the specified cell
-func writeCell(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value string) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCell(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// writeCellInt outputs an integer value to the specified cell
-func writeCellInt(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value int) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCellInt(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// writeCellFloat outputs a float64 value to the specified cell
-func writeCellFloat(
-	outputPtr *spreadsheet.SpreadsheetFile,
-	column string,
-	row int,
-	value float64) {
-
-	var cell = cellName(column, row)
-	var err = outputPtr.SetCellFloat(cell, value)
-	check(err, "Error writing cell "+cell+": ")
-}
-
-// ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
 
 // main supervises the execution of this program.  It produces a spreadsheet
 // with the donation series by year and month
 func main() {
-	var sprdsht spreadsheet.Spreadsheet
+	var sprdsht s.Spreadsheet
 	var donationSeries ds.DonationSeries
 	var err error
 
@@ -119,18 +64,18 @@ func main() {
 	//
 	// Obtain spreadsheet data
 	//
-	sprdsht, err = spreadsheet.ProcessData(inputFile, tab)
-	check(err, "Error processing spreadsheet")
+	sprdsht, err = s.ProcessData(inputFile, tab)
+	sp.Check(err, "Error processing spreadsheet")
 	//
 	// Generate donation series
 	//
 	donationSeries, err = ds.NewDonationSeries(&sprdsht)
-	check(err, "Error generating donation series")
+	sp.Check(err, "Error generating donation series")
 	//
 	// Output donation series to spreadsheet
 	//
 	err = outputDonationSeries(&donationSeries)
-	check(err, "Error writing output")
+	sp.Check(err, "Error writing output")
 	os.Exit(0)
 }
 
@@ -144,11 +89,10 @@ func printHeader() {
 // outputDonationSeries produces a spreadsheet with the donation time series
 func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	var err error = nil
-	var output spreadsheet.SpreadsheetFile
+	var output s.SpreadsheetFile
 	var keys []d.YearMonth
 	var value string
-	var totalDonationsFY2023 float64 = 0.0
-	var totalDonationsFY2024 float64 = 0.0
+	var totalDonations = []float64{0.0, 0.0, 0.0}
 	var row int
 	var yearMonth d.YearMonth
 	var avg float64 = 0.0
@@ -158,7 +102,7 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 		return err
 	}
 
-	output, err = spreadsheet.New(outputFileName, sheetName)
+	output, err = s.New(outputFileName, sheetName)
 	if err != nil {
 		return err
 	}
@@ -173,27 +117,27 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	//
 	// Insert title
 	//
-	writeCell(&output, "A", 1, "Month/Year")
-	writeCell(&output, "B", 1, "Donation Amount")
-	writeCell(&output, "C", 1, "Number of Donations")
-	writeCell(&output, "D", 1, "Average Amount of Donation")
+	s.WriteCell(&output, "A", 1, "Month/Year")
+	s.WriteCell(&output, "B", 1, "Donation Amount")
+	s.WriteCell(&output, "C", 1, "Number of Donations")
+	s.WriteCell(&output, "D", 1, "Average Amount of Donation")
 
 	for row, yearMonth = range keys {
 		//
 		// Insert month and year
 		//
 		value = yearMonth.String()
-		writeCell(&output, "A", row+2, value)
+		s.WriteCell(&output, "A", row+2, value)
 		//
 		// Insert donation for that month and year
 		//
 		amount := math.Round((*dsPtr).GetAmount(yearMonth))
-		writeCellFloat(&output, "B", row+2, amount)
+		s.WriteCellFloat(&output, "B", row+2, amount)
 		//
 		// Insert the number of donors for that month and year
 		//
 		count := (*dsPtr).GetCount(yearMonth)
-		writeCellInt(&output, "C", row+2, count)
+		s.WriteCellInt(&output, "C", row+2, count)
 		//
 		// Insert the average donation
 		//
@@ -202,19 +146,19 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 		} else {
 			avg = math.Round(amount / float64(count))
 		}
-		writeCellFloat(&output, "D", row+2, avg)
+		s.WriteCellFloat(&output, "D", row+2, avg)
 		//
-		// Calculate total donations for FY2023 and FY2024
+		// Calculate total donations for FY2023 throub FY2025
 		//
-		totalDonationsFY2023, totalDonationsFY2024 =
-			calcTotalDonations(yearMonth, amount, totalDonationsFY2023, totalDonationsFY2024)
+		calcTotalDonations(yearMonth, amount, &totalDonations)
 	}
 	//
 	// Ootput totals
 	//
 	row += 4
-	outputTotals(output, "FY2023 Donations", totalDonationsFY2023, row)
-	outputTotals(output, "FY2024 Donations", totalDonationsFY2024, row+1)
+	outputTotals(output, "FY2023 Donations", totalDonations[a.FY2023], row)
+	outputTotals(output, "FY2024 Donations", totalDonations[a.FY2024], row+1)
+	outputTotals(output, "FY3035 Donations", totalDonations[a.FY2025], row+2)
 	//
 	// Save the spreadsheet
 	//
@@ -227,27 +171,18 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 func calcTotalDonations(
 	yearMonth d.YearMonth,
 	amount float64,
-	totDonFY2023 float64,
-	totDonFY2024 float64) (float64, float64) {
+	totalDonations *[]float64) {
 	var err error = nil
 	var indicator a.FYIndicator
 
 	indicator, err = a.FiscalYearFromYearMonth(yearMonth)
 	assert.Assert(err == nil, "Unable to handle year month: "+yearMonth.String())
-	switch indicator {
-	case a.FY2023:
-		totDonFY2023 += amount
-	case a.FY2024:
-		totDonFY2024 += amount
-	default:
-		assert.Assert(false, "unmatched fiscal year: "+yearMonth.String())
-	}
-	return totDonFY2023, totDonFY2024
+	(*totalDonations)[indicator] += amount
 }
 
 // outputTotals places the donation totals for each fiscal year in rows below the
 // time series
-func outputTotals(output spreadsheet.SpreadsheetFile, title string, totalDonation float64, row int) {
-	writeCell(&output, "A", row, title)
-	writeCellFloat(&output, "B", row, totalDonation)
+func outputTotals(output s.SpreadsheetFile, title string, totalDonation float64, row int) {
+	s.WriteCell(&output, "A", row, title)
+	s.WriteCellFloat(&output, "B", row, totalDonation)
 }
