@@ -38,7 +38,7 @@ const (
 	columnStreet          = "Bill street"
 	columnCity            = "Bill city"
 	columnState           = "Bill state"
-	columnZip             = "Bill zip code"
+	columnZip             = "Bill zip"
 	columnName            = "Invite Name"
 	columnNumberHousehold = "NumberHousehold"
 	columnDeceased        = "Deceased"
