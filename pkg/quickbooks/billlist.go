@@ -101,7 +101,7 @@ func processBill(
 	var okToUse bool
 
 	const (
-		columnTransDate     = "Bill date"
+		columnTransDate     = "Date"
 		columnVendorName    = "Vendor"
 		columnRecipientName = "Memo"
 		columnBillType      = "Bills"
