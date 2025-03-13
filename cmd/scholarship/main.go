@@ -279,7 +279,6 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	var countColumns = []string{"B", "D", "F"}
 	var paymentColumns = []string{"C", "E", "G"}
 	var amount = dec.Zero
-	var refund = dec.Zero
 	//
 	// Create Headings
 	//
@@ -309,9 +308,7 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 			if recipientSum.IsRecipient(fy) {
 				totalCount[fy] += 1
 			}
-			refund = recipientSum.RefundTotal(fy)
-			amount = recipientSum.PaymentTotal(fy)
-			amount = amount.Sub(refund)
+			amount = recipientSum.NetPaymentTotal(fy)
 			totalPayments[fy] = totalPayments[fy].Add(amount)
 		}
 		row++
@@ -339,7 +336,7 @@ func outputSumData(
 	if recipientSum.IsRecipient(fiscalYear) {
 		count = 1
 	}
-	var amount = recipientSum.PaymentTotal(fiscalYear)
+	var amount = recipientSum.NetPaymentTotal(fiscalYear)
 	sp.WriteCellInt(output, columnCount, row, count)
 	sp.WriteCellDecimal(output, columnAmount, row, amount)
 }

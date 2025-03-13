@@ -80,6 +80,13 @@ func (sum *RecipientSum) IsRecipient(fy a.FYIndicator) bool {
 	return result
 }
 
+// NetPaymentTotal returns the total payments minus the total refunds.
+func (sum *RecipientSum) NetPaymentTotal(fy a.FYIndicator) dec.Decimal {
+	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
+	var result = sum.PaymentTotal(fy).Sub(sum.RefundTotal(fy))
+	return result
+}
+
 // ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------
