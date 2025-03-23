@@ -45,7 +45,7 @@ type Donor struct {
 // ----------------------------------------------------------------------------
 
 var ZERO = dec.Zero
-var MajorDonorLimit = dec.NewFromInt(2000)
+var MajorDonorLimit = dec.NewFromInt(1000)
 
 // ----------------------------------------------------------------------------
 // Factory Functions
