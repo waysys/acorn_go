@@ -9,7 +9,7 @@
 // Author: William Shaffer
 // Version: 24-Sep-2024
 //
-// # Copyright (c) 2024 William Shaffer All Rights Reserved
+//	Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 package main
