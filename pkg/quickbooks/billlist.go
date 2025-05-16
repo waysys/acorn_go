@@ -117,6 +117,7 @@ func processBill(
 		recipientName, err = sprdsht.Cell(row, columnRecipientName)
 	}
 	if err == nil {
+		recipientName = ConvertName(recipientName)
 		billType, err = sprdsht.Cell(row, columnBillType)
 	}
 	//

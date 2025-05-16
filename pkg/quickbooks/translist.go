@@ -145,6 +145,7 @@ func processTransaction(sprdshtPtr *spreadsheet.Spreadsheet, row int) (APTransac
 		recipientName, err = sprdshtPtr.Cell(row, columnRecipient)
 	}
 	if err == nil {
+		recipientName = ConvertName(recipientName)
 		transactonType, err = retrieveType(sprdshtPtr, row)
 	}
 	if err == nil {

@@ -49,11 +49,12 @@ const (
 	accountChecking    = "1010"
 )
 
+// Returned check from NC State
 const (
 	accountCash   = "1010 Cash:Cash in bank - operating"
 	accountGrants = "7040 Grants, contracts, & direct assistance:Awards & grants - individuals"
 	ncState       = "North Carolina State University"
-	mPlazas       = "Matthew Plazas"
+	mPlazas       = "Plazas, Matthew"
 )
 
 var oct31, _ = d.New(10, 31, 2024)
