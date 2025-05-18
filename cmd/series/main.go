@@ -158,7 +158,7 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	row += 4
 	outputTotals(output, "FY2023 Donations", totalDonations[a.FY2023], row)
 	outputTotals(output, "FY2024 Donations", totalDonations[a.FY2024], row+1)
-	outputTotals(output, "FY3035 Donations", totalDonations[a.FY2025], row+2)
+	outputTotals(output, "FY2035 Donations", totalDonations[a.FY2025], row+2)
 	//
 	// Save the spreadsheet
 	//
