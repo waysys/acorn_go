@@ -49,6 +49,13 @@ const (
 	sheetName      = "Donations"
 )
 
+const (
+	beginYear  = 2022
+	beginMonth = 9
+	endYear    = 2025
+	endMonth   = 8
+)
+
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
@@ -91,11 +98,13 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	var err error = nil
 	var output s.SpreadsheetFile
 	var keys []d.YearMonth
-	var value string
 	var totalDonations = []float64{0.0, 0.0, 0.0}
 	var row int
+	var fiscalYear a.FYIndicator
 	var yearMonth d.YearMonth
 	var avg float64 = 0.0
+	var start, _ = d.NewYearMonth(beginYear, beginMonth)
+	var thru, _ = d.NewYearMonth(endYear, endMonth)
 
 	if dsPtr == nil {
 		err = errors.New("pointer to donation series is nil")
@@ -110,34 +119,38 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	//
 	// Enter values in into spreadsheet
 	//
-	keys, err = d.Keys()
+	keys, err = d.Keys(start, thru)
 	if err != nil {
 		return err
 	}
 	//
 	// Insert title
 	//
-	s.WriteCell(&output, "A", 1, "Month/Year")
-	s.WriteCell(&output, "B", 1, "Donation Amount")
-	s.WriteCell(&output, "C", 1, "Number of Donations")
-	s.WriteCell(&output, "D", 1, "Average Amount of Donation")
+	s.WriteCell(&output, "A", 1, "Year")
+	s.WriteCell(&output, "B", 1, "Month")
+	s.WriteCell(&output, "C", 1, "Donation Amount")
+	s.WriteCell(&output, "D", 1, "Number of Donations")
+	s.WriteCell(&output, "E", 1, "Average Amount of Donation")
+	s.WriteCell(&output, "F", 1, "Fiscal Year")
+	s.WriteCell(&output, "G", 1, "Total Donations for Fiscal Year")
 
 	for row, yearMonth = range keys {
 		//
 		// Insert month and year
 		//
-		value = yearMonth.String()
-		s.WriteCell(&output, "A", row+2, value)
+		var yms = yearMonth.MonthString()
+		s.WriteCellInt(&output, "A", row+2, yms.Year)
+		s.WriteCell(&output, "B", row+2, yms.Month)
 		//
 		// Insert donation for that month and year
 		//
 		amount := math.Round((*dsPtr).GetAmount(yearMonth))
-		s.WriteCellFloat(&output, "B", row+2, amount)
+		s.WriteCellFloat(&output, "C", row+2, amount)
 		//
 		// Insert the number of donors for that month and year
 		//
 		count := (*dsPtr).GetCount(yearMonth)
-		s.WriteCellInt(&output, "C", row+2, count)
+		s.WriteCellInt(&output, "D", row+2, count)
 		//
 		// Insert the average donation
 		//
@@ -146,11 +159,14 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 		} else {
 			avg = math.Round(amount / float64(count))
 		}
-		s.WriteCellFloat(&output, "D", row+2, avg)
+		s.WriteCellFloat(&output, "E", row+2, avg)
 		//
-		// Calculate total donations for FY2023 throub FY2025
+		// Calculate total donations for FY2023 through FY2025
 		//
 		calcTotalDonations(yearMonth, amount, &totalDonations)
+		fiscalYear, err = a.FiscalYearFromYearMonth(yearMonth)
+		s.WriteCell(&output, "F", row+2, fiscalYear.String())
+		s.WriteCellFloat(&output, "G", row+2, totalDonations[fiscalYear])
 	}
 	//
 	// Ootput totals
@@ -158,7 +174,7 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	row += 4
 	outputTotals(output, "FY2023 Donations", totalDonations[a.FY2023], row)
 	outputTotals(output, "FY2024 Donations", totalDonations[a.FY2024], row+1)
-	outputTotals(output, "FY2035 Donations", totalDonations[a.FY2025], row+2)
+	outputTotals(output, "FY2025 Donations", totalDonations[a.FY2025], row+2)
 	//
 	// Save the spreadsheet
 	//
@@ -177,6 +193,7 @@ func calcTotalDonations(
 
 	indicator, err = a.FiscalYearFromYearMonth(yearMonth)
 	assert.Assert(err == nil, "Unable to handle year month: "+yearMonth.String())
+	assert.Assert(indicator != a.OutOfRange, "Fiscal year indicator is out of range")
 	(*totalDonations)[indicator] += amount
 }
 

@@ -40,6 +40,11 @@ const (
 	columnTransactionType = "Type"
 	columnDate            = "Date"
 	columnPayment         = "Payment"
+	columnPayee           = "Payee"
+)
+
+const (
+	unusualDonor = "Nadine L. Tolman Trust"
 )
 
 // ----------------------------------------------------------------------------
@@ -52,6 +57,7 @@ func NewDonationSeries(sprdsht *spreadsheet.Spreadsheet) (DonationSeries, error)
 	var err error = nil
 	var numRows = sprdsht.Size()
 	var value string
+	var donor string
 	//
 	// Loop through all rows in the spreadsheet except row 0 which has
 	// the column headings
@@ -62,7 +68,12 @@ func NewDonationSeries(sprdsht *spreadsheet.Spreadsheet) (DonationSeries, error)
 			return donationSeries, err
 		}
 
-		if value == columnPayment {
+		donor, err = sprdsht.Cell(row, columnPayee)
+		if err != nil {
+			return donationSeries, err
+		}
+
+		if selectRow(value, donor) {
 			err = processSeries(&donationSeries, sprdsht, row)
 			if err != nil {
 				return donationSeries, err
@@ -70,6 +81,13 @@ func NewDonationSeries(sprdsht *spreadsheet.Spreadsheet) (DonationSeries, error)
 		}
 	}
 	return donationSeries, err
+}
+
+// selectRow determines if a row will be processed
+func selectRow(value string, donor string) bool {
+	var result = value == columnPayment
+	result = result && donor != unusualDonor
+	return result
 }
 
 // processSeries processes row in the spreadsheet and adds the data

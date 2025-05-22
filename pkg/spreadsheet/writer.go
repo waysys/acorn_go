@@ -204,7 +204,7 @@ func (spFilePtr *SpreadsheetFile) SetCellInt(cell string, value int) error {
 	//
 	// Set value
 	//
-	err = file.SetCellInt(sheetname, cell, value)
+	err = file.SetCellInt(sheetname, cell, int64(value))
 	if err == nil {
 		err = spFilePtr.SetNumFmt(cell, FormatInt)
 	}
