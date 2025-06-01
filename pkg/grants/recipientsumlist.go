@@ -50,7 +50,7 @@ func AssembleRecipientSumList(grantList *GrantList) (RecipientSumList, error) {
 	var err error = nil
 	var list = NewRecipientSumList()
 	var numTrans = grantList.Size()
-	for index := 0; index < numTrans; index++ {
+	for index := range numTrans {
 		var transaction = grantList.Get(index)
 		if transaction.IsPayment() {
 			err = processPaymentForSum(&list, transaction)

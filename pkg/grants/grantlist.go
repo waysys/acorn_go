@@ -78,11 +78,10 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 	var recipient *q.Recipient
 	var edInst *q.Vendor
 	var transType TransType
-
 	//
 	// Cycle through list of bills
 	//
-	for index := 0; index < numBills; index++ {
+	for index := range numBills {
 		//
 		// Extract data
 		//
