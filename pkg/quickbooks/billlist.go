@@ -53,7 +53,7 @@ func ReadBills(transList *TransList) (BillList, error) {
 	var sprdsht spreadsheet.Spreadsheet
 	var err error
 	var billList = BillList{
-		bills: make([]*EducationBill, 200),
+		bills: make([]*EducationBill, 1000),
 		count: 0,
 	}
 	//
@@ -135,6 +135,9 @@ func processBill(
 	if trans != nil {
 		bill = NewEducationBill(trans, billType)
 		okToUse = true
+		if bill.billType == Individual {
+			okToUse = false
+		}
 	} else {
 		bill = EducationBill{}
 		okToUse = false

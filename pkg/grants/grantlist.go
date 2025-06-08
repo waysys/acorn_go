@@ -50,6 +50,10 @@ func NewGrantList() GrantList {
 	return grantList
 }
 
+// ----------------------------------------------------------------------------
+// Factory Function for Scholarships
+// ----------------------------------------------------------------------------
+
 // AssembleGrantList populates the grant list with bill and AP transaction data.
 func AssembleGrantList(billList *q.BillList, transList *q.TransList) (GrantList, error) {
 	var err error = nil
@@ -116,7 +120,7 @@ func processOtherTransactions(transList *q.TransList, grantList *GrantList) {
 	//
 	// Cycle through the transaction list
 	//
-	for index := 0; index < numTrans; index++ {
+	for index := range numTrans {
 		apTrans = transList.Get(index)
 		if selectTransaction(apTrans) {
 			var transaction = processTransaction(apTrans)
@@ -169,6 +173,8 @@ func convertTransType(apTrans *q.APTransaction) TransType {
 		transType = GrantPayment
 	case apTrans.IsDeposit():
 		transType = Refund
+	case apTrans.IsIndividualGrant():
+		transType = GrantPayment
 	default:
 		assert.Assert(false, "unrecognized grant transaction type")
 	}
@@ -187,6 +193,58 @@ func convertBillType(billType q.BillType) TransType {
 		assert.Assert(false, "Unknown bill type: "+strconv.Itoa(int(billType)))
 	}
 	return tranType
+}
+
+// ----------------------------------------------------------------------------
+// Factory Methods for Individual Grants
+// ----------------------------------------------------------------------------
+
+// AssembleIndividualGrantList creates a grant list for individual grants.
+func AssembleIndividualGrantList(transList *q.TransList) (GrantList, error) {
+	var err error = nil
+	var apTrans *q.APTransaction
+	//
+	// Create grant list
+	//
+	var grantList = NewGrantList()
+	//
+	// Cycle through the accounts payable transaction list
+	//
+	var numTrans = transList.Size()
+	for index := range numTrans {
+		apTrans = transList.Get(index)
+		if apTrans.IsIndividualGrant() {
+			var transaction = processIndividualGrant(apTrans)
+			grantList.Add(&transaction)
+		}
+	}
+	return grantList, err
+}
+
+// processIndividualGrant returns a grant transaction based on the
+// accunts payable transaction
+func processIndividualGrant(apTrans *q.APTransaction) Transaction {
+	//
+	// Extract the data
+	//
+	var date = apTrans.TransactionDate()
+	var transType = convertTransType(apTrans)
+	var vendor = apTrans.Vendor()
+	var vendorName = vendor.Name()
+	vendorName = q.ConvertName(vendorName)
+	var recipient = q.NewRecipient(vendorName)
+	var amount = dec.Decimal(apTrans.Amount())
+	//
+	// Create transaction
+	//
+	var transaction = NewTransaction(
+		date,
+		transType,
+		&recipient,
+		vendor,
+		amount,
+	)
+	return transaction
 }
 
 // ----------------------------------------------------------------------------
@@ -229,7 +287,7 @@ func (grantList *GrantList) TotalTransAmount(fiscalYear a.FYIndicator, transType
 		return result
 	}
 
-	for index := 0; index < numTrans; index++ {
+	for index := range numTrans {
 		transaction = *grantList.Get(index)
 		if match(transaction) {
 			total = total.Add(transaction.Amount())
@@ -309,7 +367,7 @@ func (grantList *GrantList) Names() []string {
 	var index = 0
 	var numTrans = grantList.Size()
 
-	for index = 0; index < numTrans; index++ {
+	for index = range numTrans {
 		var transaction = grantList.Get(index)
 		var name = transaction.Recipient()
 		names.Add(name)

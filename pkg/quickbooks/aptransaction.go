@@ -45,8 +45,9 @@ type APTransaction struct {
 // ----------------------------------------------------------------------------
 
 const (
-	accountScholarship = "7040"
-	accountChecking    = "1010"
+	accountScholarship     = "7040"
+	accountChecking        = "1010"
+	accountIndividualGrant = "7050"
 )
 
 // Returned check from NC State
@@ -143,10 +144,15 @@ func (trans *APTransaction) Account() string {
 	return value
 }
 
-// IsScholarshipAccount returns true if the account is the 7050 -
+// IsScholarshipAccount returns true if the account is the 7040 -
 // Grants
 func (trans *APTransaction) IsScholarshipAccount() bool {
 	return trans.Account() == accountScholarship
+}
+
+// IsIndividualGrantAccount returns true if the account is the 7050
+func (trans *APTransaction) IsIndividualGrantAccount() bool {
+	return trans.Account() == accountIndividualGrant
 }
 
 // IsBankAccount returns true if the account is 1010 - Cash
@@ -189,6 +195,15 @@ func (trans *APTransaction) IsVendorCredit() bool {
 func (trans *APTransaction) IsDeposit() bool {
 	var result = trans.TransactionType() == Deposit
 	result = result && trans.IsBankAccount()
+	result = result && trans.GTZero()
+	return result
+}
+
+// IsIndividualGrant returns true if the transaction is a bill
+// for an individual grant (to account 7050)
+func (trans *APTransaction) IsIndividualGrant() bool {
+	var result = trans.IsIndividualGrantAccount()
+	result = result && (trans.TransactionType() == Bill)
 	result = result && trans.GTZero()
 	return result
 }

@@ -37,18 +37,21 @@ type BillType int
 const (
 	Grant        BillType = 0
 	Transfer     BillType = 1
-	Unidentified BillType = 2
+	Individual   BillType = 2
+	Unidentified BillType = 3
 )
 
 const (
 	strGrant        = "Grant"
 	strTransfer     = "Transfer"
+	strIndividual   = "Individual"
 	strUnidentified = "Unidentified"
 )
 
 var billTypeStrings = []string{
 	strGrant,
 	strTransfer,
+	strIndividual,
 	strUnidentified,
 }
 
@@ -62,6 +65,8 @@ func NewBillType(value string) BillType {
 	switch value {
 	case "Transfer":
 		result = Transfer
+	case strIndividual:
+		result = Individual
 	default:
 		result = Grant
 	}
@@ -74,7 +79,7 @@ func NewBillType(value string) BillType {
 
 // String returns the string description of the bill type
 func (billType BillType) String() string {
-	assert.Assert(0 <= billType && billType <= 2,
+	assert.Assert(0 <= billType && billType <= 3,
 		"Incorrect value for bill type: "+strconv.Itoa(int(billType)))
 	return billTypeStrings[billType]
 }

@@ -112,7 +112,9 @@ func processTransactions(
 // the transaction list
 func selectTransaction(transaction *APTransaction) bool {
 	var result = false
-	if transaction.Recipient().Name() != "" {
+	if transaction.IsIndividualGrant() {
+		result = true
+	} else if transaction.Recipient().Name() != "" {
 		result = transaction.IsBill()
 		result = result || transaction.IsPayment()
 		result = result || transaction.IsDeposit()
