@@ -9,8 +9,8 @@
 //
 // ----------------------------------------------------------------------------
 
-// This program generates a list of FY2023 donors who did not donate in
-// FY2024 with the dates and amounts they donated.
+// This program generates a list of FY2024 donors who did not donate in
+// FY2025 with the dates and amounts they donated.
 
 package main
 
@@ -41,7 +41,7 @@ const (
 	outputFileName = "/home/bozo/Downloads/nonrepeat.xlsx"
 	sheetName      = "Non-Repeat Donors"
 
-	fy = a.FY2024
+	fy = a.FY2025
 )
 
 // ----------------------------------------------------------------------------
@@ -120,7 +120,7 @@ func outputRetention(donorList *dn.DonationList) {
 	var names = donorList.DonorKeys()
 	for _, name := range names {
 		var donor = donorList.Get(name)
-		if donor.IsNonRepeatDonor(a.FY2024) {
+		if donor.IsNonRepeatDonor(fy) {
 			var amount = donor.Donation(fy.Prior())
 			s.WriteCell(&output, "A", row, name)
 			s.WriteCellDecimal(&output, "B", row, amount)
