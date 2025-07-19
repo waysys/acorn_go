@@ -46,6 +46,7 @@ type APTransaction struct {
 
 const (
 	accountScholarship     = "7040"
+	accountDependednt      = "7045"
 	accountChecking        = "1010"
 	accountIndividualGrant = "7050"
 )
@@ -145,9 +146,10 @@ func (trans *APTransaction) Account() string {
 }
 
 // IsScholarshipAccount returns true if the account is the 7040 -
-// Grants
+// Grants or 7045 - grants to dependents
 func (trans *APTransaction) IsScholarshipAccount() bool {
-	return trans.Account() == accountScholarship
+	var result = trans.Account() == accountScholarship || trans.Account() == accountDependednt
+	return result
 }
 
 // IsIndividualGrantAccount returns true if the account is the 7050
