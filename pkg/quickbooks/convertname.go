@@ -23,6 +23,8 @@ import (
 // Functions
 // ----------------------------------------------------------------------------
 
+// ConvertName changes a name in the form of "first-name last-name" to
+// the form "last-name, first_name"
 func ConvertName(name string) string {
 	var conv = ""
 	var mult = strings.Split(name, " ")
@@ -37,4 +39,22 @@ func ConvertName(name string) string {
 		conv = mult[length-1] + ", " + mult[0]
 	}
 	return conv
+}
+
+// ReverstName changes a name in the form of "last-name, first-name" to
+// "first-name last-name"
+func RevertName(name string) string {
+	var revert = ""
+	var mult = strings.Split(name, ",")
+	var length = len(mult)
+
+	switch length {
+	case 0:
+		revert = "Error!"
+	case 1:
+		revert = mult[0]
+	default:
+		revert = mult[length-1] + " " + mult[0]
+	}
+	return revert
 }

@@ -32,6 +32,7 @@ type RecipientSum struct {
 	recipient *q.Recipient
 	payments  []dec.Decimal
 	refunds   []dec.Decimal
+	grants    []dec.Decimal
 }
 
 // ----------------------------------------------------------------------------
@@ -46,6 +47,7 @@ func NewRecipientSum(name string) RecipientSum {
 		recipient: &recipient,
 		payments:  []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
 		refunds:   []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
+		grants:    []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
 	}
 	return recipientSum
 }
@@ -87,6 +89,21 @@ func (sum *RecipientSum) NetPaymentTotal(fy a.FYIndicator) dec.Decimal {
 	return result
 }
 
+// GrantTotal returns the total grants made to a recipient in a fiscal year.
+func (sum *RecipientSum) GrantTotal(fy a.FYIndicator) dec.Decimal {
+	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
+	var result = sum.grants[fy]
+	return result
+}
+
+// IsIndividualRecipient returns true if the recipient received individual
+// grants in the specified fiscal year
+func (sum *RecipientSum) IsIndividualGrant(fy a.FYIndicator) bool {
+	var total = sum.GrantTotal(fy)
+	var result = total.GreaterThan(dec.Zero)
+	return result
+}
+
 // ----------------------------------------------------------------------------
 // Methods
 // ----------------------------------------------------------------------------
@@ -103,4 +120,11 @@ func (sum *RecipientSum) AddRefund(fy a.FYIndicator, amount dec.Decimal) {
 	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
 	assert.Assert(amount.GreaterThan(dec.Zero), "payment must be greater than zero: "+amount.String())
 	sum.refunds[fy] = sum.refunds[fy].Add(amount)
+}
+
+// AddGrant adds the amount of a grant to the total grants for the fiscal year
+func (sum *RecipientSum) AddGrant(fy a.FYIndicator, amount dec.Decimal) {
+	assert.Assert(fy != a.OutOfRange, "fiscal year must not be out of range")
+	assert.Assert(amount.GreaterThan(dec.Zero), "payment must be greater than zero: "+amount.String())
+	sum.grants[fy] = sum.grants[fy].Add(amount)
 }

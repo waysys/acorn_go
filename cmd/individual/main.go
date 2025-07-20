@@ -90,7 +90,7 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	//
 	// Create Headings
 	//
-	sp.WriteCell(output, "A", row, "Recipient Summary")
+	sp.WriteCell(output, "A", row, "Individual Grant Recipient Summary")
 	row += 2
 	sp.WriteCell(output, "A", row, "Recipient Name")
 	sp.WriteCell(output, "B", row, "FY2023 Count")
@@ -113,10 +113,10 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 		//
 		for _, fy := range a.FYIndicators {
 			outputSumData(output, fy, row, countColumns[fy], paymentColumns[fy], recipientSum)
-			if recipientSum.IsRecipient(fy) {
+			if recipientSum.IsIndividualGrant(fy) {
 				totalCount[fy] += 1
 			}
-			amount = recipientSum.NetPaymentTotal(fy)
+			amount = recipientSum.GrantTotal(fy)
 			totalPayments[fy] = totalPayments[fy].Add(amount)
 		}
 		row++
@@ -141,10 +141,10 @@ func outputSumData(
 	columnAmount string,
 	recipientSum *g.RecipientSum) {
 	var count = 0
-	if recipientSum.IsRecipient(fiscalYear) {
+	if recipientSum.IsIndividualGrant(fiscalYear) {
 		count = 1
 	}
-	var amount = recipientSum.NetPaymentTotal(fiscalYear)
+	var amount = recipientSum.GrantTotal(fiscalYear)
 	sp.WriteCellInt(output, columnCount, row, count)
 	sp.WriteCellDecimal(output, columnAmount, row, amount)
 }

@@ -173,8 +173,6 @@ func convertTransType(apTrans *q.APTransaction) TransType {
 		transType = GrantPayment
 	case apTrans.IsDeposit():
 		transType = Refund
-	case apTrans.IsIndividualGrant():
-		transType = GrantPayment
 	default:
 		assert.Assert(false, "unrecognized grant transaction type")
 	}
@@ -189,6 +187,8 @@ func convertBillType(billType q.BillType) TransType {
 		tranType = Grant
 	case q.Transfer:
 		tranType = Transfer
+	case q.Individual:
+		tranType = Grant
 	default:
 		assert.Assert(false, "Unknown bill type: "+strconv.Itoa(int(billType)))
 	}

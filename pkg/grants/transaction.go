@@ -117,6 +117,13 @@ func (trans *Transaction) IsRefund() bool {
 	return result
 }
 
+// IsGrant returns true if the transaction type is Grant
+func (trans *Transaction) IsGrant() bool {
+	var result = trans.TransType() == Grant
+	result = result && trans.GTZero()
+	return result
+}
+
 // ----------------------------------------------------------------------------
 // Other Functions
 // ----------------------------------------------------------------------------

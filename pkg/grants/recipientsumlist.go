@@ -64,6 +64,12 @@ func AssembleRecipientSumList(grantList *GrantList) (RecipientSumList, error) {
 				break
 			}
 		}
+		if transaction.IsGrant() {
+			err = processGrantForSum(&list, transaction)
+			if err != nil {
+				break
+			}
+		}
 	}
 	return list, err
 }
@@ -94,7 +100,6 @@ func processRefundForSum(list *RecipientSumList, transaction *Transaction) error
 	//
 	var err error = nil
 	var name = transaction.Recipient()
-	assert.Assert(list.Contains(name), "recipient summary is not present: "+name)
 	var recipientSum = list.FetchSummary(name)
 	var fiscalYear = transaction.FiscalYear()
 	//
@@ -102,6 +107,23 @@ func processRefundForSum(list *RecipientSumList, transaction *Transaction) error
 	//
 	var amount = transaction.Amount()
 	recipientSum.AddRefund(fiscalYear, amount)
+	return err
+}
+
+// processGrantForSum adds the grant to the total refunds for the fiscal year.
+func processGrantForSum(list *RecipientSumList, transaction *Transaction) error {
+	//
+	// Fetch summary
+	//
+	var err error = nil
+	var name = transaction.Recipient()
+	var recipientSum = list.FetchSummary(name)
+	var fiscalYear = transaction.FiscalYear()
+	//
+	// Add refund to total for the fiscal year
+	//
+	var amount = transaction.Amount()
+	recipientSum.AddGrant(fiscalYear, amount)
 	return err
 }
 

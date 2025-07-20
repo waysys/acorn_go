@@ -105,6 +105,7 @@ func processBill(
 		columnVendorName    = "Vendor"
 		columnRecipientName = "Memo"
 		columnBillType      = "Bills"
+		columnItemType      = "Item class"
 	)
 	//
 	// Read data from spreadsheet
@@ -135,9 +136,6 @@ func processBill(
 	if trans != nil {
 		bill = NewEducationBill(trans, billType)
 		okToUse = true
-		if bill.billType == Individual {
-			okToUse = false
-		}
 	} else {
 		bill = EducationBill{}
 		okToUse = false

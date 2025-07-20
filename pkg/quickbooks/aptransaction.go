@@ -148,7 +148,7 @@ func (trans *APTransaction) Account() string {
 // IsScholarshipAccount returns true if the account is the 7040 -
 // Grants or 7045 - grants to dependents
 func (trans *APTransaction) IsScholarshipAccount() bool {
-	var result = trans.Account() == accountScholarship || trans.Account() == accountDependednt
+	var result = (trans.Account() == accountScholarship) || (trans.Account() == accountDependednt)
 	return result
 }
 
@@ -170,7 +170,7 @@ func (trans *APTransaction) GTZero() bool {
 // IsBill returns true if the transaction is a valid bill
 func (trans *APTransaction) IsBill() bool {
 	var result = trans.TransactionType() == Bill
-	result = result && trans.IsScholarshipAccount()
+	result = result && (trans.IsScholarshipAccount() || trans.IsIndividualGrantAccount())
 	result = result && trans.GTZero()
 	return result
 }

@@ -351,6 +351,7 @@ func outputNameTagList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	// Loop through grant list names
 	//
 	for _, name := range names {
+		name = q.RevertName(name)
 		sp.WriteCell(output, "A", row, name)
 		row++
 	}
