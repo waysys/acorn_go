@@ -212,7 +212,7 @@ func (donor Donor) IsNonRepeatDonor(fy ac.FYIndicator) bool {
 }
 
 // ----------------------------------------------------------------------------
-// Donation Properties - Fiscal Year
+// Donation Properties - Calendar Year
 // ----------------------------------------------------------------------------
 
 // CalDonation returns the donations for a donor for the specified calendar year.

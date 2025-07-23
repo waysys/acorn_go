@@ -16,13 +16,16 @@ package donors
 // ----------------------------------------------------------------------------
 
 import (
+	ac "acorn_go/pkg/accounting"
 	a "acorn_go/pkg/address"
 	"acorn_go/pkg/spreadsheet"
 	"errors"
 	"sort"
 	"strconv"
 
+	dec "github.com/shopspring/decimal"
 	"github.com/waysys/assert/assert"
+	d "github.com/waysys/waydate/pkg/date"
 )
 
 // This file contains functions that manage a map of donors with their names,
@@ -32,6 +35,7 @@ import (
 // Constants
 // ----------------------------------------------------------------------------
 
+// Donor column names
 const (
 	columnKey             = "Donor full name"
 	columnEmail           = "Email"
@@ -42,6 +46,19 @@ const (
 	columnName            = "Invite Name"
 	columnNumberHousehold = "NumberHousehold"
 	columnDeceased        = "Deceased"
+)
+
+// Donation column names
+const (
+	columnNameDonor       = "Payee"
+	columnTransactionType = "Type"
+	columnDate            = "Date"
+	columnPayment         = "Payment"
+)
+
+const (
+	payment       = "Payment"
+	excludedDonor = "Nadine L. Tolman Trust"
 )
 
 // ----------------------------------------------------------------------------
@@ -144,6 +161,79 @@ func processAddress(sprdsht *spreadsheet.Spreadsheet, row int) (a.Address, error
 		addr.Zip, err = sprdsht.Cell(row, columnZip)
 	}
 	return addr, err
+}
+
+// AddDonations adds donation information to donor list
+func AddDonations(sprdsht *spreadsheet.Spreadsheet, donarList *DonorList) error {
+	var numRows = sprdsht.Size()
+	var err error
+
+	for row := 1; row < numRows; row++ {
+		err = processDonation(sprdsht, donarList, row)
+	}
+	return err
+}
+
+// processDonation processes a row in the donation spreadsheet
+func processDonation(sprdsht *spreadsheet.Spreadsheet, donorList *DonorList, row int) error {
+	var err error = nil
+	var value = ""
+	var dateDonation d.Date
+	var amountDonation dec.Decimal
+
+	//
+	// Obtain donor name
+	//
+	value, err = sprdsht.Cell(row, columnNameDonor)
+	if err != nil {
+		return err
+	}
+	var nameDonor = value
+	//
+	// Obtain transaction type
+	//
+	value, err = sprdsht.Cell(row, columnTransactionType)
+	if err != nil {
+		return err
+	}
+	var transType = value
+	//
+	// Obtain date of donation
+	//
+	value, err = sprdsht.Cell(row, columnDate)
+	if err != nil {
+		return err
+	}
+	dateDonation, err = d.NewFromString(value)
+	if err != nil {
+		return err
+	}
+	//
+	// Obtain amount of donation
+	//
+	amountDonation, err = sprdsht.CellDecimal(row, columnPayment)
+	if err != nil {
+		return err
+	}
+	//
+	// Add contribution to the donor for the right calendar year
+	//
+	if donorList.Contains(nameDonor) {
+		var donor = donorList.Get(nameDonor)
+		if selectDonation(transType, nameDonor) {
+			donor.AddCalDonation(amountDonation, ac.YIndicator(dateDonation))
+		}
+	}
+	return err
+}
+
+// selectDonation returns true if the donation should be added to the
+// donor.
+func selectDonation(transType string, nameDonor string) bool {
+	var result = transType == payment
+	result = result && (nameDonor != excludedDonor)
+
+	return result
 }
 
 // ----------------------------------------------------------------------------
