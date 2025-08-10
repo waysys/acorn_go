@@ -37,6 +37,7 @@ type Transaction struct {
 	recipient       *q.Recipient
 	edInst          *q.Vendor
 	amount          dec.Decimal
+	account         string
 }
 
 // ----------------------------------------------------------------------------
@@ -49,6 +50,7 @@ func NewTransaction(
 	recipient *q.Recipient,
 	edInst *q.Vendor,
 	amount dec.Decimal,
+	account string,
 ) Transaction {
 	assert.Assert(IsTransType(transType),
 		"invalid transaction type: "+strconv.Itoa(int(transType)))
@@ -58,6 +60,7 @@ func NewTransaction(
 		recipient:       recipient,
 		edInst:          edInst,
 		amount:          amount,
+		account:         account,
 	}
 	return tran
 }
@@ -98,6 +101,11 @@ func (trans *Transaction) Amount() dec.Decimal {
 	return trans.amount
 }
 
+// Account returns the account system account number
+func (trans *Transaction) Account() string {
+	return trans.account
+}
+
 // GTZero returns true if the amount is greater than zero.
 func (trans *Transaction) GTZero() bool {
 	return trans.Amount().GreaterThanOrEqual(dec.Zero)
@@ -122,6 +130,16 @@ func (trans *Transaction) IsGrant() bool {
 	var result = trans.TransType() == Grant
 	result = result && trans.GTZero()
 	return result
+}
+
+// Dependent returns "Dependent" if the account is 7045.
+// Otherwise, return ""
+func (trans *Transaction) Dependent() string {
+	var dependent = ""
+	if trans.Account() == "7045" {
+		dependent = "Dependent"
+	}
+	return dependent
 }
 
 // ----------------------------------------------------------------------------

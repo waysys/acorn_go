@@ -88,7 +88,8 @@ func Test_NewTransaction(t *testing.T) {
 	const edInstName = "Wake Tech"
 	var edInst q.Vendor = q.NewVendor(edInstName)
 	var amount = dec.NewFromInt(1000)
-	var transaction = NewTransaction(awardDate, transType, &recipient, &edInst, amount)
+	var account = "7040"
+	var transaction = NewTransaction(awardDate, transType, &recipient, &edInst, amount, account)
 
 	var testFunction = func(t *testing.T) {
 		if transaction.Recipient() != recipientName {
@@ -150,7 +151,7 @@ func Test_PaymentCalculation(t *testing.T) {
 	const edInstName = "Wake Tech"
 	var edInst q.Vendor = q.NewVendor(edInstName)
 	var amount = dec.NewFromInt(1000)
-	var transaction = NewTransaction(awardDate, transType, &recipient, &edInst, amount)
+	var transaction = NewTransaction(awardDate, transType, &recipient, &edInst, amount, "")
 	var grantList = NewGrantList()
 	grantList.Add(&transaction)
 	var total = grantList.TotalTransAmount(a.FY2023, transType)

@@ -181,7 +181,7 @@ func outputRecipientList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	var lastRecipient string = ""
 	var balance = dec.Zero
 	var totals = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero, dec.Zero, dec.Zero}
-	var columns = []string{"D", "E", "F", "G", "H"}
+	var columns = []string{"E", "F", "G", "H", "I"}
 	var totalBalance = dec.Zero
 	grantList.Sort()
 
@@ -191,14 +191,15 @@ func outputRecipientList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	sp.WriteCell(output, "A", row, "Recipient Actions")
 	row += 2
 	sp.WriteCell(output, "A", row, "Transaction Date")
-	sp.WriteCell(output, "B", row, "Recipient")
-	sp.WriteCell(output, "C", row, "Educational Institution")
+	sp.WriteCell(output, "B", row, "Dependent?")
+	sp.WriteCell(output, "C", row, "Recipient")
+	sp.WriteCell(output, "D", row, "Educational Institution")
 	sp.WriteCell(output, columns[g.Grant], row, "Grant")
 	sp.WriteCell(output, columns[g.GrantPayment], row, "Payment")
 	sp.WriteCell(output, columns[g.WriteOff], row, "Write-Off")
 	sp.WriteCell(output, columns[g.Transfer], row, "Transfer")
 	sp.WriteCell(output, columns[g.Refund], row, "Refunds")
-	sp.WriteCell(output, "I", row, "Net Balance")
+	sp.WriteCell(output, "J", row, "Net Balance")
 	row++
 	//
 	// Loop through the transactions in the grant list
@@ -213,11 +214,12 @@ func outputRecipientList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 		var edInst = tran.EducationalInstitution()
 		var amount = tran.Amount()
 		var transType = tran.TransType()
+		var dependent = tran.Dependent()
 		//
 		// Check if recipient has changed
 		//
 		if recipient != lastRecipient {
-			sp.WriteCellDecimal(output, "I", row, balance)
+			sp.WriteCellDecimal(output, "J", row, balance)
 			totalBalance = totalBalance.Add(balance)
 			row++
 			lastRecipient = recipient
@@ -227,24 +229,25 @@ func outputRecipientList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 		// Write data to spreadsheet
 		//
 		sp.WriteCellDate(output, "A", row, transactionDate)
-		sp.WriteCell(output, "B", row, recipient)
-		sp.WriteCell(output, "C", row, edInst)
+		sp.WriteCell(output, "B", row, dependent)
+		sp.WriteCell(output, "C", row, recipient)
+		sp.WriteCell(output, "D", row, edInst)
 		sp.WriteCellDecimal(output, columns[transType], row, amount)
 		totals[transType] = totals[transType].Add(amount)
 		balance = computeBalance(balance, amount, transType)
 		row++
 	}
 	totalBalance = totalBalance.Add(balance)
-	sp.WriteCellDecimal(output, "I", row, balance)
+	sp.WriteCellDecimal(output, "J", row, balance)
 	//
 	// Write totals to spreadsheet
 	//
 	row += 2
-	sp.WriteCell(output, "C", row, "Totals")
+	sp.WriteCell(output, "D", row, "Totals")
 	for _, transType := range g.TransTypes {
 		sp.WriteCellDecimal(output, columns[transType], row, totals[transType])
 	}
-	sp.WriteCellDecimal(output, "I", row, totalBalance)
+	sp.WriteCellDecimal(output, "J", row, totalBalance)
 }
 
 // computeBalance calculates the remaning balance based on the type of transaction.

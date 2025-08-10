@@ -83,3 +83,23 @@ func (bill *EducationBill) Recipient() *Recipient {
 func (bill *EducationBill) Vendor() *Vendor {
 	return bill.trans.vendor
 }
+
+// Account returns the accounting system account number
+// associated with the type of bill.
+func (bill *EducationBill) Account() string {
+	var billType = bill.billType
+	var account = ""
+	switch billType {
+	case Individual:
+		account = "7050"
+	case Dependent:
+		account = "7045"
+	case Transfer:
+		account = ""
+	case Grant:
+		account = "7040"
+	default:
+		account = "7040"
+	}
+	return account
+}

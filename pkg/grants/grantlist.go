@@ -82,6 +82,7 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 	var recipient *q.Recipient
 	var edInst *q.Vendor
 	var transType TransType
+	var account string
 	//
 	// Cycle through list of bills
 	//
@@ -95,6 +96,7 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 		recipient = bill.Recipient()
 		edInst = bill.Vendor()
 		transType = convertBillType(bill.BType())
+		account = bill.Account()
 		//
 		// Create transaction
 		//
@@ -104,6 +106,7 @@ func processBills(billList *q.BillList, grantList *GrantList) {
 			recipient,
 			edInst,
 			amount,
+			account,
 		)
 		//
 		// Add transaction
@@ -148,6 +151,7 @@ func processTransaction(apTrans *q.APTransaction) Transaction {
 	var recipient = apTrans.Recipient()
 	var vendor = apTrans.Vendor()
 	var amount = dec.Decimal(apTrans.Amount())
+	var account = apTrans.Account()
 	//
 	// Create transaction
 	//
@@ -157,6 +161,7 @@ func processTransaction(apTrans *q.APTransaction) Transaction {
 		recipient,
 		vendor,
 		amount,
+		account,
 	)
 	return transaction
 }
@@ -188,6 +193,8 @@ func convertBillType(billType q.BillType) TransType {
 	case q.Transfer:
 		tranType = Transfer
 	case q.Individual:
+		tranType = Grant
+	case q.Dependent:
 		tranType = Grant
 	default:
 		assert.Assert(false, "Unknown bill type: "+strconv.Itoa(int(billType)))
@@ -234,6 +241,7 @@ func processIndividualGrant(apTrans *q.APTransaction) Transaction {
 	vendorName = q.ConvertName(vendorName)
 	var recipient = q.NewRecipient(vendorName)
 	var amount = dec.Decimal(apTrans.Amount())
+	var account = apTrans.Account()
 	//
 	// Create transaction
 	//
@@ -243,6 +251,7 @@ func processIndividualGrant(apTrans *q.APTransaction) Transaction {
 		&recipient,
 		vendor,
 		amount,
+		account,
 	)
 	return transaction
 }

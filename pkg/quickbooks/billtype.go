@@ -38,13 +38,15 @@ const (
 	Grant        BillType = 0
 	Transfer     BillType = 1
 	Individual   BillType = 2
-	Unidentified BillType = 3
+	Dependent    BillType = 3
+	Unidentified BillType = 4
 )
 
 const (
 	strGrant        = "Grant"
 	strTransfer     = "Transfer"
 	strIndividual   = "Individual"
+	strDependent    = "Dependent"
 	strUnidentified = "Unidentified"
 )
 
@@ -52,6 +54,7 @@ var billTypeStrings = []string{
 	strGrant,
 	strTransfer,
 	strIndividual,
+	strDependent,
 	strUnidentified,
 }
 
@@ -63,10 +66,12 @@ var billTypeStrings = []string{
 func NewBillType(value string) BillType {
 	var result BillType
 	switch value {
-	case "Transfer":
+	case strTransfer:
 		result = Transfer
 	case strIndividual:
 		result = Individual
+	case strDependent:
+		result = Dependent
 	default:
 		result = Grant
 	}
