@@ -294,15 +294,19 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	sp.WriteCell(output, "E", row, "FY2024 Payments")
 	sp.WriteCell(output, "F", row, "FY2025 Count")
 	sp.WriteCell(output, "G", row, "FY2025 Payments")
+	sp.WriteCell(output, "H", row, "Total Count")
 	row++
 	//
 	// Loop through the recipient summaries
 	//
 	var names = list.Names()
+	var grandCount = 0
 	for _, name := range names {
 		var recipientSum, err = list.Get(name)
 		s.Check(err, "Error: ")
 		sp.WriteCell(output, "A", row, name)
+		sp.WriteCellInt(output, "H", row, 1)
+		grandCount++
 		//
 		// Cycle through fiscal years
 		//
@@ -321,6 +325,7 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	//
 	row++
 	sp.WriteCell(output, "A", row, "Total Payments")
+	sp.WriteCellInt(output, "H", row, grandCount)
 	for _, fy := range a.FYIndicators {
 		sp.WriteCellInt(output, countColumns[fy], row, totalCount[fy])
 		sp.WriteCellDecimal(output, paymentColumns[fy], row, totalPayments[fy])
