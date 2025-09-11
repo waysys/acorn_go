@@ -222,6 +222,7 @@ func processDonation(sprdsht *spreadsheet.Spreadsheet, donorList *DonorList, row
 		var donor = donorList.Get(nameDonor)
 		if selectDonation(transType, nameDonor) {
 			donor.AddCalDonation(amountDonation, ac.YIndicator(dateDonation))
+
 		}
 	}
 	return err

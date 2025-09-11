@@ -8,7 +8,7 @@
 // Author: William Shaffer
 // Version: 30-Dec-2024
 //
-// # Copyright (c) 2024 William Shaffer All Rights Reserved
+// Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ const tabDonors = "Sheet1"
 const outputFile = "/home/bozo/Downloads/annualletter.xlsx"
 const outputTab = "donors"
 
-const reportYear = a.Y2024
+const reportYear = a.Y2025
 
 // ----------------------------------------------------------------------------
 // Functions
@@ -55,6 +55,8 @@ const reportYear = a.Y2024
 func main() {
 	var donationList dna.DonationList
 	var donorList dns.DonorList
+	var err error
+	var output s.SpreadsheetFile
 	//
 	// Read input data
 	//
@@ -62,9 +64,24 @@ func main() {
 	donorList = generateAddressList()
 	donationList = generateDonationList()
 	//
-	// Output data to spreadsheet
+	// Create output spreadsheet
 	//
-	outputDonors(&donorList, &donationList)
+	output, err = s.New(outputFile, outputTab)
+	sp.Check(err, "Error opening output file: ")
+	//
+	// Output annual donors to spreadsheet
+	//
+	outputAnnualDonors(&donorList, &donationList, output)
+	//
+	// Output prior month donors
+	//
+	output, err = output.AddSheet("Month Donors")
+	sp.Check(err, "Error adding Month Donor sheet: ")
+	outputMonthlysDonors(&donorList, &donationList, output)
+	err = output.Save()
+	sp.Check(err, "Error saving output file")
+	err = output.Close()
+	sp.Check(err, "Error closing output file")
 	os.Exit(0)
 }
 
@@ -123,20 +140,10 @@ func printHeader() {
 // for donors that have donated in the specified calendar year.
 // outputAddresses outputs the addresses to a spreadsheet
 // This is the full list of donors
-func outputDonors(donorList *dns.DonorList, donationList *dna.DonationList) {
-	var err error
-	var output s.SpreadsheetFile
-	//
-	// Create output spreadsheet
-	//
-	output, err = s.New(outputFile, outputTab)
-	sp.Check(err, "Error opening output file: ")
-	defer func() {
-		err = output.Save()
-		sp.Check(err, "Error saving output file")
-		err = output.Close()
-		sp.Check(err, "Error closing output file")
-	}()
+func outputAnnualDonors(
+	donorList *dns.DonorList,
+	donationList *dna.DonationList,
+	output s.SpreadsheetFile) {
 	//
 	// Insert Heading
 	//
@@ -170,18 +177,63 @@ func outputDonors(donorList *dns.DonorList, donationList *dna.DonationList) {
 	//
 	// Output to person count
 	//
-	fmt.Println("Number of people donating: " + strconv.Itoa(personCount))
+	fmt.Println("Number of annual donors: " + strconv.Itoa(personCount))
 }
 
 // selectDonor returns true if the donor is to be output
 func selectDonor(donor *dns.Donor) bool {
-	// var result = donor.IsCalDonor(reportYear)
 	var result = false
 	if donor.Key() != "Tolman, Nadine" {
-		var is2023Donor = donor.IsCalDonor(a.Y2023)
-		var isNot2024Donor = !donor.IsCalDonor(a.Y2024)
-		var isNot2025Donor = !donor.IsCalDonor(a.Y2025)
-		result = is2023Donor && isNot2024Donor && isNot2025Donor
+		result = donor.IsCalDonor(reportYear)
 	}
 	return result
+}
+
+// outputDonors creates a spreadsheets with the donor names and addresses
+// for donors that have donated in the specified calendar year.
+// outputAddresses outputs the addresses to a spreadsheet
+// This is the full list of donors
+func outputMonthlysDonors(
+	donorList *dns.DonorList,
+	donationList *dna.DonationList,
+	output s.SpreadsheetFile) {
+	//
+	// Insert Heading
+	//
+	var row = 1
+	s.WriteCell(&output, "A", row, "Donor Name")
+	s.WriteCell(&output, "B", row, "Email")
+	s.WriteCell(&output, "C", row, "Street")
+	s.WriteCell(&output, "D", row, "City")
+	s.WriteCell(&output, "E", row, "State")
+	s.WriteCell(&output, "F", row, "Zip")
+	s.WriteCell(&output, "G", row, "Key")
+	row++
+	//
+	// Process donors
+	//
+	var personCount = 0
+	var keys = donationList.DonorKeys()
+	for _, key := range keys {
+		var donor = donationList.Get(key)
+		if selectDonor(donor) {
+			if donor.IsCurrentDonor() {
+				donor = donorList.Get(key)
+				s.WriteCell(&output, "A", row, donor.Name())
+				s.WriteCell(&output, "B", row, donor.Email())
+				s.WriteCell(&output, "C", row, donor.Street())
+				s.WriteCell(&output, "D", row, donor.City())
+				s.WriteCell(&output, "E", row, donor.State())
+				s.WriteCell(&output, "F", row, donor.Zip())
+				s.WriteCell(&output, "G", row, key)
+				row++
+				personCount++
+			}
+		}
+	}
+	//
+	// Output to person count
+	//
+	fmt.Println("Number of monthly donors: " + strconv.Itoa(personCount))
+	fmt.Println("Current month is: " + a.CurrentMonth())
 }

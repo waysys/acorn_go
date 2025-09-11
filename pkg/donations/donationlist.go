@@ -172,7 +172,10 @@ func processPayment(donationListPtr *DonationList, sprdsht *spreadsheet.Spreadsh
 // AddDonation adds a donation to the list.  If the donor is not already
 // in the list, a new donation structure is created.  If the donor is in the list,
 // the donation is added to the donors values, based on the donation date.
-func (donationListPtr *DonationList) AddDonation(nameDonor string, amountDonation dec.Decimal, dateDonation d.Date) error {
+func (donationListPtr *DonationList) AddDonation(
+	nameDonor string,
+	amountDonation dec.Decimal,
+	dateDonation d.Date) error {
 	var err error = nil
 	var donorPtr *dn.Donor
 	//
@@ -201,6 +204,7 @@ func (donationListPtr *DonationList) AddDonation(nameDonor string, amountDonatio
 	donorPtr.AddDonation(amountDonation, fy)
 	var year = a.YIndicator(dateDonation)
 	donorPtr.AddCalDonation(amountDonation, year)
+	donorPtr.AddMonthDonation(amountDonation, dateDonation)
 	return err
 }
 

@@ -24,6 +24,7 @@ import (
 
 	dec "github.com/shopspring/decimal"
 	"github.com/waysys/assert/assert"
+	d "github.com/waysys/waydate/pkg/date"
 )
 
 // ----------------------------------------------------------------------------
@@ -38,6 +39,7 @@ type Donor struct {
 	numberHousehold       int
 	donations             []dec.Decimal
 	donationsCalendarYear []dec.Decimal
+	donationsCurrentMonth dec.Decimal
 }
 
 // ----------------------------------------------------------------------------
@@ -61,6 +63,7 @@ func New(ky string, nm string, adr a.Address, eml string, count int) Donor {
 		numberHousehold:       count,
 		donations:             []dec.Decimal{ZERO, ZERO, ZERO},
 		donationsCalendarYear: []dec.Decimal{ZERO, ZERO, ZERO, ZERO},
+		donationsCurrentMonth: ZERO,
 	}
 	return donor
 }
@@ -148,12 +151,6 @@ func (donor Donor) Donation(fy ac.FYIndicator) dec.Decimal {
 	return amount
 }
 
-// AddDonation adds the amount to the donations for the specified fical year.
-func (donor Donor) AddDonation(amount dec.Decimal, fy ac.FYIndicator) {
-	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+fy.String())
-	donor.donations[fy] = donor.donations[fy].Add(amount)
-}
-
 // TotalDonation returns the total donations for this donor.
 func (donor Donor) TotalDonation() dec.Decimal {
 	var amount = ZERO
@@ -212,6 +209,16 @@ func (donor Donor) IsNonRepeatDonor(fy ac.FYIndicator) bool {
 }
 
 // ----------------------------------------------------------------------------
+// Donation Properties - Setters - Fiscal Year
+// ----------------------------------------------------------------------------
+
+// AddDonation adds the amount to the donations for the specified fical year.
+func (donor Donor) AddDonation(amount dec.Decimal, fy ac.FYIndicator) {
+	assert.Assert(ac.IsFYIndicator(fy), "Invalid FYIndicator: "+fy.String())
+	donor.donations[fy] = donor.donations[fy].Add(amount)
+}
+
+// ----------------------------------------------------------------------------
 // Donation Properties - Calendar Year
 // ----------------------------------------------------------------------------
 
@@ -222,16 +229,49 @@ func (donor Donor) CalDonation(year ac.YearIndicator) dec.Decimal {
 	return amount
 }
 
-// AddCalDonation adds an amount to the calendar donations for the specified year.
-func (donor Donor) AddCalDonation(amount dec.Decimal, year ac.YearIndicator) {
-	assert.Assert(ac.IsYearIndicator(year), "Invalid year indicator: "+year.String())
-	donor.donationsCalendarYear[year] = donor.donationsCalendarYear[year].Add(amount)
-}
-
 // IsDonor returns true if the donor donated in the calendar year.
 func (donor Donor) IsCalDonor(year ac.YearIndicator) bool {
 	assert.Assert(ac.IsYearIndicator(year), "Invalid year indicator: "+year.String())
 	var donation = donor.CalDonation(year)
 	var result = donation.GreaterThan(ZERO)
 	return result
+}
+
+// ----------------------------------------------------------------------------
+// Donation Method - Setters - Calendar Year
+// ----------------------------------------------------------------------------
+
+// AddCalDonation adds an amount to the calendar donations for the specified year.
+func (donor *Donor) AddCalDonation(amount dec.Decimal, year ac.YearIndicator) {
+	assert.Assert(ac.IsYearIndicator(year), "Invalid year indicator: "+year.String())
+	donor.donationsCalendarYear[year] = donor.donationsCalendarYear[year].Add(amount)
+}
+
+// ----------------------------------------------------------------------------
+// Donation Properties - Current Month
+// ----------------------------------------------------------------------------
+
+// isCurrentMonthDonor returns true if the donor has contributed
+// in the current month.
+func (donor Donor) IsCurrentDonor() bool {
+	var result = donor.CurrentMonthDonation().GreaterThan(ZERO)
+	return result
+}
+
+// CurrentMonthDonation returns the total amount of current month donations
+// for this donor.
+func (donor Donor) CurrentMonthDonation() dec.Decimal {
+	return donor.donationsCurrentMonth
+}
+
+// ----------------------------------------------------------------------------
+// Donation Setters - Current Month
+// ----------------------------------------------------------------------------
+
+// AddMonthDonation adds the amount of the donation if the payment date
+// is in the current month date range.
+func (donor *Donor) AddMonthDonation(amount dec.Decimal, date d.Date) {
+	if ac.IsCurrentMonth(date) {
+		donor.donationsCurrentMonth = donor.donationsCurrentMonth.Add(amount)
+	}
 }
