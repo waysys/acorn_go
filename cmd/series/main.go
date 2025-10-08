@@ -50,9 +50,9 @@ const (
 )
 
 const (
-	beginYear  = 2022
+	beginYear  = 2023
 	beginMonth = 9
-	endYear    = 2025
+	endYear    = 2026
 	endMonth   = 8
 )
 
@@ -172,9 +172,9 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	// Ootput totals
 	//
 	row += 4
-	outputTotals(output, "FY2023 Donations", totalDonations[a.FY2023], row)
-	outputTotals(output, "FY2024 Donations", totalDonations[a.FY2024], row+1)
-	outputTotals(output, "FY2025 Donations", totalDonations[a.FY2025], row+2)
+	outputTotals(output, "FY2024 Donations", totalDonations[a.FY2024], row)
+	outputTotals(output, "FY2025 Donations", totalDonations[a.FY2025], row+1)
+	outputTotals(output, "FY2026 Donations", totalDonations[a.FY2026], row+2)
 	//
 	// Save the spreadsheet
 	//

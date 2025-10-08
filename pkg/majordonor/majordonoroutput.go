@@ -5,13 +5,13 @@
 // Author: William Shaffer
 // Version: 03-May-2024
 //
-// Copyright (c) 2024 William Shaffer All Rights Reserved
+// Copyright (c) 2024, 2025 Acorn Scholarship Fund All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
 package majordonor
 
-// This file computes the output values for major donors
+// This package computes the output values for major donors
 
 // ----------------------------------------------------------------------------
 // Imports
@@ -117,16 +117,16 @@ func (majorDonor MajorDonor) PercentDonation(fy a.FYIndicator) float64 {
 func (majorDonor MajorDonor) PercentChange(fy a.FYIndicator) float64 {
 	var percentChange = 0.00
 	switch fy {
-	case a.FY2023:
-		percentChange = 0.00
 	case a.FY2024:
-		var avgDonationFY2023 = majorDonor.AvgDonation(a.FY2023)
+		percentChange = 0.00
+	case a.FY2025:
+		var avgDonationFY2023 = majorDonor.AvgDonation(a.FY2025)
 		var avgDonationFY2024 = majorDonor.AvgDonation(a.FY2024)
 		if avgDonationFY2023 > 0.00 {
 			percentChange = 100.00 * (avgDonationFY2024 - avgDonationFY2023) / avgDonationFY2023
 		}
-	case a.FY2025:
-		var avgDonationFY2024 = majorDonor.AvgDonation(a.FY2024)
+	case a.FY2026:
+		var avgDonationFY2024 = majorDonor.AvgDonation(a.FY2026)
 		var avgDonationFY2025 = majorDonor.AvgDonation(a.FY2025)
 		if avgDonationFY2024 > 0.00 {
 			percentChange = 100 * (avgDonationFY2025 - avgDonationFY2024) / avgDonationFY2024

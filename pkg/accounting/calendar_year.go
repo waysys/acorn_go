@@ -1,11 +1,11 @@
 // ----------------------------------------------------------------------------
 //
-// Fiscal Year
+// Calendar Year
 //
 // Author: William Shaffer
-// Version: 30-Dec-2024
+// Version: 02-Oct-2025
 //
-// Copyright (c) 2024 William Shaffer All Rights Reserved
+// Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ var yearIndicators = [6]YearIndicator{
 
 var indNames = [6]string{"Y2022", "Y2023", "Y2024", "Y2025", "Y2026", "Unknown"}
 
-var currentMonthStart, _ = d.New(8, 1, 2025)
-var currentMonthEnd, _ = d.New(8, 31, 2025)
+var currentMonthStart, _ = d.New(9, 1, 2025)
+var currentMonthEnd, _ = d.New(9, 30, 2025)
 var currentMonth, _ = daterange.New(currentMonthStart, currentMonthEnd)
 
 // ----------------------------------------------------------------------------

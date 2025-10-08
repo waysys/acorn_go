@@ -7,9 +7,9 @@
 // -- Donation Analysis
 //
 // Author: William Shaffer
-// Version: 24-Sep-2024
+// Version: 02-Oct-2025
 //
-//	Copyright (c) 2024 William Shaffer All Rights Reserved
+//	Copyright (c) 2024, 2025 Acorn Scholarship Fund All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 package main
@@ -203,7 +203,7 @@ func outputAvgDonations(
 	row++
 	s.WriteCell(output, "A", row, "Year of Donation")
 	row++
-	for fy := a.FY2023; fy <= a.FY2025; fy++ {
+	for fy := a.FY2024; fy <= a.FY2026; fy++ {
 		s.WriteCell(output, "A", row, fy.String())
 		s.WriteCellFloat(output, "B", row, dac.AvgDonation(fy, dn.PriorPriorYear))
 		s.WriteCellFloat(output, "C", row, dac.AvgDonation(fy, dn.PriorYear))

@@ -44,9 +44,9 @@ var ZERO = dec.Zero
 // NewDonationAnalysis returns the array of Donations
 func NewDonationAnalysis() DonationAnalysis {
 	var donations = make(DonationAnalysis, 3)
-	donations[a.FY2023] = NewDonations(a.FY2023)
 	donations[a.FY2024] = NewDonations(a.FY2024)
 	donations[a.FY2025] = NewDonations(a.FY2025)
+	donations[a.FY2026] = NewDonations(a.FY2026)
 	return donations
 }
 
@@ -81,18 +81,18 @@ func (da *DonationAnalysis) applyAmount(
 	donor *dn.Donor,
 	amount dec.Decimal) {
 	switch fy {
-	case a.FY2023:
-		da.add(fy, CurrentYear, amount)
 	case a.FY2024:
-		if donor.IsDonor(a.FY2023) {
+		da.add(fy, CurrentYear, amount)
+	case a.FY2025:
+		if donor.IsDonor(a.FY2024) {
 			da.add(fy, PriorYear, amount)
 		} else {
 			da.add(fy, CurrentYear, amount)
 		}
-	case a.FY2025:
-		if donor.IsDonor(a.FY2024) {
+	case a.FY2026:
+		if donor.IsDonor(a.FY2025) {
 			da.add(fy, PriorYear, amount)
-		} else if donor.IsDonor(a.FY2023) {
+		} else if donor.IsDonor(a.FY2024) {
 			da.add(fy, PriorPriorYear, amount)
 		} else {
 			da.add(fy, CurrentYear, amount)

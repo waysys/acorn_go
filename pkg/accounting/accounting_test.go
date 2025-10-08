@@ -39,21 +39,21 @@ func TestMain(m *testing.M) {
 // Test_FYIndicator checks the FiscalYearIndicator function
 func Test_FYIndicator(t *testing.T) {
 
-	var date2023_1, _ = d.New(9, 1, 2022)
-	var date2023_2, _ = d.New(8, 31, 2023)
 	var date2024_1, _ = d.New(9, 1, 2023)
 	var date2024_2, _ = d.New(8, 31, 2024)
 	var date2025_1, _ = d.New(9, 1, 2024)
 	var date2025_2, _ = d.New(8, 31, 2025)
-	var dateOutOfRange, _ = d.New(9, 1, 2025)
+	var date2026_1, _ = d.New(9, 1, 2025)
+	var date2026_2, _ = d.New(8, 31, 2026)
+	var dateOutOfRange, _ = d.New(9, 1, 2026)
 
 	var testFunction = func(t *testing.T) {
-		var fy = FiscalYearIndicator(date2023_1)
-		if fy != FY2023 {
-			t.Error("Fiscal year should be FY2023, not: " + fy.String())
+		var fy = FiscalYearIndicator(date2026_1)
+		if fy != FY2026 {
+			t.Error("Fiscal year should be FY2026, not: " + fy.String())
 		}
-		fy = FiscalYearIndicator(date2023_2)
-		if fy != FY2023 {
+		fy = FiscalYearIndicator(date2026_2)
+		if fy != FY2026 {
 			t.Error("Fiscal year should be FY2023, not: " + fy.String())
 		}
 		fy = FiscalYearIndicator(date2024_1)

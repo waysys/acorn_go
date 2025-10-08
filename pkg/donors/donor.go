@@ -196,12 +196,12 @@ func (donor Donor) IsMajorDonorOverall() bool {
 func (donor Donor) IsNonRepeatDonor(fy ac.FYIndicator) bool {
 	var result = false
 	switch fy {
-	case ac.FY2023:
-		result = true
 	case ac.FY2024:
-		result = donor.IsDonor(ac.FY2023) && !donor.IsDonor(fy)
+		result = true
 	case ac.FY2025:
-		result = donor.IsDonor(ac.FY2024) && !donor.IsDonor(fy)
+		result = donor.IsDonor(ac.FY2025) && !donor.IsDonor(fy)
+	case ac.FY2026:
+		result = donor.IsDonor(ac.FY2025) && !donor.IsDonor(fy)
 	default:
 		assert.Assert(false, "Invalid fiscal year")
 	}

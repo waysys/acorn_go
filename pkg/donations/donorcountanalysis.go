@@ -45,9 +45,9 @@ type DonorCountAnalysis []DonorCount
 // NewDonorCountAnalysis returns an initialized donoar analysis.
 func NewDonorCountAnalysis() DonorCountAnalysis {
 	var donorcounts = make(DonorCountAnalysis, 3)
-	donorcounts[a.FY2023] = NewDonorCount(a.FY2023)
 	donorcounts[a.FY2024] = NewDonorCount(a.FY2024)
 	donorcounts[a.FY2025] = NewDonorCount(a.FY2025)
+	donorcounts[a.FY2026] = NewDonorCount(a.FY2026)
 	return donorcounts
 }
 
@@ -77,18 +77,18 @@ func ComputeDonorCount(donationListPtr *DonationList) DonorCountAnalysis {
 func applyDonorCount(donorCount *DonorCount, donor *dn.Donor) {
 	var fy = donorCount.fy
 	switch fy {
-	case a.FY2023:
-		donorCount.Add(CurrentYear, 1)
 	case a.FY2024:
-		if donor.IsDonor(a.FY2023) {
+		donorCount.Add(CurrentYear, 1)
+	case a.FY2025:
+		if donor.IsDonor(a.FY2024) {
 			donorCount.Add(PriorYear, 1)
 		} else {
 			donorCount.Add(CurrentYear, 1)
 		}
-	case a.FY2025:
-		if donor.IsDonor(a.FY2024) {
+	case a.FY2026:
+		if donor.IsDonor(a.FY2025) {
 			donorCount.Add(PriorYear, 1)
-		} else if donor.IsDonor(a.FY2023) {
+		} else if donor.IsDonor(a.FY2024) {
 			donorCount.Add(PriorPriorYear, 1)
 		} else {
 			donorCount.Add(CurrentYear, 1)
@@ -128,15 +128,15 @@ func (dca *DonorCountAnalysis) TotalDonors() int {
 func (dca *DonorCountAnalysis) Retention(fy a.FYIndicator) float64 {
 	var retention float64 = 0.00
 	switch fy {
-	case a.FY2023:
-		retention = 0.00
 	case a.FY2024:
-		var repeatDonors = float64((*dca)[a.FY2024].Count(PriorYear))
-		var totalDonors = float64((*dca)[a.FY2023].TotalDonorCount())
-		retention = math.Round(repeatDonors * 100 / totalDonors)
+		retention = 0.00
 	case a.FY2025:
 		var repeatDonors = float64((*dca)[a.FY2025].Count(PriorYear))
 		var totalDonors = float64((*dca)[a.FY2024].TotalDonorCount())
+		retention = math.Round(repeatDonors * 100 / totalDonors)
+	case a.FY2026:
+		var repeatDonors = float64((*dca)[a.FY2026].Count(PriorYear))
+		var totalDonors = float64((*dca)[a.FY2025].TotalDonorCount())
 		retention = math.Round(repeatDonors * 100 / totalDonors)
 	default:
 		assert.Assert(false, "Invalid fiscal year indicator: "+strconv.Itoa(int(fy)))
@@ -149,15 +149,15 @@ func (dca *DonorCountAnalysis) Retention(fy a.FYIndicator) float64 {
 func (dca *DonorCountAnalysis) Acquisition(fy a.FYIndicator) float64 {
 	var acquisition float64 = 0.0
 	switch fy {
-	case a.FY2023:
-		acquisition = 0.0
 	case a.FY2024:
-		var newDonors = float64((*dca)[a.FY2024].Count(CurrentYear))
-		var totalDonors = float64((*dca)[a.FY2023].TotalDonorCount())
-		acquisition = math.Round(newDonors * 100 / totalDonors)
+		acquisition = 0.0
 	case a.FY2025:
 		var newDonors = float64((*dca)[a.FY2025].Count(CurrentYear))
 		var totalDonors = float64((*dca)[a.FY2024].TotalDonorCount())
+		acquisition = math.Round(newDonors * 100 / totalDonors)
+	case a.FY2026:
+		var newDonors = float64((*dca)[a.FY2026].Count(CurrentYear))
+		var totalDonors = float64((*dca)[a.FY2025].TotalDonorCount())
 		acquisition = math.Round(newDonors * 100 / totalDonors)
 	default:
 		assert.Assert(false, "Invalid fiscal year indicator: "+strconv.Itoa(int(fy)))
