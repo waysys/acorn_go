@@ -44,6 +44,7 @@ const tabDonors = "Sheet1"
 
 const outputFile = "/home/bozo/Downloads/annualletter.xlsx"
 const outputTab = "donors"
+const outputTab2 = "Month Donors"
 
 const reportYear = a.Y2025
 
@@ -75,7 +76,7 @@ func main() {
 	//
 	// Output prior month donors
 	//
-	output, err = output.AddSheet("Month Donors")
+	output, err = output.AddSheet(outputTab2)
 	sp.Check(err, "Error adding Month Donor sheet: ")
 	outputMonthlysDonors(&donorList, &donationList, output)
 	err = output.Save()

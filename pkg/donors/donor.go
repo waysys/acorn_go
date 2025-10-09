@@ -40,6 +40,7 @@ type Donor struct {
 	donations             []dec.Decimal
 	donationsCalendarYear []dec.Decimal
 	donationsCurrentMonth dec.Decimal
+	deceased              bool
 }
 
 // ----------------------------------------------------------------------------
@@ -54,16 +55,17 @@ var MajorDonorLimit = dec.NewFromInt(1000)
 // ----------------------------------------------------------------------------
 
 // New creates a new donor
-func New(ky string, nm string, adr a.Address, eml string, count int) Donor {
+func New(ky string, nm string, adr a.Address, eml string, count int, decsd bool) Donor {
 	donor := Donor{
 		key:                   ky,
 		name:                  nm,
 		address:               adr,
 		email:                 eml,
 		numberHousehold:       count,
-		donations:             []dec.Decimal{ZERO, ZERO, ZERO},
-		donationsCalendarYear: []dec.Decimal{ZERO, ZERO, ZERO, ZERO},
+		donations:             []dec.Decimal{ZERO, ZERO, ZERO, ZERO},
+		donationsCalendarYear: []dec.Decimal{ZERO, ZERO, ZERO, ZERO, ZERO},
 		donationsCurrentMonth: ZERO,
+		deceased:              decsd,
 	}
 	return donor
 }
@@ -71,7 +73,7 @@ func New(ky string, nm string, adr a.Address, eml string, count int) Donor {
 // NewDonorWithDonation creates a new donor.
 func NewDonorWithDonation(name string) Donor {
 	var blankAddress = a.BlankAddress()
-	var donor = New(name, name, blankAddress, "", 0)
+	var donor = New(name, name, blankAddress, "", 0, false)
 	return donor
 }
 
@@ -138,6 +140,11 @@ func (donor Donor) HasEmail() bool {
 // donor household
 func (donor Donor) NumberInHousehold() int {
 	return donor.numberHousehold
+}
+
+// Deceased returns true if the donor is deceased
+func (donor Donor) Deceased() bool {
+	return donor.deceased
 }
 
 // ----------------------------------------------------------------------------

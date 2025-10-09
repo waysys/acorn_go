@@ -77,23 +77,13 @@ func NewDonorAddressList(sprdsht *spreadsheet.Spreadsheet) (DonorList, error) {
 	var donorList = make(DonorList)
 	var numRows = sprdsht.Size()
 	var err error
-	var value string
 	//
 	// Loop through all the rows in the spreadsheet
 	//
 	for row := 1; row < numRows; row++ {
-		value, err = sprdsht.Cell(row, columnDeceased)
+		err = processDonor(&donorList, sprdsht, row)
 		if err != nil {
 			return donorList, err
-		}
-		//
-		// Deceased donors are not included
-		//
-		if value != "Yes" {
-			err = processDonor(&donorList, sprdsht, row)
-			if err != nil {
-				return donorList, err
-			}
 		}
 	}
 	return donorList, err
@@ -108,6 +98,7 @@ func processDonor(donorList *DonorList, sprdsht *spreadsheet.Spreadsheet, row in
 	var address a.Address
 	var value string
 	var donor Donor
+	var deceased bool
 	var err error = nil
 	//
 	// Extract values from spreadsheet
@@ -132,11 +123,18 @@ func processDonor(donorList *DonorList, sprdsht *spreadsheet.Spreadsheet, row in
 			err = nil
 		}
 	}
+	if err == nil {
+		deceased = false
+		value, err = sprdsht.Cell(row, columnDeceased)
+		if err == nil {
+			deceased = value == "Yes"
+		}
+	}
 	//
 	// Create donor
 	//
 	if err == nil {
-		donor = New(key, name, address, email, count)
+		donor = New(key, name, address, email, count, deceased)
 		donorList.Add(&donor)
 	}
 	return err

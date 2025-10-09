@@ -32,9 +32,10 @@ import (
 // ----------------------------------------------------------------------------
 
 const (
-	columnName   = "Full Name"
-	columnEmail  = "Email/Phone Number"
-	columnStatus = "Status"
+	columnName     = "Full Name"
+	columnEmail    = "Email/Phone Number"
+	columnDeceased = "Deceased"
+	columnStatus   = "Status"
 )
 
 // ----------------------------------------------------------------------------
@@ -82,6 +83,8 @@ func processRow(
 	var donor *donors.Donor = nil
 	var name string
 	var email string
+	var value string
+	var deceased = false
 	var status string
 	var guest Guest
 	var blankAddress = address.BlankAddress()
@@ -96,9 +99,16 @@ func processRow(
 		status, err = sprdsht.Cell(row, columnStatus)
 	}
 	if err == nil {
+		value, err = sprdsht.Cell(row, columnDeceased)
+	}
+	if err == nil {
+		deceased = value == "Yes"
+	}
+
+	if err == nil {
 		donor, err = donorList.GetByEmail(email)
 		if err != nil {
-			var dn = donors.New(name, name, blankAddress, email, 0)
+			var dn = donors.New(name, name, blankAddress, email, 0, deceased)
 			donor = &dn
 			err = nil
 			guest = New(name, donor.Address(), email, status)

@@ -41,7 +41,7 @@ type Guest struct {
 // New returns a guest based on the specified inputs.
 func New(nm string, adr a.Address, eml string, sts string) Guest {
 	guest := Guest{
-		Donor:    d.New(nm, nm, adr, eml, 0),
+		Donor:    d.New(nm, nm, adr, eml, 0, false),
 		status:   NewStatus(sts),
 		isMember: false,
 	}
