@@ -44,7 +44,7 @@ type DonorCountAnalysis []DonorCount
 
 // NewDonorCountAnalysis returns an initialized donoar analysis.
 func NewDonorCountAnalysis() DonorCountAnalysis {
-	var donorcounts = make(DonorCountAnalysis, 3)
+	var donorcounts = make(DonorCountAnalysis, a.NumFiscalYears)
 	donorcounts[a.FY2024] = NewDonorCount(a.FY2024)
 	donorcounts[a.FY2025] = NewDonorCount(a.FY2025)
 	donorcounts[a.FY2026] = NewDonorCount(a.FY2026)
@@ -56,10 +56,10 @@ func NewDonorCountAnalysis() DonorCountAnalysis {
 // ----------------------------------------------------------------------------
 
 // ComputeDonorCount calculates the breakdown of donor counts.
-func ComputeDonorCount(donationListPtr *DonationList) DonorCountAnalysis {
+func ComputeDonorCount(donationList DonationList) DonorCountAnalysis {
 	var dc = NewDonorCountAnalysis()
 
-	for _, donor := range *donationListPtr {
+	for _, donor := range donationList {
 		for _, fy := range a.FYIndicators {
 			if fy != a.OutOfRange {
 				if donor.IsDonor(fy) {

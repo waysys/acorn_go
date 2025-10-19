@@ -3,9 +3,8 @@
 // Donor List
 //
 // Author: William Shaffer
-// Version: 14-Apr-2024
 //
-// Copyright (c) 2024 William Shaffer All Rights Reserved
+// Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -19,7 +18,7 @@ import (
 	a "acorn_go/pkg/accounting"
 	dn "acorn_go/pkg/donors"
 	"acorn_go/pkg/spreadsheet"
-	"errors"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -60,7 +59,7 @@ const (
 // Factory Methods
 // ----------------------------------------------------------------------------
 
-// NewDonorationList creates a donor list from the information in a spreadsheet.
+// NewDonationList creates a donor list from the information in a spreadsheet.
 func NewDonationList(sprdsht *spreadsheet.Spreadsheet) (DonationList, error) {
 	var donationList = make(DonationList)
 	var numRows = sprdsht.Size()
@@ -75,7 +74,7 @@ func NewDonationList(sprdsht *spreadsheet.Spreadsheet) (DonationList, error) {
 			return donationList, err
 		}
 		if okToSelect {
-			err = processPayment(&donationList, sprdsht, row)
+			err = processPayment(donationList, sprdsht, row)
 		}
 		if err != nil {
 			return donationList, err
@@ -118,7 +117,7 @@ func selectRow(sprdsht *spreadsheet.Spreadsheet, row int) (bool, error) {
 }
 
 // processPayment creates a Donor structure
-func processPayment(donationListPtr *DonationList, sprdsht *spreadsheet.Spreadsheet, row int) error {
+func processPayment(donationList DonationList, sprdsht *spreadsheet.Spreadsheet, row int) error {
 	var value string
 	var err error = nil
 	var amountDonation dec.Decimal
@@ -153,14 +152,14 @@ func processPayment(donationListPtr *DonationList, sprdsht *spreadsheet.Spreadsh
 	// Create an entry in the donor list if there is not already one
 	// for this donor.
 	//
-	if !donationListPtr.Contains(nameDonor) {
+	if !donationList.Contains(nameDonor) {
 		var donor = dn.NewDonorWithDonation(nameDonor)
-		(*donationListPtr)[nameDonor] = &donor
+		donationList[nameDonor] = &donor
 	}
 	//
 	// Update the donor information
 	//
-	err = donationListPtr.AddDonation(nameDonor, amountDonation, dateDonation)
+	err = donationList.AddDonation(nameDonor, amountDonation, dateDonation)
 
 	return err
 }
@@ -170,9 +169,9 @@ func processPayment(donationListPtr *DonationList, sprdsht *spreadsheet.Spreadsh
 // ----------------------------------------------------------------------------
 
 // AddDonation adds a donation to the list.  If the donor is not already
-// in the list, a new donation structure is created.  If the donor is in the list,
+// in the list, a non-nil error is returned.  If the donor is in the list,
 // the donation is added to the donors values, based on the donation date.
-func (donationListPtr *DonationList) AddDonation(
+func (donationList DonationList) AddDonation(
 	nameDonor string,
 	amountDonation dec.Decimal,
 	dateDonation d.Date) error {
@@ -182,21 +181,18 @@ func (donationListPtr *DonationList) AddDonation(
 	// Validate inputs
 	//
 	if nameDonor == "" {
-		err = errors.New("name of donor must not be empty")
-		return err
+		return fmt.Errorf("name of donor must not be empty")
 	}
 	if amountDonation.LessThan(dec.Zero) {
-		err = errors.New("amount of donation must not be negative: " + amountDonation.String())
-		return err
+		return fmt.Errorf("amount of donation must not be negative: %s", amountDonation.String())
 	}
 	//
 	// Retrieve donor structure for the named donor
 	//
-	if !donationListPtr.Contains(nameDonor) {
-		err = errors.New("donor name not found in donation list: " + nameDonor)
-		return err
+	if !donationList.Contains(nameDonor) {
+		return fmt.Errorf("donor name not found in donation list: %s", nameDonor)
 	}
-	donorPtr = donationListPtr.Get(nameDonor)
+	donorPtr = donationList.Get(nameDonor)
 	//
 	// Update donation amounts based on donation date.
 	//
@@ -210,27 +206,28 @@ func (donationListPtr *DonationList) AddDonation(
 
 // hasDonor returns true if the donor's name is in the list.  Otherwise, it
 // returns false.
-func (donationListPtr *DonationList) Contains(nameDonor string) bool {
-	var _, found = (*donationListPtr)[nameDonor]
+func (donationList DonationList) Contains(nameDonor string) bool {
+	_, found := donationList[nameDonor]
 	return found
 }
 
 // Get returns a pointer to the donor structure for the named donor.
-func (donationListPtr *DonationList) Get(nameDonor string) *dn.Donor {
-	var donorPtr, found = (*donationListPtr)[nameDonor]
+// If the donor is not found, an assertion failure occurs.
+func (donationList DonationList) Get(nameDonor string) *dn.Donor {
+	donorPtr, found := donationList[nameDonor]
 	assert.Assert(found, "donor name not found in donation list: "+nameDonor)
 	return donorPtr
 }
 
 // DonorCount returns the number of donors in the list.
-func (donationListPtr *DonationList) DonorCount() int {
-	return len(*donationListPtr)
+func (donationList DonationList) DonorCount() int {
+	return len(donationList)
 }
 
 // DonorKeys returns a alphabetically sorted slice of donor list keys
-func (donationListPtr *DonationList) DonorKeys() []string {
-	keys := make([]string, 0, len(*donationListPtr))
-	for k := range *donationListPtr {
+func (donationList DonationList) DonorKeys() []string {
+	keys := make([]string, 0, len(donationList))
+	for k := range donationList {
 		keys = append(keys, k)
 	}
 

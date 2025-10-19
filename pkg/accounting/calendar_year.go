@@ -3,7 +3,6 @@
 // Calendar Year
 //
 // Author: William Shaffer
-// Version: 02-Oct-2025
 //
 // Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
@@ -24,6 +23,9 @@ import (
 // Types
 // ----------------------------------------------------------------------------
 
+// YearIndicator represents a calendar year identifier used by the accounting
+// package. Valid values map to specific years (Y2022..Y2026). Unknown is used
+// for out-of-range values.
 type YearIndicator int
 
 // ----------------------------------------------------------------------------
@@ -39,7 +41,7 @@ const (
 	Unknown = YearIndicator(5)
 )
 
-var yearIndicators = [6]YearIndicator{
+var yearIndicators = []YearIndicator{
 	Y2022,
 	Y2023,
 	Y2024,
@@ -48,11 +50,35 @@ var yearIndicators = [6]YearIndicator{
 	Unknown,
 }
 
-var indNames = [6]string{"Y2022", "Y2023", "Y2024", "Y2025", "Y2026", "Unknown"}
+var indNames = []string{"Y2022", "Y2023", "Y2024", "Y2025", "Y2026", "Unknown"}
 
-var currentMonthStart, _ = d.New(9, 1, 2025)
-var currentMonthEnd, _ = d.New(9, 30, 2025)
-var currentMonth, _ = daterange.New(currentMonthStart, currentMonthEnd)
+var NumYears = len(yearIndicators)
+var MinYear = 2022
+var MaxYear = 2026
+
+var currentMonthStart d.Date
+var currentMonthEnd d.Date
+var currentMonth daterange.DateRange
+
+// ----------------------------------------------------------------------------
+// Initialization
+// ----------------------------------------------------------------------------
+
+func init() {
+	var err error
+	currentMonthStart, err = d.New(9, 1, 2025)
+	if err != nil {
+		panic(err)
+	}
+	currentMonthEnd, err = d.New(9, 30, 2025)
+	if err != nil {
+		panic(err)
+	}
+	currentMonth, err = daterange.New(currentMonthStart, currentMonthEnd)
+	if err != nil {
+		panic(err)
+	}
+}
 
 // ----------------------------------------------------------------------------
 // Functions
@@ -62,13 +88,13 @@ var currentMonth, _ = daterange.New(currentMonthStart, currentMonthEnd)
 func YIndicator(date d.Date) YearIndicator {
 	var year = int(date.Year())
 	var indicator = Unknown
-	if year >= 2022 && year <= 2026 {
-		indicator = yearIndicators[int(date.Year())-2022]
+	if year >= MinYear && year <= MaxYear {
+		indicator = yearIndicators[year-MinYear]
 	}
 	return indicator
 }
 
-// IsYearIndicator returns true if the indicator is between Y2022 and Y2026
+// IsYearIndicator reports whether the indicator is between Y2022 and Y2026.
 func IsYearIndicator(indicator YearIndicator) bool {
 	var result = false
 	if Y2022 <= indicator && indicator <= Y2026 {
@@ -77,13 +103,13 @@ func IsYearIndicator(indicator YearIndicator) bool {
 	return result
 }
 
-// IsCurrentMonth returns true if the date is in the defined current month
+// IsCurrentMonth reports whether the date is in the defined current month.
 func IsCurrentMonth(date d.Date) bool {
 	var result = currentMonth.InRange(date)
 	return result
 }
 
-// CurrentMonth returns the current month range as a string
+// CurrentMonth returns the current month range as a string.
 func CurrentMonth() string {
 	var result = currentMonth.String()
 	return result
@@ -93,7 +119,11 @@ func CurrentMonth() string {
 // Methods
 // ----------------------------------------------------------------------------
 
-// String returns the name of the fiscal year indicator
+// String returns the name of the YearIndicator. It returns "Unknown" for out-of-range values.
 func (ind YearIndicator) String() string {
-	return indNames[int(ind)]
+	var index = int(ind)
+	if index < 0 || index >= NumYears {
+		index = NumYears - 1 // Unknown
+	}
+	return indNames[index]
 }

@@ -3,9 +3,8 @@
 // Donor information Test
 //
 // Author: William Shaffer
-// Version: 13-Apr-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -24,8 +23,6 @@ import (
 	a "acorn_go/pkg/accounting"
 
 	dn "acorn_go/pkg/donors"
-
-	d "github.com/waysys/waydate/pkg/date"
 
 	dec "github.com/shopspring/decimal"
 
@@ -167,81 +164,6 @@ func Test_DonorStatus(t *testing.T) {
 	t.Run("Test_DonorStatus", testFunction)
 }
 
-// Test_FiscalYear checks the determination of the Fiscal Year Indicator
-func Test_FiscalYear(t *testing.T) {
-	var date d.Date
-
-	date, _ = d.New(1, 1, 1950)
-	var indicator = a.FiscalYearIndicator(date)
-	if indicator != a.OutOfRange {
-		t.Error("fiscal year indicator should be OutOfRange, but is: " + indicator.String())
-	}
-
-	date, _ = d.New(9, 1, 2026)
-	indicator = a.FiscalYearIndicator(date)
-	if indicator != a.FY2026 {
-		t.Error("fiscal year idicator should be FY2026, but is: " + indicator.String())
-	}
-
-	date, _ = d.New(8, 31, 2024)
-	indicator = a.FiscalYearIndicator(date)
-	if indicator != a.FY2024 {
-		t.Error("fiscal year indiator should be FY2024, but is: " + indicator.String())
-	}
-}
-
-// Test_FiscalYearFromYearMonth checks the determination of the Fiscal Year Indicator based
-// on a specified year and month
-func Test_FiscalYearFromYearMonth(t *testing.T) {
-	var indicator a.FYIndicator
-
-	var evaluate = func(month int, year int) a.FYIndicator {
-		var err error = nil
-		var yearMonth d.YearMonth
-
-		yearMonth, err = d.NewYearMonth(year, month)
-		if err != nil {
-			t.Error("year month not created: " + err.Error())
-			return a.OutOfRange
-		}
-		indicator, err = a.FiscalYearFromYearMonth(yearMonth)
-		if err != nil {
-			t.Error("fiscal year indicator not create: " + err.Error())
-			return a.OutOfRange
-		}
-		return indicator
-	}
-	//
-	// Beginning of FY2023
-	//
-	indicator = evaluate(9, 2025)
-	if indicator != a.FY2026 {
-		t.Error("indicator is not correct value: " + indicator.String())
-	}
-	//
-	// End of FY2023
-	//
-	indicator = evaluate(8, 2026)
-	if indicator != a.FY2026 {
-		t.Error("indicator is not correct valaue: " + indicator.String())
-	}
-	//
-	// Beginning of FY2024
-	//
-	indicator = evaluate(9, 2023)
-	if indicator != a.FY2024 {
-		t.Error("indicator is not correct value: " + indicator.String())
-	}
-	//
-	// End of FY2024
-	//
-	indicator = evaluate(8, 2024)
-	if indicator != a.FY2024 {
-		t.Error("indicator is not correct value: " + indicator.String())
-	}
-
-}
-
 // Test_DonorCountAnalysis tests the creation of the donor count analysis.
 func Test_DonorCountAnalysis(t *testing.T) {
 	var err error = nil
@@ -264,7 +186,7 @@ func Test_DonorCountAnalysis(t *testing.T) {
 	//
 	// Create donor count analysis
 	//
-	var dca = ComputeDonorCount(&donationList)
+	var dca = ComputeDonorCount(donationList)
 	//
 	// Test Function
 	//

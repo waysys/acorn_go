@@ -7,7 +7,6 @@
 // -- Donation Analysis
 //
 // Author: William Shaffer
-// Version: 02-Oct-2025
 //
 //	Copyright (c) 2024, 2025 Acorn Scholarship Fund All Rights Reserved
 //
