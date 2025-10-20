@@ -127,3 +127,24 @@ func Test_CalendarYear(t *testing.T) {
 		t.Error("IsCurrentMonth should be false for 2025-08-01")
 	}
 }
+
+// Test_FYIndicator_Prior tests the Prior method for fiscal year indicators.
+func Test_FYIndicator_Prior(t *testing.T) {
+	tests := []struct {
+		in   FYIndicator
+		want FYIndicator
+	}{
+		{FY2023, OutOfRange},
+		{FY2024, FY2023},
+		{FY2025, FY2024},
+		{FY2026, FY2025},
+		{OutOfRange, OutOfRange},
+	}
+
+	for _, tt := range tests {
+		got := tt.in.Prior()
+		if got != tt.want {
+			t.Errorf("%s.Prior() = %s; want %s", tt.in.String(), got.String(), tt.want.String())
+		}
+	}
+}

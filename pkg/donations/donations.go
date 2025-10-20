@@ -19,6 +19,7 @@ package donations
 
 import (
 	a "acorn_go/pkg/accounting"
+	dn "acorn_go/pkg/donors"
 	"math"
 	"strconv"
 
@@ -32,7 +33,7 @@ import (
 
 type Donations struct {
 	fy        a.FYIndicator
-	donations [3]dec.Decimal
+	donations []dec.Decimal
 }
 
 // ----------------------------------------------------------------------------
@@ -41,9 +42,14 @@ type Donations struct {
 
 // NewDonatons creates a Donations structure initializes to zero for each element.
 func NewDonations(fy a.FYIndicator) Donations {
+	var amounts []dec.Decimal
+
+	for index := 0; index < a.NumFiscalYears; index++ {
+		amounts = append(amounts, dec.Zero)
+	}
 	donations := Donations{
 		fy:        fy,
-		donations: [3]dec.Decimal{ZERO, ZERO, ZERO},
+		donations: amounts,
 	}
 	return donations
 }
@@ -87,4 +93,20 @@ func (donations *Donations) FiscalYear() string {
 // Return the associated fiscal year indicator
 func (donations *Donations) FY() a.FYIndicator {
 	return donations.fy
+}
+
+// ApplyAmount applies the amount to the proper year type
+func (donations *Donations) ApplyAmount(donor *dn.Donor, analysisFy a.FYIndicator, amount dec.Decimal) {
+	assert.Assert(a.IsFYIndicator(analysisFy), "invalid fiscal year indicator: "+analysisFy.String())
+
+	var priorFy = analysisFy.Prior()
+	var priorPriorFy = priorFy.Prior()
+
+	if (priorFy != a.OutOfRange) && donor.IsDonor(priorFy) {
+		donations.Add(PriorYear, amount)
+	} else if (priorPriorFy != a.OutOfRange) && donor.IsDonor(priorPriorFy) {
+		donations.Add(PriorPriorYear, amount)
+	} else if (analysisFy != a.OutOfRange) && donor.IsDonor(analysisFy) {
+		donations.Add(CurrentYear, amount)
+	}
 }

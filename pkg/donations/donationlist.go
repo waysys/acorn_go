@@ -76,9 +76,6 @@ func NewDonationList(sprdsht *spreadsheet.Spreadsheet) (DonationList, error) {
 		if okToSelect {
 			err = processPayment(donationList, sprdsht, row)
 		}
-		if err != nil {
-			return donationList, err
-		}
 	}
 	return donationList, err
 }

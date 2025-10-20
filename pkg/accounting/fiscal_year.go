@@ -64,6 +64,11 @@ var fiscalYear2024 daterange.DateRange
 var fiscalYear2025 daterange.DateRange
 var fiscalYear2026 daterange.DateRange
 
+// Identify fiscal years for analysis
+const (
+	CurrentFiscalYear = FY2026
+)
+
 // ----------------------------------------------------------------------------
 // Initialization
 // ----------------------------------------------------------------------------
@@ -168,8 +173,8 @@ func FiscalYearFromYearMonth(yearMonth d.YearMonth) (FYIndicator, error) {
 // IsFYIndicator returns true if the FYIndicator is a valid value
 func IsFYIndicator(fy FYIndicator) bool {
 	var result = false
-	// OutOfRange is a valid FYIndicator
-	if fy >= FY2023 && fy <= OutOfRange {
+	// OutOfRange is not a valid FYIndicator
+	if fy >= FY2023 && fy < OutOfRange {
 		result = true
 	}
 	return result
@@ -191,15 +196,11 @@ func (ind FYIndicator) String() string {
 // Prior returns the fiscal year indicator before the specified fiscal year.
 func (ind FYIndicator) Prior() FYIndicator {
 	var result = OutOfRange
-	switch ind {
-	case FY2024:
-		result = FY2023
-	case FY2025:
-		result = FY2024
-	case FY2026:
-		result = FY2025
-	default:
+	var index = int(ind) - 1
+	if ind == OutOfRange {
 		result = OutOfRange
+	} else if index >= 0 {
+		result = FYIndicators[index]
 	}
 	return result
 }

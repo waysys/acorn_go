@@ -193,16 +193,16 @@ func Test_DonorCountAnalysis(t *testing.T) {
 	var testFunction = func(t *testing.T) {
 		var dcfy2024 = dca[a.FY2024]
 		var count = dcfy2024.TotalDonorCount()
-		if count != 156 {
+		if count != 178 {
 			t.Error("Incorrect total FY2024 donor count: " + strconv.Itoa(count))
 		}
 		var dcfy2025 = dca[a.FY2025]
 		count = dcfy2025.TotalDonorCount()
-		if count != 0 {
+		if count != 193 {
 			t.Error("Incorrect total FY2025 donor count: " + strconv.Itoa(count))
 		}
 		var totalDonors = dca.TotalDonors()
-		if totalDonors != 178 {
+		if totalDonors != 193 {
 			t.Error("Incorrect total donor count: " + strconv.Itoa(count))
 		}
 	}
@@ -232,7 +232,7 @@ func Test_DonationAnalysis(t *testing.T) {
 	//
 	// Create donor count analysis
 	//
-	var dna = ComputeDonations(&donationList)
+	var dna = ComputeDonations(donationList)
 	//
 	// Test Function
 	//

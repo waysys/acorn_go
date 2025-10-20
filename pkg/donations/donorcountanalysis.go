@@ -21,9 +21,7 @@ package donations
 
 import (
 	a "acorn_go/pkg/accounting"
-	dn "acorn_go/pkg/donors"
 	"math"
-	"strconv"
 
 	"github.com/waysys/assert/assert"
 )
@@ -45,9 +43,10 @@ type DonorCountAnalysis []DonorCount
 // NewDonorCountAnalysis returns an initialized donoar analysis.
 func NewDonorCountAnalysis() DonorCountAnalysis {
 	var donorcounts = make(DonorCountAnalysis, a.NumFiscalYears)
-	donorcounts[a.FY2024] = NewDonorCount(a.FY2024)
-	donorcounts[a.FY2025] = NewDonorCount(a.FY2025)
-	donorcounts[a.FY2026] = NewDonorCount(a.FY2026)
+	var fiscalYears = a.FYIndicators
+	for _, fy := range fiscalYears {
+		donorcounts[fy] = NewDonorCount(fy)
+	}
 	return donorcounts
 }
 
@@ -60,40 +59,11 @@ func ComputeDonorCount(donationList DonationList) DonorCountAnalysis {
 	var dc = NewDonorCountAnalysis()
 
 	for _, donor := range donationList {
-		for _, fy := range a.FYIndicators {
-			if fy != a.OutOfRange {
-				if donor.IsDonor(fy) {
-					var donorCount = dc[fy]
-					applyDonorCount(&donorCount, donor)
-					dc[fy] = donorCount
-				}
-			}
+		for _, analysisFY := range a.FYIndicators {
+			dc[analysisFY].ApplyDonorCount(donor, analysisFY)
 		}
 	}
 	return dc
-}
-
-// ApplyDonorCount increments the proper donor count for the donor.
-func applyDonorCount(donorCount *DonorCount, donor *dn.Donor) {
-	var fy = donorCount.fy
-	switch fy {
-	case a.FY2024:
-		donorCount.Add(CurrentYear, 1)
-	case a.FY2025:
-		if donor.IsDonor(a.FY2024) {
-			donorCount.Add(PriorYear, 1)
-		} else {
-			donorCount.Add(CurrentYear, 1)
-		}
-	case a.FY2026:
-		if donor.IsDonor(a.FY2025) {
-			donorCount.Add(PriorYear, 1)
-		} else if donor.IsDonor(a.FY2024) {
-			donorCount.Add(PriorPriorYear, 1)
-		} else {
-			donorCount.Add(CurrentYear, 1)
-		}
-	}
 }
 
 // ----------------------------------------------------------------------------
@@ -126,41 +96,48 @@ func (dca *DonorCountAnalysis) TotalDonors() int {
 // Retention returns the percent of donors from the prior year that donate
 // in the current year.
 func (dca *DonorCountAnalysis) Retention(fy a.FYIndicator) float64 {
+	assert.Assert(a.IsFYIndicator(fy), "Invalid fiscal year indicator: "+fy.String())
+
 	var retention float64 = 0.00
-	switch fy {
-	case a.FY2024:
-		retention = 0.00
-	case a.FY2025:
-		var repeatDonors = float64((*dca)[a.FY2025].Count(PriorYear))
-		var totalDonors = float64((*dca)[a.FY2024].TotalDonorCount())
-		retention = math.Round(repeatDonors * 100 / totalDonors)
-	case a.FY2026:
-		var repeatDonors = float64((*dca)[a.FY2026].Count(PriorYear))
-		var totalDonors = float64((*dca)[a.FY2025].TotalDonorCount())
-		retention = math.Round(repeatDonors * 100 / totalDonors)
-	default:
-		assert.Assert(false, "Invalid fiscal year indicator: "+strconv.Itoa(int(fy)))
+	var priorFy = fy.Prior()
+	if priorFy == a.OutOfRange {
+		return retention
 	}
+	var currentDC = (*dca)[fy]
+	var priorDC = (*dca)[fy]
+
+	if priorDC.TotalDonorCount() == 0 {
+		return retention
+	}
+	var totalPriorDonors = float64(priorDC.TotalDonorCount())
+	var currentRepeatDonors = float64(currentDC.Count(PriorYear))
+	retention = currentRepeatDonors * 100.00 / totalPriorDonors
+	retention = math.Round(retention)
+
 	return retention
 }
 
 // Acquisition returns the percent of the new donors in the current year
 // compared to the total number of donors from the prior year.
 func (dca *DonorCountAnalysis) Acquisition(fy a.FYIndicator) float64 {
+	assert.Assert(a.IsFYIndicator(fy), "Invalid fiscal year indicator: "+fy.String())
+
 	var acquisition float64 = 0.0
-	switch fy {
-	case a.FY2024:
-		acquisition = 0.0
-	case a.FY2025:
-		var newDonors = float64((*dca)[a.FY2025].Count(CurrentYear))
-		var totalDonors = float64((*dca)[a.FY2024].TotalDonorCount())
-		acquisition = math.Round(newDonors * 100 / totalDonors)
-	case a.FY2026:
-		var newDonors = float64((*dca)[a.FY2026].Count(CurrentYear))
-		var totalDonors = float64((*dca)[a.FY2025].TotalDonorCount())
-		acquisition = math.Round(newDonors * 100 / totalDonors)
-	default:
-		assert.Assert(false, "Invalid fiscal year indicator: "+strconv.Itoa(int(fy)))
+
+	var priorFy = fy.Prior()
+	if priorFy == a.OutOfRange {
+		return acquisition
 	}
+	var currentDC = (*dca)[fy]
+	var priorDC = (*dca)[priorFy]
+
+	if priorDC.TotalDonorCount() == 0 {
+		return acquisition
+	}
+
+	var totalDonors = float64(priorDC.TotalDonorCount())
+	var newDonors = float64(currentDC.Count(CurrentYear))
+	acquisition = newDonors * 100.00 / totalDonors
+	acquisition = math.Round(acquisition)
 	return acquisition
 }

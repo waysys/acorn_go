@@ -38,6 +38,13 @@ const inputFile = "/home/bozo/golang/acorn_go/data/donations.xlsx"
 const tab = "Worksheet"
 const outputFile = "/home/bozo/Downloads/analysis.xlsx"
 
+// Output tabs
+const (
+	donorCount       = "Donor Count"
+	donationAnalysis = "Donation Analysis"
+	averageDonations = "Average Donations"
+)
+
 // ----------------------------------------------------------------------------
 // Functions
 // ----------------------------------------------------------------------------
@@ -63,8 +70,11 @@ func main() {
 	//
 	// Open the output spreadsheet
 	//
-	output, err = s.New(outputFile, "Donor Count")
+	output, err = s.New(outputFile, donorCount)
 	sp.Check(err, "Error opening output file: ")
+	//
+	// Defer function to close spreadsheet
+	//
 	var finish = func() {
 		err = output.Save()
 		sp.Check(err, "Error saving output file: ")
@@ -76,32 +86,43 @@ func main() {
 	//
 	// Output the donor count
 	//
-	var donorCountAnalysis = dn.ComputeDonorCount(&donationList)
+	var donorCountAnalysis = dn.ComputeDonorCount(donationList)
 	outputDonorCount(&donorCountAnalysis, &output)
 	//
 	// Output the donations
 	//
-	output, err = output.AddSheet("Donation Analysis")
+	output, err = output.AddSheet(donationAnalysis)
 	sp.Check(err, "Error adding sheet: ")
-	var donationAnalysis = dn.ComputeDonations(&donationList)
+	var donationAnalysis = dn.ComputeDonations(donationList)
 	outputDonations(&donationAnalysis, &output)
 	//
 	// Output average donations
 	//
-	output, err = output.AddSheet("Average Donations")
+	output, err = output.AddSheet(averageDonations)
 	sp.Check(err, "Error adding sheet: ")
 	var dac = dn.NewDonationsAndCounts(&donationAnalysis, &donorCountAnalysis)
 	outputAvgDonations(&dac, &output)
+	//
+	// Print completion notice
+	//
+	printFooter()
 }
 
 // ----------------------------------------------------------------------------
 // Print Functions
 // ----------------------------------------------------------------------------
 
-// printHeader places the header information at the top of the page
+// printHeader outputs a notice that the program has started
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 	fmt.Println("Acorn Scholarship Fund Donation Analysis")
+	fmt.Println("-----------------------------------------------------------")
+}
+
+// printFooter outputs a notice that the program has completed
+func printFooter() {
+	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("Program is completed")
 	fmt.Println("-----------------------------------------------------------")
 }
 
