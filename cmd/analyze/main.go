@@ -5,6 +5,7 @@
 // This program produces the analysis spreadsheet.  The tabs in the spreadsheet are:
 // -- Donor Count
 // -- Donation Analysis
+// -- Average Donations
 //
 // Author: William Shaffer
 //
@@ -87,20 +88,20 @@ func main() {
 	// Output the donor count
 	//
 	var donorCountAnalysis = dn.ComputeDonorCount(donationList)
-	outputDonorCount(&donorCountAnalysis, &output)
+	outputDonorCount(donorCountAnalysis, &output)
 	//
 	// Output the donations
 	//
 	output, err = output.AddSheet(donationAnalysis)
 	sp.Check(err, "Error adding sheet: ")
 	var donationAnalysis = dn.ComputeDonations(donationList)
-	outputDonations(&donationAnalysis, &output)
+	outputDonations(donationAnalysis, &output)
 	//
 	// Output average donations
 	//
 	output, err = output.AddSheet(averageDonations)
 	sp.Check(err, "Error adding sheet: ")
-	var dac = dn.NewDonationsAndCounts(&donationAnalysis, &donorCountAnalysis)
+	var dac = dn.NewDonationsAndCounts(donationAnalysis, donorCountAnalysis)
 	outputAvgDonations(&dac, &output)
 	//
 	// Print completion notice
@@ -132,7 +133,7 @@ func printFooter() {
 
 // outputDonorCount produces the donor count tab.
 func outputDonorCount(
-	donorCountAnalysis *dn.DonorCountAnalysis,
+	donorCountAnalysis dn.DonorCountAnalysis,
 	output *s.SpreadsheetFile) {
 	var row int = 1
 	//
@@ -153,7 +154,7 @@ func outputDonorCount(
 	row++
 	s.WriteCell(output, "A", row, "Year of Donation")
 	row++
-	for _, dc := range *donorCountAnalysis {
+	for _, dc := range donorCountAnalysis {
 		s.WriteCell(output, "A", row, dc.FiscalYear())
 		s.WriteCellInt(output, "B", row, dc.Count(dn.PriorPriorYear))
 		s.WriteCellInt(output, "C", row, dc.Count(dn.PriorYear))
@@ -170,7 +171,7 @@ func outputDonorCount(
 
 // outputDonations produces the donation analysis tab
 func outputDonations(
-	donationAnalysis *dn.DonationAnalysis,
+	donationAnalysis dn.DonationAnalysis,
 	output *s.SpreadsheetFile) {
 	var row int = 1
 	//
@@ -189,7 +190,7 @@ func outputDonations(
 	row++
 	s.WriteCell(output, "A", row, "Year of Donation")
 	row++
-	for _, don := range *donationAnalysis {
+	for _, don := range donationAnalysis {
 		s.WriteCell(output, "A", row, don.FiscalYear())
 		s.WriteCellFloat(output, "B", row, don.Donation(dn.PriorPriorYear))
 		s.WriteCellFloat(output, "C", row, don.Donation(dn.PriorYear))

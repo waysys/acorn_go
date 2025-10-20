@@ -56,14 +56,21 @@ var MajorDonorLimit = dec.NewFromInt(1000)
 
 // New creates a new donor
 func New(ky string, nm string, adr a.Address, eml string, count int, decsd bool) Donor {
+	var dn1 []dec.Decimal
+	var dn2 []dec.Decimal
+	for index := 0; index < ac.NumFiscalYears; index++ {
+		dn1 = append(dn1, ZERO)
+		dn2 = append(dn2, ZERO)
+	}
+
 	donor := Donor{
 		key:                   ky,
 		name:                  nm,
 		address:               adr,
 		email:                 eml,
 		numberHousehold:       count,
-		donations:             []dec.Decimal{ZERO, ZERO, ZERO, ZERO},
-		donationsCalendarYear: []dec.Decimal{ZERO, ZERO, ZERO, ZERO, ZERO},
+		donations:             dn1,
+		donationsCalendarYear: dn2,
 		donationsCurrentMonth: ZERO,
 		deceased:              decsd,
 	}
@@ -162,10 +169,8 @@ func (donor Donor) Donation(fy ac.FYIndicator) dec.Decimal {
 func (donor Donor) TotalDonation() dec.Decimal {
 	var amount = ZERO
 	for _, fy := range ac.FYIndicators {
-		if fy != ac.OutOfRange {
-			var donation = donor.Donation(fy)
-			amount = amount.Add(donation)
-		}
+		var donation = donor.Donation(fy)
+		amount = amount.Add(donation)
 	}
 	return amount
 }
@@ -202,16 +207,8 @@ func (donor Donor) IsMajorDonorOverall() bool {
 // fiscal year, but did not donate in the current fiscal year.
 func (donor Donor) IsNonRepeatDonor(fy ac.FYIndicator) bool {
 	var result = false
-	switch fy {
-	case ac.FY2024:
-		result = true
-	case ac.FY2025:
-		result = donor.IsDonor(ac.FY2025) && !donor.IsDonor(fy)
-	case ac.FY2026:
-		result = donor.IsDonor(ac.FY2025) && !donor.IsDonor(fy)
-	default:
-		assert.Assert(false, "Invalid fiscal year")
-	}
+	var priorFy = fy.Prior()
+	result = (priorFy != ac.OutOfRange) && donor.IsDonor(fy) && !donor.IsDonor(priorFy)
 	return result
 }
 

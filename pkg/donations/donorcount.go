@@ -29,7 +29,7 @@ import (
 
 type DonorCount struct {
 	fy         a.FYIndicator
-	donorCount []int
+	donorCount [3]int
 }
 
 // ----------------------------------------------------------------------------
@@ -38,13 +38,9 @@ type DonorCount struct {
 
 // NewDonorCount creates a donor count struture initialized to zero for each element.
 func NewDonorCount(fy a.FYIndicator) DonorCount {
-	var counts []int
-	for index := 0; index < a.NumFiscalYears; index++ {
-		counts = append(counts, 0)
-	}
 	donorCount := DonorCount{
 		fy:         fy,
-		donorCount: counts,
+		donorCount: [3]int{0, 0, 0},
 	}
 	return donorCount
 }
@@ -91,11 +87,13 @@ func (dc *DonorCount) ApplyDonorCount(donor *dn.Donor, analysisFy a.FYIndicator)
 	var priorFy = analysisFy.Prior()
 	var priorPriorFy = priorFy.Prior()
 
-	if (priorFy != a.OutOfRange) && donor.IsDonor(priorFy) {
-		dc.Add(PriorYear, 1)
-	} else if (priorPriorFy != a.OutOfRange) && donor.IsDonor(priorPriorFy) {
-		dc.Add(PriorPriorYear, 1)
-	} else if (analysisFy != a.OutOfRange) && donor.IsDonor(analysisFy) {
-		dc.Add(CurrentYear, 1)
+	if donor.IsDonor(analysisFy) {
+		if (priorFy != a.OutOfRange) && donor.IsDonor(priorFy) {
+			dc.Add(PriorYear, 1)
+		} else if (priorPriorFy != a.OutOfRange) && donor.IsDonor(priorPriorFy) {
+			dc.Add(PriorPriorYear, 1)
+		} else {
+			dc.Add(CurrentYear, 1)
+		}
 	}
 }

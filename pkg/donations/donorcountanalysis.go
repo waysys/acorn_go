@@ -104,7 +104,7 @@ func (dca *DonorCountAnalysis) Retention(fy a.FYIndicator) float64 {
 		return retention
 	}
 	var currentDC = (*dca)[fy]
-	var priorDC = (*dca)[fy]
+	var priorDC = (*dca)[priorFy]
 
 	if priorDC.TotalDonorCount() == 0 {
 		return retention

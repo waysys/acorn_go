@@ -28,16 +28,16 @@ import (
 // ----------------------------------------------------------------------------
 
 type DonationsAndCounts struct {
-	da *DonationAnalysis
-	ca *DonorCountAnalysis
+	da DonationAnalysis
+	ca DonorCountAnalysis
 }
 
 // ----------------------------------------------------------------------------
 // Factory Functions
 // ----------------------------------------------------------------------------
 
-// NewDonationsAndCounts
-func NewDonationsAndCounts(da *DonationAnalysis, ca *DonorCountAnalysis) DonationsAndCounts {
+// NewDonationsAndCounts creates a new instance of DonationsAndCounts
+func NewDonationsAndCounts(da DonationAnalysis, ca DonorCountAnalysis) DonationsAndCounts {
 	var dac = DonationsAndCounts{
 		da: da,
 		ca: ca,
