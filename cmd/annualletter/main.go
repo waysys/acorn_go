@@ -5,10 +5,13 @@
 // This program produces a spreadsheet with the names and addresses of
 // donors who have donated in a specific calendar year.
 //
-// Author: William Shaffer
-// Version: 30-Dec-2024
+// This program creates the annualletter.xlsx spreadsheet with these tabs:
+// -- Donors - names and addresses of donors for the specified fiscal year
+// -- Month Donors - names and address of donor who have donated in the "current month"
 //
-// Copyright (c) 2024 William Shaffer All Rights Reserved
+// Author: William Shaffer
+//
+// Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -43,9 +46,12 @@ const donorFile = "/home/bozo/golang/acorn_go/data/donors.xlsx"
 const tabDonors = "Sheet1"
 
 const outputFile = "/home/bozo/Downloads/annualletter.xlsx"
-const outputTab = "donors"
+const outputTab = "Donors"
 const outputTab2 = "Month Donors"
 
+// reportYear specifies the calendar year for donors reported in the donor tab.
+// If the Month Donors is the main focus, be sure the report year is the
+// same as the year of the current month.
 const reportYear = a.Y2025
 
 // ----------------------------------------------------------------------------
@@ -74,15 +80,16 @@ func main() {
 	//
 	outputAnnualDonors(&donorList, &donationList, output)
 	//
-	// Output prior month donors
+	// Output month donors
 	//
 	output, err = output.AddSheet(outputTab2)
 	sp.Check(err, "Error adding Month Donor sheet: ")
-	outputMonthlysDonors(&donorList, &donationList, output)
+	outputMonthlyDonors(&donorList, &donationList, output)
 	err = output.Save()
 	sp.Check(err, "Error saving output file")
 	err = output.Close()
 	sp.Check(err, "Error closing output file")
+	printFooter()
 	os.Exit(0)
 }
 
@@ -126,10 +133,17 @@ func generateDonationList() dna.DonationList {
 // Print Functions
 // ----------------------------------------------------------------------------
 
-// printHeader places the header information at the top of the page
+// printHeader places the header information
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 	fmt.Println("Acorn Scholarship Fund  Annual Letter List")
+	fmt.Println("-----------------------------------------------------------")
+}
+
+// printFooter places the finish information
+func printFooter() {
+	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("Program Finished")
 	fmt.Println("-----------------------------------------------------------")
 }
 
@@ -137,10 +151,8 @@ func printHeader() {
 // Output Functions
 // ----------------------------------------------------------------------------
 
-// outputDonors creates a spreadsheets with the donor names and addresses
-// for donors that have donated in the specified calendar year.
-// outputAddresses outputs the addresses to a spreadsheet
-// This is the full list of donors
+// outputAnnualDonors creates fills the donors tab with the names, emails,
+// and addresses of donors who have donated in the specified year.
 func outputAnnualDonors(
 	donorList *dns.DonorList,
 	donationList *dna.DonationList,
@@ -183,18 +195,14 @@ func outputAnnualDonors(
 
 // selectDonor returns true if the donor is to be output
 func selectDonor(donor *dns.Donor) bool {
-	var result = false
-	if donor.Key() != "Tolman, Nadine" {
-		result = donor.IsCalDonor(reportYear)
-	}
+	var result = donor.IsCalDonor(reportYear)
+	result = result && !donor.Deceased()
 	return result
 }
 
-// outputDonors creates a spreadsheets with the donor names and addresses
-// for donors that have donated in the specified calendar year.
-// outputAddresses outputs the addresses to a spreadsheet
-// This is the full list of donors
-func outputMonthlysDonors(
+// outputMonthlydonors fills the tab Month Donors with the names, emails, and
+// addresses of donors who have donated in the current month.
+func outputMonthlyDonors(
 	donorList *dns.DonorList,
 	donationList *dna.DonationList,
 	output s.SpreadsheetFile) {

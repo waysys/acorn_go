@@ -208,7 +208,7 @@ func (donor Donor) IsMajorDonorOverall() bool {
 func (donor Donor) IsNonRepeatDonor(fy ac.FYIndicator) bool {
 	var result = false
 	var priorFy = fy.Prior()
-	result = (priorFy != ac.OutOfRange) && donor.IsDonor(fy) && !donor.IsDonor(priorFy)
+	result = (priorFy != ac.OutOfRange) && !donor.IsDonor(fy) && donor.IsDonor(priorFy)
 	return result
 }
 

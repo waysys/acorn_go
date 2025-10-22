@@ -47,7 +47,6 @@ var yearIndicators = []YearIndicator{
 	Y2024,
 	Y2025,
 	Y2026,
-	Unknown,
 }
 
 var indNames = []string{"Y2022", "Y2023", "Y2024", "Y2025", "Y2026", "Unknown"}

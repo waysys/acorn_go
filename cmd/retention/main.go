@@ -3,14 +3,15 @@
 // Non-repeat donor analysis
 //
 // Author: William Shaffer
-// Version: 7-May-2024
 //
-// Copyright (c) 2024 William Shaffer All Rights Reserved
+// Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
-// This program generates a list of FY2024 donors who did not donate in
-// FY2025 with the dates and amounts they donated.
+// This program generates a list of prior year donors who did not donate in
+// in the current year with the dates and amounts they donated.
+// This program produces a spreadsheet file nonrepeat.xlsx with tab:
+// -- Non-Repeat Donors
 
 package main
 
@@ -24,7 +25,9 @@ import (
 	s "acorn_go/pkg/spreadsheet"
 	sp "acorn_go/pkg/support"
 	"fmt"
-	"os"
+
+	dec "github.com/shopspring/decimal"
+	"github.com/waysys/assert/assert"
 )
 
 // ----------------------------------------------------------------------------
@@ -41,7 +44,7 @@ const (
 	outputFileName = "/home/bozo/Downloads/nonrepeat.xlsx"
 	sheetName      = "Non-Repeat Donors"
 
-	fy = a.FY2025
+	fy = a.CurrentFiscalYear
 )
 
 // ----------------------------------------------------------------------------
@@ -70,17 +73,24 @@ func main() {
 	// Output non-repeat donor
 	//
 	outputRetention(&donorList)
-	os.Exit(0)
+	printFooter()
 }
 
 // ----------------------------------------------------------------------------
 // Print Functions
 // ----------------------------------------------------------------------------
 
-// printHeader places the header information at the top of the page
+// printHeader prints a message indicating the program has started
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 	fmt.Println("Acorn Scholarship Fund Retention Analysis")
+	fmt.Println("-----------------------------------------------------------")
+}
+
+// printFooter reports the end of the program
+func printFooter() {
+	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("Program has ended")
 	fmt.Println("-----------------------------------------------------------")
 }
 
@@ -121,9 +131,12 @@ func outputRetention(donorList *dn.DonationList) {
 	for _, name := range names {
 		var donor = donorList.Get(name)
 		if donor.IsNonRepeatDonor(fy) {
-			var amount = donor.Donation(fy.Prior())
+			var priorAmount = donor.Donation(fy.Prior())
+			assert.Assert(priorAmount.GreaterThan(dec.Zero), "Donor was not a prior donor: "+name)
+			var currentAmount = donor.Donation(fy)
+			assert.Assert(currentAmount.Equal(dec.Zero), "Donor is a current donor: "+name)
 			s.WriteCell(&output, "A", row, name)
-			s.WriteCellDecimal(&output, "B", row, amount)
+			s.WriteCellDecimal(&output, "B", row, priorAmount)
 			row++
 		}
 	}

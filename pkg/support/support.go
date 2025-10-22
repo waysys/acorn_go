@@ -17,7 +17,7 @@ package support
 // ----------------------------------------------------------------------------
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 )
 
@@ -37,7 +37,12 @@ import (
 // error message and exits the program.
 func Check(err error, message string) {
 	if err != nil {
-		fmt.Println(message + err.Error())
+		logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+		logger.Error(
+			message,
+			"error", err,
+			"user_id", "bozo",
+		)
 		os.Exit(1)
 	}
 }

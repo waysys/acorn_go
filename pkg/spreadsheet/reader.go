@@ -25,7 +25,7 @@ import (
 	d "github.com/waysys/waydate/pkg/date"
 
 	dec "github.com/shopspring/decimal"
-	"github.com/xuri/excelize/v2"
+	excel "github.com/xuri/excelize/v2"
 )
 
 // ----------------------------------------------------------------------------
@@ -49,12 +49,12 @@ type Spreadsheet struct {
 // returns an array of string arrays.
 func readData(excelFillName string, tab string) ([][]string, error) {
 	var err error
-	var file *excelize.File
+	var file *excel.File
 	var rows [][]string
 	//
 	// Open file
 	//
-	file, err = excelize.OpenFile(excelFillName)
+	file, err = excel.OpenFile(excelFillName)
 	if err != nil {
 		return rows, err
 	}

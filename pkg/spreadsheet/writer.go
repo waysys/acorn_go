@@ -23,6 +23,7 @@ import (
 	dec "github.com/shopspring/decimal"
 	d "github.com/waysys/waydate/pkg/date"
 	"github.com/xuri/excelize/v2"
+	excel "github.com/xuri/excelize/v2"
 )
 
 // ----------------------------------------------------------------------------
@@ -32,7 +33,7 @@ import (
 type SpreadsheetFile struct {
 	filename  string
 	sheetname string
-	filePtr   *excelize.File
+	filePtr   *excel.File
 }
 
 type FormatIndex int
@@ -73,7 +74,7 @@ func New(filename string, sheetname string) (SpreadsheetFile, error) {
 	//
 	// create the file
 	//
-	f := excelize.NewFile()
+	f := excel.NewFile()
 	spFile.filePtr = f
 	//
 	// Create a new sheet.

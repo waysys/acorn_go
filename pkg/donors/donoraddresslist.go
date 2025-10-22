@@ -231,7 +231,6 @@ func processDonation(sprdsht *spreadsheet.Spreadsheet, donorList *DonorList, row
 func selectDonation(transType string, nameDonor string) bool {
 	var result = transType == payment
 	result = result && (nameDonor != excludedDonor)
-
 	return result
 }
 
