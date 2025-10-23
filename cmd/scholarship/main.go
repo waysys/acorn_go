@@ -310,7 +310,7 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	//
 	// Create Headings
 	//
-	sp.CreateHeadings(output, row, startColumn)
+	sp.CreateHeadings(output, row, startColumn, "Recipient Summary")
 	row += 3
 	//
 	// Loop through the recipient summaries

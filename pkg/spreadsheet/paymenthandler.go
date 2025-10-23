@@ -29,14 +29,17 @@ import (
 // ----------------------------------------------------------------------------
 
 // Create headings for recipient summary
-func CreateHeadings(output *SpreadsheetFile, row int, startColumn string) {
+func CreateHeadings(output *SpreadsheetFile,
+	row int,
+	startColumn string,
+	heading string) {
 	var column string
 	var label string
 	var ch = NewColumnHandler(startColumn)
 	//
 	// Place title
 	//
-	WriteCell(output, "A", row, "Recipient Summary")
+	WriteCell(output, "A", row, heading)
 	row += 2
 	//
 	// Place headings

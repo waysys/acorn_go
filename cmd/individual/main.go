@@ -69,7 +69,6 @@ func main() {
 	}
 	defer finish()
 	outputRecipientSummary(&output, &grantList)
-	output.Save()
 	printFooter()
 }
 
@@ -85,28 +84,30 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	var row = 1
 	var list, err = g.AssembleRecipientSumList(grantList)
 	s.Check(err, "Error: ")
-	var totalPayments = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero}
-	var totalCount = []int{0, 0, 0}
-	var countColumns = []string{"B", "D", "F"}
-	var paymentColumns = []string{"C", "E", "G"}
+	var totalPayments []dec.Decimal
+	var totalCount []int
 	var amount = dec.Zero
+	var grandCount = 0
+	// The column where the first count column is placed
+	var startColumn = "B"
+	var count = 0
+	//
+	// Initialize arrays for each fiscal year
+	//
+	for index := 0; index < a.NumFiscalYears; index++ {
+		totalCount = append(totalCount, 0)
+		totalPayments = append(totalPayments, dec.Zero)
+	}
 	//
 	// Create Headings
 	//
-	sp.WriteCell(output, "A", row, "Individual Grant Recipient Summary")
-	row += 2
-	sp.WriteCell(output, "A", row, "Recipient Name")
-	sp.WriteCell(output, "B", row, "FY2023 Count")
-	sp.WriteCell(output, "C", row, "FY2023 Payments")
-	sp.WriteCell(output, "D", row, "FY2024 Count")
-	sp.WriteCell(output, "E", row, "FY2024 Payments")
-	sp.WriteCell(output, "F", row, "FY2025 Count")
-	sp.WriteCell(output, "G", row, "FY2025 Payments")
-	row++
+	sp.CreateHeadings(output, row, startColumn, "Individual Grant Recipient Summary")
+	row += 3
 	//
 	// Loop through the recipient summaries
 	//
 	var names = list.Names()
+	var ch = sp.NewColumnHandler(startColumn)
 	for _, name := range names {
 		var recipientSum, err = list.Get(name)
 		s.Check(err, "Error: ")
@@ -115,12 +116,18 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 		// Cycle through fiscal years
 		//
 		for _, fy := range a.FYIndicators {
-			outputSumData(output, fy, row, countColumns[fy], paymentColumns[fy], recipientSum)
 			if recipientSum.IsIndividualGrant(fy) {
+				count = 1
 				totalCount[fy] += 1
+			} else {
+				count = 0
 			}
 			amount = recipientSum.GrantTotal(fy)
 			totalPayments[fy] = totalPayments[fy].Add(amount)
+			//
+			// Output results
+			//
+			sp.OutputSumData(output, fy, row, &ch, count, amount)
 		}
 		row++
 	}
@@ -128,28 +135,9 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	// Create total payments
 	//
 	row++
-	sp.WriteCell(output, "A", row, "Total Payments")
-	for _, fy := range a.FYIndicators {
-		sp.WriteCellInt(output, countColumns[fy], row, totalCount[fy])
-		sp.WriteCellDecimal(output, paymentColumns[fy], row, totalPayments[fy])
-	}
-}
-
-// outputSumData inserts the recipient summary data into spreadsheet.
-func outputSumData(
-	output *sp.SpreadsheetFile,
-	fiscalYear a.FYIndicator,
-	row int,
-	columnCount string,
-	columnAmount string,
-	recipientSum *g.RecipientSum) {
-	var count = 0
-	if recipientSum.IsIndividualGrant(fiscalYear) {
-		count = 1
-	}
-	var amount = recipientSum.GrantTotal(fiscalYear)
-	sp.WriteCellInt(output, columnCount, row, count)
-	sp.WriteCellDecimal(output, columnAmount, row, amount)
+	// grandCount is the total number of recipients (one row per name).
+	grandCount = len(names)
+	sp.OutputTotals(output, row, &ch, totalCount, totalPayments, grandCount)
 }
 
 // ----------------------------------------------------------------------------
