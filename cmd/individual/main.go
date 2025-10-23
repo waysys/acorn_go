@@ -7,7 +7,6 @@
 // fiscal year.
 //
 // Author: William Shaffer
-// Version: 1-Jun-2025
 //
 //	Copyright (c) 2025 William Shaffer All Rights Reserved
 //
@@ -51,20 +50,24 @@ func main() {
 	// Read the accounts payable transaction
 	//
 	apTranlist, err = q.ReadAPTransactions()
+	s.Check(err, "Error: ")
 	//
 	// Generate grant transactions
 	//
-	if err == nil {
-		grantList, err = g.AssembleIndividualGrantList(&apTranlist)
-	}
+	grantList, err = g.AssembleIndividualGrantList(&apTranlist)
+	s.Check(err, "Error: ")
 	//
 	// Output results
 	//
-	if err == nil {
-		output, err = sp.New(outputFile, "Individual Grants")
-	}
+	output, err = sp.New(outputFile, "Individual Grants")
 	s.Check(err, "Error: ")
-	defer output.Close()
+	var finish = func() {
+		err = output.Save()
+		s.Check(err, "Error saving output file: ")
+		err = output.Close()
+		s.Check(err, "Error closing output file: ")
+	}
+	defer finish()
 	outputRecipientSummary(&output, &grantList)
 	output.Save()
 	printFooter()

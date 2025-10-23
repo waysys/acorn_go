@@ -310,7 +310,7 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	//
 	// Create Headings
 	//
-	createHeadings(output, row)
+	sp.CreateHeadings(output, row, startColumn)
 	row += 3
 	//
 	// Loop through the recipient summaries
@@ -343,7 +343,7 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 			//
 			// Output the values
 			//
-			outputSumData(output, fy, row, &ch, count, amount)
+			sp.OutputSumData(output, fy, row, &ch, count, amount)
 		}
 		row++
 	}
@@ -351,7 +351,7 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	// Insert total counts, total payments, and grand count
 	//
 	row++
-	outputTotals(output, row, &ch, totalCount, totalPayments, grandCount)
+	sp.OutputTotals(output, row, &ch, totalCount, totalPayments, grandCount)
 }
 
 // outputNameTagList produces a list of recipients that have been given awards,
@@ -369,75 +369,6 @@ func outputNameTagList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 		sp.WriteCell(output, "A", row, name)
 		row++
 	}
-}
-
-// ----------------------------------------------------------------------------
-// Support Functions
-// ----------------------------------------------------------------------------
-
-// Create headings for recipient summary
-func createHeadings(output *sp.SpreadsheetFile, row int) {
-	var column string
-	var label string
-	var ch = sp.NewColumnHandler(startColumn)
-	//
-	// Place title
-	//
-	sp.WriteCell(output, "A", row, "Recipient Summary")
-	row += 2
-	//
-	// Place headings
-	//
-	sp.WriteCell(output, "A", row, "Recipient Name")
-	for fy := range a.FYIndicators {
-		column = ch.CountColumn((a.FYIndicator(fy)))
-		label = ch.CountColumnLabel(a.FYIndicator(fy))
-		sp.WriteCell(output, column, row, label)
-		column = ch.PaymentColumn((a.FYIndicator(fy)))
-		label = ch.PaymentColumnLabel((a.FYIndicator(fy)))
-		sp.WriteCell(output, column, row, label)
-	}
-	column = ch.TotalColumn()
-	sp.WriteCell(output, column, row, "Total Count")
-}
-
-// outputSumData inserts the recipient summary data into spreadsheet.
-func outputSumData(
-	output *sp.SpreadsheetFile,
-	fy a.FYIndicator,
-	row int,
-	ch *sp.ColumnHandler,
-	count int,
-	amount dec.Decimal) {
-	var column string
-
-	column = ch.CountColumn(fy)
-	sp.WriteCellInt(output, column, row, count)
-	column = ch.PaymentColumn(fy)
-	sp.WriteCellDecimal(output, column, row, amount)
-	column = ch.TotalColumn()
-	sp.WriteCellInt(output, column, row, 1)
-}
-
-// outputTotals inserts the totals for all recipients on a row
-func outputTotals(
-	output *sp.SpreadsheetFile,
-	row int,
-	ch *sp.ColumnHandler,
-	counts []int,
-	amounts []dec.Decimal,
-	grandCount int) {
-	var column string
-
-	sp.WriteCell(output, "A", row, "Total Payments")
-	for _, fy := range a.FYIndicators {
-		column = ch.CountColumn(fy)
-		sp.WriteCellInt(output, column, row, counts[fy])
-		column = ch.PaymentColumn(fy)
-		sp.WriteCellDecimal(output, column, row, amounts[fy])
-	}
-	column = ch.TotalColumn()
-	sp.WriteCellInt(output, column, row, grandCount)
 }
 
 // ----------------------------------------------------------------------------
