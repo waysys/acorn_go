@@ -3,9 +3,8 @@
 // Scholarship Analysis Program
 //
 // Author: William Shaffer
-// Version: 10-May-2024
 //
-// Copyright (c) 2024 William Shaffer All Rights Reserved
+// Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -14,6 +13,7 @@
 // -- Summary of Scholarship Payments
 // -- Recipient Actions
 // -- Recipient Summary
+// -- Name Tags
 
 package main
 
@@ -38,6 +38,17 @@ import (
 // ----------------------------------------------------------------------------
 
 const outputFile = "/home/bozo/Downloads/scholarship.xlsx"
+
+// output tabs
+const (
+	summary          = "Summary"
+	recipients       = "Recipients"
+	recipientSummary = "RecipSum"
+	nameTags         = "Name Tags"
+)
+
+// startColumn is the first column where the fiscal year column starts
+const startColumn = "B"
 
 // ----------------------------------------------------------------------------
 // Main Function
@@ -72,11 +83,19 @@ func main() {
 	// Output results
 	//
 	if err == nil {
-		output, err = sp.New(outputFile, "Summary")
+		output, err = sp.New(outputFile, summary)
 	}
 	s.Check(err, "Error: ")
-
-	defer output.Close()
+	//
+	// Defer function to close spreadsheet
+	//
+	var finish = func() {
+		err = output.Save()
+		s.Check(err, "Error saving output file: ")
+		err = output.Close()
+		s.Check(err, "Error closing output file: ")
+	}
+	defer finish()
 	//
 	// Produce summary tab
 	//
@@ -84,25 +103,26 @@ func main() {
 	//
 	// Produce recipient tab
 	//
-	output, err = output.AddSheet("Recipients")
+	output, err = output.AddSheet(recipients)
 	s.Check(err, "Error: ")
 	outputRecipientList(&output, &grantList)
 	//
 	// Produce recipient summary tab
 	//
-	output, err = output.AddSheet("RecipSum")
+	output, err = output.AddSheet(recipientSummary)
 	s.Check(err, "Error: ")
 	outputRecipientSummary(&output, &grantList)
 	//
 	// Produce the name tag list
 	//
-	output, err = output.AddSheet("Name Tags")
+	output, err = output.AddSheet(nameTags)
 	s.Check(err, "Error: ")
 	outputNameTagList(&output, &grantList)
 	//
 	// Save results
 	//
 	output.Save()
+	s.Check(err, "Error: ")
 	printFooter()
 }
 
@@ -168,7 +188,7 @@ func outputTotalLine(
 	sp.WriteCell(output, "A", row, "Totals")
 	sp.WriteCellDecimal(output, "B", row, grantList.GrandTotalTransactions(g.Grant))
 	sp.WriteCellDecimal(output, "C", row, grantList.GrandTotalTransactions(g.GrantPayment))
-	sp.WriteCellDecimal(output, "D", row, grantList.GrandTTotalNetWriteoff())
+	sp.WriteCellDecimal(output, "D", row, grantList.GrandTotalNetWriteoff())
 	sp.WriteCellDecimal(output, "E", row, grantList.GrandTotalTransactions(g.Refund))
 	sp.WriteCellDecimal(output, "F", row, grantList.TotalNetBalance())
 }
@@ -183,6 +203,7 @@ func outputRecipientList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	var totals = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero, dec.Zero, dec.Zero}
 	var columns = []string{"E", "F", "G", "H", "I"}
 	var totalBalance = dec.Zero
+
 	grantList.Sort()
 
 	//
@@ -275,78 +296,62 @@ func outputRecipientSummary(output *sp.SpreadsheetFile, grantList *g.GrantList) 
 	// Create the recipient summary list
 	//
 	var row = 1
-	var list, err = g.AssembleRecipientSumList(grantList)
-	s.Check(err, "Error: ")
-	var totalPayments = []dec.Decimal{dec.Zero, dec.Zero, dec.Zero}
-	var totalCount = []int{0, 0, 0}
-	var countColumns = []string{"B", "D", "F"}
-	var paymentColumns = []string{"C", "E", "G"}
+	var totalPayments []dec.Decimal
+	var totalCount []int
 	var amount = dec.Zero
+	var count = 0
+	//
+	// Initialize arrays for each fiscal year
+	//
+	for index := 0; index < a.NumFiscalYears; index++ {
+		totalCount = append(totalCount, 0)
+		totalPayments = append(totalPayments, dec.Zero)
+	}
 	//
 	// Create Headings
 	//
-	sp.WriteCell(output, "A", row, "Recipient Summary")
-	row += 2
-	sp.WriteCell(output, "A", row, "Recipient Name")
-	sp.WriteCell(output, "B", row, "FY2023 Count")
-	sp.WriteCell(output, "C", row, "FY2023 Payments")
-	sp.WriteCell(output, "D", row, "FY2024 Count")
-	sp.WriteCell(output, "E", row, "FY2024 Payments")
-	sp.WriteCell(output, "F", row, "FY2025 Count")
-	sp.WriteCell(output, "G", row, "FY2025 Payments")
-	sp.WriteCell(output, "H", row, "Total Count")
-	row++
+	createHeadings(output, row)
+	row += 3
 	//
 	// Loop through the recipient summaries
 	//
+	var list, err = g.AssembleRecipientSumList(grantList)
+	s.Check(err, "Error: ")
 	var names = list.Names()
 	var grandCount = 0
+	var ch = sp.NewColumnHandler(startColumn)
+	//
+	// Cycle through recipients
+	//
 	for _, name := range names {
 		var recipientSum, err = list.Get(name)
 		s.Check(err, "Error: ")
 		sp.WriteCell(output, "A", row, name)
-		sp.WriteCellInt(output, "H", row, 1)
 		grandCount++
 		//
 		// Cycle through fiscal years
 		//
 		for _, fy := range a.FYIndicators {
-			outputSumData(output, fy, row, countColumns[fy], paymentColumns[fy], recipientSum)
 			if recipientSum.IsRecipient(fy) {
-				totalCount[fy] += 1
+				count = 1
+			} else {
+				count = 0
 			}
 			amount = recipientSum.NetPaymentTotal(fy)
+			totalCount[fy] += count
 			totalPayments[fy] = totalPayments[fy].Add(amount)
+			//
+			// Output the values
+			//
+			outputSumData(output, fy, row, &ch, count, amount)
 		}
 		row++
 	}
 	//
-	// Create total payments
+	// Insert total counts, total payments, and grand count
 	//
 	row++
-	sp.WriteCell(output, "A", row, "Total Payments")
-	sp.WriteCellInt(output, "H", row, grandCount)
-	for _, fy := range a.FYIndicators {
-		sp.WriteCellInt(output, countColumns[fy], row, totalCount[fy])
-		sp.WriteCellDecimal(output, paymentColumns[fy], row, totalPayments[fy])
-	}
-}
-
-// outputSumData inserts the recipient summary data into spreadsheet.
-func outputSumData(
-	output *sp.SpreadsheetFile,
-	fiscalYear a.FYIndicator,
-	row int,
-	columnCount string,
-	columnAmount string,
-	recipientSum *g.RecipientSum) {
-	var count = 0
-	if recipientSum.IsRecipient(fiscalYear) {
-		count = 1
-	}
-	var amount = recipientSum.NetPaymentTotal(fiscalYear)
-	sp.WriteCellInt(output, columnCount, row, count)
-	sp.WriteCellDecimal(output, columnAmount, row, amount)
+	outputTotals(output, row, &ch, totalCount, totalPayments, grandCount)
 }
 
 // outputNameTagList produces a list of recipients that have been given awards,
@@ -355,6 +360,7 @@ func outputNameTagList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 	var row = 1
 	var names = grantList.Names()
 	sp.WriteCell(output, "A", row, "Recipient")
+	row++
 	//
 	// Loop through grant list names
 	//
@@ -366,17 +372,86 @@ func outputNameTagList(output *sp.SpreadsheetFile, grantList *g.GrantList) {
 }
 
 // ----------------------------------------------------------------------------
+// Support Functions
+// ----------------------------------------------------------------------------
+
+// Create headings for recipient summary
+func createHeadings(output *sp.SpreadsheetFile, row int) {
+	var column string
+	var label string
+	var ch = sp.NewColumnHandler(startColumn)
+	//
+	// Place title
+	//
+	sp.WriteCell(output, "A", row, "Recipient Summary")
+	row += 2
+	//
+	// Place headings
+	//
+	sp.WriteCell(output, "A", row, "Recipient Name")
+	for fy := range a.FYIndicators {
+		column = ch.CountColumn((a.FYIndicator(fy)))
+		label = ch.CountColumnLabel(a.FYIndicator(fy))
+		sp.WriteCell(output, column, row, label)
+		column = ch.PaymentColumn((a.FYIndicator(fy)))
+		label = ch.PaymentColumnLabel((a.FYIndicator(fy)))
+		sp.WriteCell(output, column, row, label)
+	}
+	column = ch.TotalColumn()
+	sp.WriteCell(output, column, row, "Total Count")
+}
+
+// outputSumData inserts the recipient summary data into spreadsheet.
+func outputSumData(
+	output *sp.SpreadsheetFile,
+	fy a.FYIndicator,
+	row int,
+	ch *sp.ColumnHandler,
+	count int,
+	amount dec.Decimal) {
+	var column string
+
+	column = ch.CountColumn(fy)
+	sp.WriteCellInt(output, column, row, count)
+	column = ch.PaymentColumn(fy)
+	sp.WriteCellDecimal(output, column, row, amount)
+	column = ch.TotalColumn()
+	sp.WriteCellInt(output, column, row, 1)
+}
+
+// outputTotals inserts the totals for all recipients on a row
+func outputTotals(
+	output *sp.SpreadsheetFile,
+	row int,
+	ch *sp.ColumnHandler,
+	counts []int,
+	amounts []dec.Decimal,
+	grandCount int) {
+	var column string
+
+	sp.WriteCell(output, "A", row, "Total Payments")
+	for _, fy := range a.FYIndicators {
+		column = ch.CountColumn(fy)
+		sp.WriteCellInt(output, column, row, counts[fy])
+		column = ch.PaymentColumn(fy)
+		sp.WriteCellDecimal(output, column, row, amounts[fy])
+	}
+	column = ch.TotalColumn()
+	sp.WriteCellInt(output, column, row, grandCount)
+}
+
+// ----------------------------------------------------------------------------
 // Print Functions
 // ----------------------------------------------------------------------------
 
-// printHeader places the header information at the top of the page
+// printHeader prints a message indicating that the program has started.
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 	fmt.Println("Acorn Scholarship Fund Scholarship Analysis")
 	fmt.Println("-----------------------------------------------------------")
 }
 
-// printFooter prints a message indicating completion of the process
+// printFooter prints a message indicating completion of the program
 func printFooter() {
 	fmt.Println("Program is finished.")
 	fmt.Println("-----------------------------------------------------------")

@@ -3,9 +3,8 @@
 // Spreadsheet support functions
 //
 // Author: William Shaffer
-// Version: 24-Sep-2024
 //
-// Copyright (c) William Shaffer
+// Copyright (c) 2025 William Shaffer All rights reserved
 //
 // ----------------------------------------------------------------------------
 
@@ -28,7 +27,7 @@ import (
 // ----------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
-// Functions
+// Cell Functions
 // ----------------------------------------------------------------------------
 
 // cellName generates a string representing a cell in the spreadsheet.

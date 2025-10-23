@@ -229,7 +229,7 @@ func AssembleIndividualGrantList(transList *q.TransList) (GrantList, error) {
 }
 
 // processIndividualGrant returns a grant transaction based on the
-// accunts payable transaction
+// accounts payable transaction
 func processIndividualGrant(apTrans *q.APTransaction) Transaction {
 	//
 	// Extract the data
@@ -325,7 +325,7 @@ func (grantList *GrantList) TotalNetWriteOff(fiscalYear a.FYIndicator) dec.Decim
 }
 
 // GrandTotalNetWriteoff returns the total net writeoffs.
-func (grantList *GrantList) GrandTTotalNetWriteoff() dec.Decimal {
+func (grantList *GrantList) GrandTotalNetWriteoff() dec.Decimal {
 	var total = dec.Zero
 	for _, fy := range a.FYIndicators {
 		var amount = grantList.TotalNetWriteOff(fy)

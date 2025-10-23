@@ -39,9 +39,8 @@ func Check(err error, message string) {
 	if err != nil {
 		logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		logger.Error(
-			message,
+			message+err.Error(),
 			"error", err,
-			"user_id", "bozo",
 		)
 		os.Exit(1)
 	}

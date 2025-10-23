@@ -41,7 +41,7 @@ func ConvertName(name string) string {
 	return conv
 }
 
-// ReverstName changes a name in the form of "last-name, first-name" to
+// RevertName changes a name in the form of "last-name, first-name" to
 // "first-name last-name"
 func RevertName(name string) string {
 	var revert = ""

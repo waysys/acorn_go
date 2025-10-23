@@ -42,14 +42,26 @@ type RecipientSum struct {
 // NewRecipientSum returns a new recipient summary initialized to zero.
 func NewRecipientSum(name string) RecipientSum {
 	assert.Assert(len(name) > 0, "name cannot be an empty string")
+	var payments []dec.Decimal
+	var refunds []dec.Decimal
+	var grants []dec.Decimal
 	var recipient = q.NewRecipient(name)
 	var recipientSum = RecipientSum{
 		recipient: &recipient,
-		payments:  []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
-		refunds:   []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
-		grants:    []dec.Decimal{dec.Zero, dec.Zero, dec.Zero},
+		payments:  zeroArray(payments),
+		refunds:   zeroArray(refunds),
+		grants:    zeroArray(grants),
 	}
 	return recipientSum
+}
+
+// zeroArray creates a slice with the number of elements with decimal zero
+// equal to the number of fiscal years in the reports
+func zeroArray(input []dec.Decimal) []dec.Decimal {
+	for index := 0; index < a.NumFiscalYears; index++ {
+		input = append(input, dec.Zero)
+	}
+	return input
 }
 
 // ----------------------------------------------------------------------------

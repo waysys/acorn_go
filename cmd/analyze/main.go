@@ -24,7 +24,6 @@ import (
 	s "acorn_go/pkg/spreadsheet"
 	sp "acorn_go/pkg/support"
 	"fmt"
-	"os"
 )
 
 // ----------------------------------------------------------------------------
@@ -81,7 +80,6 @@ func main() {
 		sp.Check(err, "Error saving output file: ")
 		err = output.Close()
 		sp.Check(err, "Error closing output file: ")
-		os.Exit(0)
 	}
 	defer finish()
 	//
