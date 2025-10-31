@@ -3,14 +3,14 @@
 // Donor series program
 //
 // Author: William Shaffer
-// Version: 12-Apr-2024
 //
 // Copyright (c) 2024 William Shaffer All Rights Reserved
 //
 // ----------------------------------------------------------------------------
 
 // This program creates a spreasheet with a timeline of
-// amount of donations.
+// amount of donations.  The spreadsheet is called donations_series.xlxs
+// with a tab Donations.
 
 package main
 
@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"os"
 
 	a "acorn_go/pkg/accounting"
 	ds "acorn_go/pkg/donationseries"
@@ -50,14 +49,14 @@ const (
 )
 
 const (
-	beginYear  = 2023
+	beginYear  = 2022
 	beginMonth = 9
 	endYear    = 2026
 	endMonth   = 8
 )
 
 // ----------------------------------------------------------------------------
-// Functions
+// Main Function
 // ----------------------------------------------------------------------------
 
 // main supervises the execution of this program.  It produces a spreadsheet
@@ -83,22 +82,37 @@ func main() {
 	//
 	err = outputDonationSeries(&donationSeries)
 	sp.Check(err, "Error writing output")
-	os.Exit(0)
+	printFooter()
 }
 
-// printHeader places the header information at the top of the page
+// ----------------------------------------------------------------------------
+// Print Functions
+// ----------------------------------------------------------------------------
+
+// printHeader notifies the user that the program has started
 func printHeader() {
 	fmt.Println("-----------------------------------------------------------")
 	fmt.Println("Acorn Scholarship Fund Donation Series")
 	fmt.Println("-----------------------------------------------------------")
 }
 
+// printFooter notifies the user that the program has finished
+func printFooter() {
+	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("Program has finished")
+	fmt.Println("-----------------------------------------------------------")
+}
+
+// ----------------------------------------------------------------------------
+// Output Functions
+// ----------------------------------------------------------------------------
+
 // outputDonationSeries produces a spreadsheet with the donation time series
 func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	var err error = nil
 	var output s.SpreadsheetFile
 	var keys []d.YearMonth
-	var totalDonations = []float64{0.0, 0.0, 0.0}
+	var totalDonations = make([]float64, a.NumFiscalYears)
 	var row int
 	var fiscalYear a.FYIndicator
 	var yearMonth d.YearMonth
@@ -115,7 +129,16 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	if err != nil {
 		return err
 	}
-	defer output.Close()
+	//
+	// Defer function to close spreadsheet
+	//
+	var finish = func() {
+		err = output.Save()
+		sp.Check(err, "Error saving output file: ")
+		err = output.Close()
+		sp.Check(err, "Error closing output file: ")
+	}
+	defer finish()
 	//
 	// Enter values in into spreadsheet
 	//
@@ -172,13 +195,11 @@ func outputDonationSeries(dsPtr *(ds.DonationSeries)) error {
 	// Ootput totals
 	//
 	row += 4
-	outputTotals(output, "FY2024 Donations", totalDonations[a.FY2024], row)
-	outputTotals(output, "FY2025 Donations", totalDonations[a.FY2025], row+1)
-	outputTotals(output, "FY2026 Donations", totalDonations[a.FY2026], row+2)
-	//
-	// Save the spreadsheet
-	//
-	err = output.Save()
+	for _, fy := range a.FYIndicators {
+		var label = fy.String() + " Donations"
+		outputTotals(output, label, totalDonations[fy], row)
+		row++
+	}
 	return err
 }
 

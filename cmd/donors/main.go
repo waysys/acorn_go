@@ -3,7 +3,6 @@
 // Mailing Address Program
 //
 // Author: William Shaffer
-// Version: 20-May-2024
 //
 // Copyright (c) 2024, 2025 William Shaffer All Rights Reserved
 //
