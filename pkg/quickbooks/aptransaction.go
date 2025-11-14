@@ -78,6 +78,38 @@ var ncVendorCredit = NewAPTransaction(
 	Money(dec.NewFromInt(3000)),
 	accountGrants)
 
+// Returned check from University of North Carolina Wilmington
+const (
+	uncw  = "University of North Carolina Wilmington"
+	qKing = "King, Quanisha"
+)
+
+var nov5, _ = d.New(11, 5, 2025)
+
+// Refund transactions for Matthew Plazas
+var uncwDeposit = NewAPTransaction(
+	nov5,
+	uncw,
+	qKing,
+	Deposit,
+	Money(dec.NewFromInt(4000)),
+	accountCash)
+
+var uncwVendorCredit = NewAPTransaction(
+	nov5,
+	uncw,
+	qKing,
+	VendorCredit,
+	Money(dec.NewFromInt(4000)),
+	accountGrants)
+
+var refundTransactions = []APTransaction{
+	ncDeposit,
+	ncVendorCredit,
+	uncwDeposit,
+	uncwVendorCredit,
+}
+
 // ----------------------------------------------------------------------------
 // Factory Functions
 // ----------------------------------------------------------------------------
