@@ -48,6 +48,7 @@ const tabDonors = "Sheet1"
 const outputFile = "/home/bozo/Downloads/annualletter.xlsx"
 const outputTab = "Donors"
 const outputTab2 = "Month Donors"
+const outputTab3 = "Two-Year Donors"
 
 // reportYear specifies the calendar year for donors reported in the donor tab.
 // If the Month Donors is the main focus, be sure the report year is the
@@ -85,6 +86,15 @@ func main() {
 	output, err = output.AddSheet(outputTab2)
 	sp.Check(err, "Error adding Month Donor sheet: ")
 	outputMonthlyDonors(&donorList, &donationList, output)
+	//
+	// Output two-year donors
+	//
+	output, err = output.AddSheet(outputTab3)
+	sp.Check(err, "Error adding Two-Year Donor sheet: ")
+	outputTwoYearDonors(&donorList, &donationList, output)
+	//
+	// Save and close
+	//
 	err = output.Save()
 	sp.Check(err, "Error saving output file")
 	err = output.Close()
@@ -245,4 +255,62 @@ func outputMonthlyDonors(
 	//
 	fmt.Println("Number of monthly donors: " + strconv.Itoa(personCount))
 	fmt.Println("Current month is: " + a.CurrentMonth())
+}
+
+// outputTwoYearDonors fills the tab Two-Year Donors with the names, emails, two-year donation and
+// addresses of donors who have donated in the specified two fiscal year.
+func outputTwoYearDonors(
+	donorList *dns.DonorList,
+	donationList *dna.DonationList,
+	output s.SpreadsheetFile) {
+	//
+	// Insert Heading
+	//
+	var row = 1
+	s.WriteCell(&output, "A", row, "Donor Name")
+	s.WriteCell(&output, "B", row, "Email")
+	s.WriteCell(&output, "C", row, "Street")
+	s.WriteCell(&output, "D", row, "City")
+	s.WriteCell(&output, "E", row, "State")
+	s.WriteCell(&output, "F", row, "Zip")
+	s.WriteCell(&output, "G", row, "Key")
+	s.WriteCell(&output, "H", row, "Total Donation")
+	row++
+	//
+	// Process donors
+	//
+	var personCount = 0
+	var keys = donationList.DonorKeys()
+	for _, key := range keys {
+		var donation = donationList.Get(key)
+		if selectTwoYearDonor(donation) {
+			var donor = donorList.Get(key)
+			s.WriteCell(&output, "A", row, donor.Name())
+			s.WriteCell(&output, "B", row, donor.Email())
+			s.WriteCell(&output, "C", row, donor.Street())
+			s.WriteCell(&output, "D", row, donor.City())
+			s.WriteCell(&output, "E", row, donor.State())
+			s.WriteCell(&output, "F", row, donor.Zip())
+			s.WriteCell(&output, "G", row, key)
+			//
+			// Compute total two-year donation
+			var fy2024Donations = donation.Donation((a.FY2024))
+			var fy2025Donations = donation.Donation((a.FY2025))
+			var totalDonation = fy2024Donations.Add(fy2025Donations)
+			s.WriteCellDecimal(&output, "H", row, totalDonation)
+			row++
+			personCount++
+		}
+	}
+	//
+	// Output to person count
+	//
+	fmt.Println("Number of two-year donors: " + strconv.Itoa(personCount))
+}
+
+// selectTwoYearDonor returns true if the donor is to be output
+func selectTwoYearDonor(donor *dns.Donor) bool {
+	var result = donor.IsDonor(a.FY2024) || donor.IsDonor(a.FY2025)
+	result = result && !donor.Deceased()
+	return result
 }
