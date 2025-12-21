@@ -8,6 +8,7 @@
 // This program creates the annualletter.xlsx spreadsheet with these tabs:
 // -- Donors - names and addresses of donors for the specified fiscal year
 // -- Month Donors - names and address of donor who have donated in the "current month"
+// -- Two-Year Donors - names and address of donors who have donated in FY2024 or FY2025
 //
 // Author: William Shaffer
 //
@@ -30,6 +31,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	dec "github.com/shopspring/decimal"
 )
 
 // ----------------------------------------------------------------------------
@@ -274,7 +277,7 @@ func outputTwoYearDonors(
 	s.WriteCell(&output, "E", row, "State")
 	s.WriteCell(&output, "F", row, "Zip")
 	s.WriteCell(&output, "G", row, "Key")
-	s.WriteCell(&output, "H", row, "Total Donation")
+	s.WriteCell(&output, "H", row, "Max Yearly Donation")
 	row++
 	//
 	// Process donors
@@ -296,8 +299,8 @@ func outputTwoYearDonors(
 			// Compute total two-year donation
 			var fy2024Donations = donation.Donation((a.FY2024))
 			var fy2025Donations = donation.Donation((a.FY2025))
-			var totalDonation = fy2024Donations.Add(fy2025Donations)
-			s.WriteCellDecimal(&output, "H", row, totalDonation)
+			var maxDonation = dec.Max(fy2024Donations, fy2025Donations)
+			s.WriteCellDecimal(&output, "H", row, maxDonation)
 			row++
 			personCount++
 		}
