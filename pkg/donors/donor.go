@@ -58,7 +58,8 @@ var MajorDonorLimit = dec.NewFromInt(1000)
 func New(ky string, nm string, adr a.Address, eml string, count int, decsd bool) Donor {
 	var dn1 []dec.Decimal
 	var dn2 []dec.Decimal
-	for index := 0; index < ac.NumFiscalYears; index++ {
+	var numYears = ac.MaxYear - ac.MinYear + 1
+	for index := 0; index < numYears; index++ {
 		dn1 = append(dn1, ZERO)
 		dn2 = append(dn2, ZERO)
 	}

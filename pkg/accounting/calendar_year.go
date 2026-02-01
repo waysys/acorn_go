@@ -65,11 +65,11 @@ var currentMonth daterange.DateRange
 
 func init() {
 	var err error
-	currentMonthStart, err = d.New(12, 1, 2025)
+	currentMonthStart, err = d.New(1, 1, 2026)
 	if err != nil {
 		panic(err)
 	}
-	currentMonthEnd, err = d.New(12, 31, 2025)
+	currentMonthEnd, err = d.New(1, 31, 2026)
 	if err != nil {
 		panic(err)
 	}
