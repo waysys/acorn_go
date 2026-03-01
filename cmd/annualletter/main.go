@@ -56,7 +56,7 @@ const outputTab3 = "Two-Year Donors"
 // reportYear specifies the calendar year for donors reported in the donor tab.
 // If the Month Donors is the main focus, be sure the report year is the
 // same as the year of the current month.
-const reportYear = a.Y2025
+const reportYear = a.Y2026
 
 // ----------------------------------------------------------------------------
 // Functions
