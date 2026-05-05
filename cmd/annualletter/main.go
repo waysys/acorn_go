@@ -213,7 +213,7 @@ func selectDonor(donor *dns.Donor) bool {
 	return result
 }
 
-// outputMonthlydonors fills the tab Month Donors with the names, emails, and
+// outputMonthlyDonors fills the tab Month Donors with the names, emails, and
 // addresses of donors who have donated in the current month.
 func outputMonthlyDonors(
 	donorList *dns.DonorList,
