@@ -38,6 +38,12 @@ const (
 	PartTime          EnrollmentStatus = "PartTime"
 )
 
+var sortOrderEnrollmentStatus = map[EnrollmentStatus]int{
+	FullTime:          0,
+	PartTime:          1,
+	UnknownEnrollment: 2,
+}
+
 // ----------------------------------------------------------------------------
 // Data
 // ----------------------------------------------------------------------------
@@ -63,6 +69,8 @@ func DetermineEnrollmentStatus(
 		maxPartTimeAmount = maxFourYearPartTimeAmount
 	case TwoYear:
 		maxPartTimeAmount = maxTwoYearPartTimeAmount
+	case UnknownInstitution:
+		return UnknownEnrollment, nil
 	default:
 		return UnknownEnrollment, fmt.Errorf("unrecognized institution type: %s", institutionType)
 	}
@@ -73,4 +81,22 @@ func DetermineEnrollmentStatus(
 		return FullTime, nil
 	}
 	return PartTime, nil
+}
+
+// CompareEnrollmentStatus using the associated sort order
+func CompareEnrollmentStatus(
+	enrollmentStatus1 EnrollmentStatus,
+	enrollmentStatus2 EnrollmentStatus,
+) int {
+	var order1 = sortOrderEnrollmentStatus[enrollmentStatus1]
+	var order2 = sortOrderEnrollmentStatus[enrollmentStatus2]
+
+	var result = 0
+	if order1 < order2 {
+		result = -1
+	} else if order1 > order2 {
+		result = 1
+	}
+
+	return result
 }

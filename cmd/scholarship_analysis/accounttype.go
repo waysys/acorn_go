@@ -37,6 +37,13 @@ const (
 	UnknownAccount  AccountType = "Unknown"
 )
 
+var sortOrderAccountType = map[AccountType]int{
+	Associate:       0,
+	Dependent:       1,
+	IndividualGrant: 2,
+	UnknownAccount:  3,
+}
+
 const (
 	dependent  Tag = "Dependent"
 	grant      Tag = "Grant"
@@ -55,9 +62,25 @@ var tagTable = map[Tag]AccountType{
 // Function
 // ----------------------------------------------------------------------------
 
+// DetermineAccountType returns the account type for a given tag
 func DetermineAccountType(tag Tag) AccountType {
 	if accountType, ok := tagTable[tag]; ok {
 		return accountType
 	}
 	return UnknownAccount
+}
+
+// CompareAccountType returns the sort indicator
+func CompareAccountType(acctType1 AccountType, acctType2 AccountType) int {
+	var order1 = sortOrderAccountType[acctType1]
+	var order2 = sortOrderAccountType[acctType2]
+
+	var result = 0
+	if order1 < order2 {
+		result = -1
+	} else if order1 > order2 {
+		result = 1
+	}
+
+	return result
 }

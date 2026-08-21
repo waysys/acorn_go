@@ -62,17 +62,22 @@ func TestDetermineEnrollmentStatusUnrecognizedInstitution(t *testing.T) {
 	tests := []struct {
 		name            string
 		institutionType InstitutionType
+		expectError     bool
 	}{
-		{"unknown institution", UnknownInstitution},
-		{"unrecognized institution", "FiveYear"},
+		{"unknown institution", UnknownInstitution, false},
+		{"unrecognized institution", "FiveYear", true},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			actual, err := DetermineEnrollmentStatus(test.institutionType, dec.NewFromInt(1000))
-			if err == nil {
+			if test.expectError && err == nil {
 				t.Errorf("DetermineEnrollmentStatus(%q, 1000) expected error, got nil",
 					test.institutionType)
+			}
+			if !test.expectError && err != nil {
+				t.Errorf("DetermineEnrollmentStatus(%q, 1000) returned unexpected error: %v",
+					test.institutionType, err)
 			}
 			if actual != UnknownEnrollment {
 				t.Errorf("DetermineEnrollmentStatus(%q, 1000) = %q, expected %q",

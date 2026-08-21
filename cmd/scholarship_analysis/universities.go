@@ -35,6 +35,12 @@ const (
 	TwoYear            InstitutionType = "Two Year"
 )
 
+var sortOrderInstType = map[InstitutionType]int{
+	TwoYear:            1,
+	FourYear:           2,
+	UnknownInstitution: 3,
+}
+
 var universities = map[string]InstitutionType{
 	"Accelerated Academy":                      FourYear,
 	"American Intercontinental University":     FourYear,
@@ -82,10 +88,30 @@ var universities = map[string]InstitutionType{
 // Functions
 // ----------------------------------------------------------------------------
 
+// DetermineInstitutionType selects an InstitutionType based on the university
 func DetermineInstitutionType(university string) (InstitutionType, error) {
 	institutionType, ok := universities[university]
 	if ok {
 		return institutionType, nil
 	}
 	return UnknownInstitution, fmt.Errorf("no entry for this university: %s", university)
+}
+
+// CompareInstitutionType returns:
+//
+// -1 if sort order of institutioin type 1 is less the sort order of institution 2
+// 0 if the sort orders are equal
+// +1 if the sort order of type 1 is greater than the sort order of institution 2
+func CompareInstitutionType(instType1 InstitutionType, instType2 InstitutionType) int {
+	var order1 = sortOrderInstType[instType1]
+	var order2 = sortOrderInstType[instType2]
+
+	var result = 0
+	if order1 < order2 {
+		result = -1
+	} else if order1 > order2 {
+		result = 1
+	}
+
+	return result
 }

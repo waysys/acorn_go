@@ -15,8 +15,6 @@ package main
 // ----------------------------------------------------------------------------
 
 import (
-	"errors"
-
 	dec "github.com/shopspring/decimal"
 	d "github.com/waysys/waydate/pkg/date"
 )
@@ -33,7 +31,6 @@ type Scholarship struct {
 }
 
 type Entry struct {
-	count       int
 	amount      dec.Decimal
 	scholarship Scholarship
 }
@@ -48,7 +45,6 @@ type Entry struct {
 
 // NewEntry creates a new entry using input from the bill spreadsheet
 func NewEntry(
-	count int,
 	billDate d.Date,
 	university string,
 	tag Tag,
@@ -63,15 +59,18 @@ func NewEntry(
 	// Calculate inputs
 	//
 	var termPeriod = DetermineTermPeriod(billDate)
-	if termPeriod == Outside {
-		err = errors.New("Bill date is outside of date range of interest")
-		return entry, err
-	}
-	institutionType, err = DetermineInstitutionType(university)
-	if err != nil {
-		return entry, err
-	}
+
 	accountType = DetermineAccountType(tag)
+
+	if (accountType == Associate) || (accountType == Dependent) {
+		institutionType, err = DetermineInstitutionType(university)
+		if err != nil {
+			return entry, err
+		}
+	} else {
+		institutionType = UnknownInstitution
+	}
+
 	enrollmentStatus, err = DetermineEnrollmentStatus(institutionType, amount)
 	if err != nil {
 		return entry, err
@@ -89,53 +88,62 @@ func NewEntry(
 	// Define the Entry structure
 	//
 	entry = Entry{
-		count:       count,
 		amount:      amount,
 		scholarship: scholarship,
 	}
 
-	return entry, err
+	return entry, nil
 }
 
 // ----------------------------------------------------------------------------
 // Methods - Scholarship
 // ----------------------------------------------------------------------------
 
-// Return the time period
+// TermPeriod returns the time period
 func (sch Scholarship) TermPeriod() TermPeriod {
 	return sch.termPeriod
 }
 
-// Return the institution type
+// InstitutionType returns the institution type
 func (sch Scholarship) InstitutionType() InstitutionType {
 	return sch.institutionType
 }
 
-// Return the account type
+// AccountType returns the account type
 func (sch Scholarship) AccountType() AccountType {
 	return sch.accountType
 }
 
-// Return enrollment status
+// EnrollmentStatus returns the enrollment status
 func (sch Scholarship) EnrollmentStatus() EnrollmentStatus {
 	return sch.enrollmentStatus
+}
+
+// Compare this scholarship to another
+func (sch Scholarship) Compare(anotherSch Scholarship) int {
+	var result = CompareInstitutionType(sch.InstitutionType(), anotherSch.InstitutionType())
+	if result == 0 {
+		result = CompareTermPeriod(sch.TermPeriod(), anotherSch.TermPeriod())
+	}
+	if result == 0 {
+		result = CompareAccountType(sch.AccountType(), anotherSch.AccountType())
+	}
+	if result == 0 {
+		result = CompareEnrollmentStatus(sch.EnrollmentStatus(), anotherSch.EnrollmentStatus())
+	}
+	return result
 }
 
 // ----------------------------------------------------------------------------
 // Methods - Entry
 // ----------------------------------------------------------------------------
 
-// Return the entry count
-func (entry Entry) Count() int {
-	return entry.count
-}
-
-// Return the amount
+// Amount returns the amount
 func (entry Entry) Amount() dec.Decimal {
 	return entry.amount
 }
 
-// Return the scholarship
+// Scholarship returns the scholarship
 func (entry Entry) Scholarship() Scholarship {
 	return entry.scholarship
 }

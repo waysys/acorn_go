@@ -47,6 +47,14 @@ const (
 	Outside   TermPeriod = "Outside"
 )
 
+var sortOrderTermPeriod = map[TermPeriod]int{
+	PriorTerm: 0,
+	Spring:    1,
+	Summer:    2,
+	Fall:      3,
+	Outside:   4,
+}
+
 // termPeriodTable holds one row per term period, pairing its date range
 // with its designation. DetermineTermPeriod walks this table in order,
 // so a range and its period always travel together and can't drift out
@@ -98,4 +106,23 @@ func DetermineTermPeriod(billDate d.Date) TermPeriod {
 		}
 	}
 	return Outside
+}
+
+// CompareTermPeriod compares term periods using the sort order
+// for term periods
+func CompareTermPeriod(
+	termPeriod1 TermPeriod,
+	termPeriod2 TermPeriod,
+) int {
+	var order1 = sortOrderTermPeriod[termPeriod1]
+	var order2 = sortOrderTermPeriod[termPeriod2]
+
+	var result = 0
+	if order1 < order2 {
+		result = -1
+	} else if order1 > order2 {
+		result = 1
+	}
+
+	return result
 }
