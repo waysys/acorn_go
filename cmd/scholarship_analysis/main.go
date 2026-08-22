@@ -3,7 +3,8 @@
 // # Scholarship Analysis
 //
 // This program calculates metrics about the scholarships and grants
-// in the specified year.
+// for the academic year defined by the term period date ranges in
+// termperiod.go. Bills dated outside those ranges are excluded.
 //
 // Author: William Shaffer
 //
@@ -36,6 +37,7 @@ import (
 const outputFile = "/home/bozo/Downloads/scholarship_analysis.xlsx"
 const outputTab1 = "Scholarship"
 const outputTab2 = "Individual Grant"
+const outputTab3 = "Dependent Counts"
 
 const (
 	billFile = "/home/bozo/golang/acorn_go/data/bills.xlsx"
@@ -101,6 +103,12 @@ func main() {
 	output, err = output.AddSheet(outputTab2)
 	s.Check(err, "Error adding individual grant tab: ")
 	outputIndividualGrants(billCount, billAmount, &output)
+	//
+	// Produce the associate/dependent scholarship count
+	//
+	output, err = output.AddSheet(outputTab3)
+	s.Check(err, "Error adding dependent count tab: ")
+	outputDependentCount(billCount, &output)
 	printFooter()
 }
 
@@ -339,6 +347,41 @@ func outputIndividualGrants(
 	sp.WriteCellDecimal(output, "C", row, totalAmount.Round(0))
 	var totalAverage = average(totalAmount, totalCount)
 	sp.WriteCellDecimal(output, "D", row, totalAverage)
+}
+
+// outputDependentCount produces a tab in the spreadsheet with the
+// number of associate and dependent scholarships by term period.
+func outputDependentCount(
+	billCount map[Scholarship]int,
+	output *sp.SpreadsheetFile,
+) {
+	//
+	// Insert Heading
+	//
+	var row = 1
+	sp.WriteCell(output, "A", row, "Term Period")
+	sp.WriteCell(output, "B", row, "Associate Scholarship Count")
+	sp.WriteCell(output, "C", row, "Dependent Scholarship Count")
+	sp.WriteCell(output, "D", row, "Individual Grant Count")
+	row++
+	//
+	// Calculate scholarship accounts
+	//
+	var paymentMap = createPaymentMap(billCount)
+	periods := [4]TermPeriod{
+		PriorTerm,
+		Spring,
+		Summer,
+		Fall,
+	}
+	for _, period := range periods {
+		sp.WriteCell(output, "A", row, string(period))
+		var paymentCount = paymentMap[period]
+		sp.WriteCellInt(output, "B", row, paymentCount.AssociateScholarshipCount())
+		sp.WriteCellInt(output, "C", row, paymentCount.DependentScholarshipCount())
+		sp.WriteCellInt(output, "D", row, paymentCount.IndividualGrantCount())
+		row++
+	}
 }
 
 // ----------------------------------------------------------------------------

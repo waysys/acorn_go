@@ -126,10 +126,10 @@ func (sch Scholarship) Compare(anotherSch Scholarship) int {
 		result = CompareTermPeriod(sch.TermPeriod(), anotherSch.TermPeriod())
 	}
 	if result == 0 {
-		result = CompareAccountType(sch.AccountType(), anotherSch.AccountType())
+		result = CompareEnrollmentStatus(sch.EnrollmentStatus(), anotherSch.EnrollmentStatus())
 	}
 	if result == 0 {
-		result = CompareEnrollmentStatus(sch.EnrollmentStatus(), anotherSch.EnrollmentStatus())
+		result = CompareAccountType(sch.AccountType(), anotherSch.AccountType())
 	}
 	return result
 }
